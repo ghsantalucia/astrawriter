@@ -12,11 +12,13 @@ Estrutura do Projeto com Descrições:
 │   │   ├── roadmap.md
 │   │   ├── system.md
 │   │   └── ui-controls.md
+│   ├── ai-tools.md
 │   ├── Checklist.md
 │   ├── code-map.txt
 │   ├── Component.md
 │   ├── Event UI.md
 │   ├── event-map.txt
+│   ├── guia-do-usuario.md
 │   ├── Padrão de Eventos.md
 │   ├── project-map.txt
 │   └── project.md
@@ -26,6 +28,13 @@ Estrutura do Projeto com Descrições:
 ├── package-lock.json
 ├── package.json
 ├── [public]
+│   ├── [fonts]
+│   │   ├── FoglihtenNo07.otf
+│   │   ├── FoglihtenNo07calt.otf
+│   │   ├── FoglihtenNo07calt_0871.pdf
+│   │   ├── FoglihtenNo07_0871.png
+│   │   ├── FoglihtenNo07_specimen_0871.pdf
+│   │   └── OFL_License.txt
 │   ├── icon.ico
 │   └── icon.png
 ├── README.md
@@ -36,155 +45,260 @@ Estrutura do Projeto com Descrições:
 │   └── project-map.js — ou @description no início do arquivo
 ├── [src]
 │   ├── [main]
+│   │   ├── ai-error-log.js — Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).
+│   │   ├── book-migrations.js — Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.
+│   │   ├── book-search.js — Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal
+│   │   ├── changelog.js — Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em
+│   │   ├── export.js — Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do
 │   │   ├── file-watcher.js — Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.
 │   │   ├── ipc-handlers.js — Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).
-│   │   └── main.js — Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
+│   │   ├── main.js — Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
+│   │   └── spellchecker.js — Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
 │   ├── [preload]
 │   │   └── preload.js — Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.
-│   └── [renderer]
-│       ├── [ai]
-│       │   ├── aiGateway.js — Roteador dinâmico de provedores de IA.
-│       │   ├── aiTools.js — Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
-│       │   └── [providers]
-│       │       └── [mock]
-│       │           └── index.js — Módulo do Provedor Simulado (Mock)
-│       ├── app.js — Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.
-│       ├── [assets]
-│       │   └── [css]
-│       │       ├── [base]
-│       │       │   ├── global.css
-│       │       │   ├── layout.css
-│       │       │   ├── reset.css
-│       │       │   └── variables.css
-│       │       ├── [components]
-│       │       │   ├── buttons.css
-│       │       │   └── switch.css
-│       │       └── main.css
-│       ├── [components]
-│       │   ├── [Chat]
-│       │   │   ├── animations.js — Gerencia as animações da interface do chat de IA
-│       │   │   ├── ChatComponent.js — Componente responsável pela renderização estrutural do chat do assistente de IA
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       ├── dateDivider.hbs
-│       │   │       ├── main.hbs
-│       │   │       ├── message.hbs
-│       │   │       └── startMarker.hbs
-│       │   ├── Component.js
-│       │   ├── [Editor]
-│       │   │   ├── EditorComponent.js — Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       └── main.hbs
-│       │   ├── [EditorOverlay]
-│       │   │   ├── EditorOverlayComponent.js — Componente responsável pela renderização estrutural do editor overlay
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       └── main.hbs
-│       │   ├── [Explorer]
-│       │   │   ├── ExplorerComponent.js — Componente responsável pela renderização estrutural e lógica do explorer de arquivos.
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       ├── fileNode.hbs
-│       │   │       ├── folderNode.hbs
-│       │   │       └── main.hbs
-│       │   ├── index.js — Barrel para exportação centralizada de todos os componentes de interface.
-│       │   ├── [Modal]
-│       │   │   ├── ModalComponent.js — Classe gerenciadora de modais em pilha (Stack).
-│       │   │   ├── ModalManager.js — Classe gerenciadora da pilha de modais dinâmicos da aplicação.
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       ├── main.hbs
-│       │   │       └── syncForm.hbs
-│       │   ├── [Settings]
-│       │   │   ├── SettingsComponent.js — Componente responsável pela renderização estrutural da drawer de configurações
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       └── main.hbs
-│       │   ├── [Sidebar]
-│       │   │   ├── SidebarComponent.js — Componente responsável pela renderização estrutural da barra lateral (Sidebar).
-│       │   │   ├── styles.css
-│       │   │   └── [templates]
-│       │   │       └── main.hbs
-│       │   ├── [Toast]
-│       │   │   ├── styles.css
-│       │   │   ├── [templates]
-│       │   │   │   └── main.hbs
-│       │   │   └── ToastComponent.js — Componente responsável pela renderização estrutural do toast.
-│       │   └── [Toolbar]
-│       │       ├── animations.js — Gerencia as animações da interface do usuário
-│       │       ├── styles.css
-│       │       ├── [templates]
-│       │       │   └── main.hbs
-│       │       └── ToolbarComponent.js — Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).
-│       ├── [controllers]
-│       │   ├── domainController.js — Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.
-│       │   ├── [handlers]
-│       │   │   ├── bookHandler.js — Handler dos eventos relacionados ao livro/projeto
-│       │   │   ├── chapterHandler.js
-│       │   │   ├── characterHandler.js
-│       │   │   ├── chatHandler.js — Handler para orquestração de eventos e mensagens do chat.
-│       │   │   ├── configHandler.js — Handler para gerenciar alterações no arquivo config.json dos projetos.
-│       │   │   └── fileHandler.js — Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.
-│       │   └── uiController.js — Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.
-│       ├── [core]
-│       │   ├── appContainer.js — Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar
-│       │   ├── state.js — Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.
-│       │   └── themeManager.js — Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.
-│       ├── [events]
-│       │   ├── domainBus.js — Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.
-│       │   ├── uiBus.js — scripts/renderer/events/eventUi.js
-│       │   └── uiDeclarativeEvents.js
-│       ├── index.html
-│       ├── renderer.js
-│       ├── [services]
-│       │   ├── aiService.js — Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
-│       │   ├── bookService.js — Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.
-│       │   ├── fileService.js — Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.
-│       │   └── serviceManager.js — Agregador central de serviços (Facade). Instancia e gerencia o acesso
-│       └── [utils]
-│           ├── helpers.js — Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.
-│           └── markdown.js — Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
+│   ├── [renderer]
+│   │   ├── [ai]
+│   │   │   ├── aiGateway.js — Roteador dinâmico de provedores de IA.
+│   │   │   ├── aiTools.js — Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
+│   │   │   ├── apiError.js — Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para
+│   │   │   ├── [prompts]
+│   │   │   │   ├── index.js — Monta o prompt de sistema único, reutilizado por todos os provedores de IA.
+│   │   │   │   └── systemPrompt.md
+│   │   │   ├── [providers]
+│   │   │   │   ├── [claude]
+│   │   │   │   │   ├── client.js — Cliente HTTP da API da Anthropic.
+│   │   │   │   │   ├── config.js — Constantes de conexão com a Messages API da Anthropic.
+│   │   │   │   │   ├── index.js — Módulo do Provedor Claude (Anthropic).
+│   │   │   │   │   └── models.js — Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).
+│   │   │   │   ├── [gemini]
+│   │   │   │   │   ├── client.js — Cliente HTTP da API Gemini (generateContent).
+│   │   │   │   │   ├── config.js — Constantes de conexão com a API Gemini (Google AI).
+│   │   │   │   │   ├── index.js — Módulo do Provedor Gemini (Google).
+│   │   │   │   │   └── models.js — Modelos do Gemini oferecidos por padrão no select (a lista é atualizada pela API quando há chave).
+│   │   │   │   ├── index.js — Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).
+│   │   │   │   └── [mock]
+│   │   │   │       ├── index.js — Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma
+│   │   │   │       └── models.js — Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).
+│   │   │   ├── [skills]
+│   │   │   │   ├── index.js — Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.
+│   │   │   │   └── revisao-de-consistencia.md
+│   │   │   ├── toolLoop.js — Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.
+│   │   │   ├── [tools]
+│   │   │   │   ├── bookTools.js — Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.
+│   │   │   │   ├── chatTools.js — Ferramenta que permite à IA anexar botões à sua resposta no chat.
+│   │   │   │   ├── creationTools.js — Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.
+│   │   │   │   ├── historyTools.js — Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de
+│   │   │   │   ├── permissions.js — Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).
+│   │   │   │   ├── projectTools.js — Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o
+│   │   │   │   ├── registry.js — Registro de ferramentas (tool calling) independente de provedor.
+│   │   │   │   ├── skillTools.js — Ferramenta que carrega skills (instruções) sob demanda.
+│   │   │   │   ├── structureTools.js — Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo
+│   │   │   │   └── variableTools.js — Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.
+│   │   │   └── usageTracker.js — Contador local de uso diário da IA, por provedor e modelo.
+│   │   ├── app.js — Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.
+│   │   ├── [assets]
+│   │   │   ├── [css]
+│   │   │   │   ├── [base]
+│   │   │   │   │   ├── global.css
+│   │   │   │   │   ├── layout.css
+│   │   │   │   │   ├── reset.css
+│   │   │   │   │   └── variables.css
+│   │   │   │   ├── [components]
+│   │   │   │   │   ├── buttons.css
+│   │   │   │   │   ├── splash.css
+│   │   │   │   │   ├── switch.css
+│   │   │   │   │   ├── tags.css
+│   │   │   │   │   └── tooltip.css
+│   │   │   │   └── main.css
+│   │   │   └── [fonts]
+│   │   │       ├── FoglihtenNo07calt.otf
+│   │   │       └── OFL_License.txt
+│   │   ├── [components]
+│   │   │   ├── [Chat]
+│   │   │   │   ├── animations.js — Gerencia as animações da interface do chat de IA
+│   │   │   │   ├── ChatComponent.js — Componente responsável pela renderização estrutural do chat do assistente de IA
+│   │   │   │   ├── nebula.js — Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.
+│   │   │   │   ├── orbits.js — Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── dateDivider.hbs
+│   │   │   │       ├── main.hbs
+│   │   │   │       ├── message.hbs
+│   │   │   │       └── startMarker.hbs
+│   │   │   ├── Component.js
+│   │   │   ├── [Dropdown]
+│   │   │   │   ├── DropdownComponent.js — Componente de dropdown (lista suspensa) personalizado e reutilizável.
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Editor]
+│   │   │   │   ├── EditorComponent.js — Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
+│   │   │   │   ├── EditorKit.js — Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)
+│   │   │   │   ├── editorTools.js — Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):
+│   │   │   │   ├── FindReplacePanel.js — Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).
+│   │   │   │   ├── LinkPopup.js — Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── tagInput.js — Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou
+│   │   │   │   ├── [templates]
+│   │   │   │   │   ├── editorPanels.hbs
+│   │   │   │   │   └── main.hbs
+│   │   │   │   ├── WritingMenu.js — Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao
+│   │   │   │   └── writingProblems.js — Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não
+│   │   │   ├── [EditorOverlay]
+│   │   │   │   ├── EditorOverlayComponent.js — Componente responsável pela renderização estrutural do editor overlay
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Explorer]
+│   │   │   │   ├── ExplorerComponent.js — Componente responsável pela renderização estrutural e lógica do explorer de arquivos.
+│   │   │   │   ├── keyboardNav.js — Navegação do explorer pelo teclado. Depois de clicar no explorer:
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── fileNode.hbs
+│   │   │   │       ├── folderNode.hbs
+│   │   │   │       └── main.hbs
+│   │   │   ├── index.js — Barrel para exportação centralizada de todos os componentes de interface.
+│   │   │   ├── [Modal]
+│   │   │   │   ├── ModalComponent.js — Classe gerenciadora de modais em pilha (Stack).
+│   │   │   │   ├── ModalManager.js — Classe gerenciadora da pilha de modais dinâmicos da aplicação.
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── aiErrorLog.hbs
+│   │   │   │       ├── aiReview.hbs
+│   │   │   │       ├── changelogRows.hbs
+│   │   │   │       ├── changelogViewer.hbs
+│   │   │   │       ├── history.hbs
+│   │   │   │       ├── historyCompare.hbs
+│   │   │   │       ├── main.hbs
+│   │   │   │       └── syncForm.hbs
+│   │   │   ├── [Settings]
+│   │   │   │   ├── SettingsComponent.js — Componente responsável pela renderização estrutural da drawer de configurações
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Sidebar]
+│   │   │   │   ├── SidebarComponent.js — Componente responsável pela renderização estrutural da barra lateral (Sidebar).
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Toast]
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── [templates]
+│   │   │   │   │   └── main.hbs
+│   │   │   │   └── ToastComponent.js — Componente responsável pela renderização estrutural do toast.
+│   │   │   ├── [Toolbar]
+│   │   │   │   ├── animations.js — Gerencia as animações da interface do usuário
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── [templates]
+│   │   │   │   │   └── main.hbs
+│   │   │   │   └── ToolbarComponent.js — Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).
+│   │   │   └── [Wizard]
+│   │   │       ├── styles.css
+│   │   │       ├── [templates]
+│   │   │       │   └── main.hbs
+│   │   │       └── WizardComponent.js — Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar
+│   │   ├── [controllers]
+│   │   │   ├── domainController.js — Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.
+│   │   │   ├── [handlers]
+│   │   │   │   ├── aiReviewHandler.js — Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)
+│   │   │   │   ├── bookHandler.js — Handler dos eventos relacionados ao livro/projeto
+│   │   │   │   ├── chapterHandler.js
+│   │   │   │   ├── characterHandler.js
+│   │   │   │   ├── chatHandler.js — Handler para orquestração de eventos e mensagens do chat.
+│   │   │   │   ├── configHandler.js — Handler para gerenciar alterações no arquivo config.json dos projetos.
+│   │   │   │   ├── creationHandler.js — Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação
+│   │   │   │   ├── deleteHandler.js — Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:
+│   │   │   │   ├── exportHandler.js — Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.
+│   │   │   │   ├── fileHandler.js — Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.
+│   │   │   │   ├── folderHandler.js — Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.
+│   │   │   │   ├── historyHandler.js — Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no
+│   │   │   │   ├── linkHandler.js — Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e
+│   │   │   │   ├── logViewerHandler.js — Handler dos visualizadores de logs da tela de configurações: o changelog do livro (lista corrida com
+│   │   │   │   ├── searchHandler.js — Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.
+│   │   │   │   └── variablesHandler.js — Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo
+│   │   │   └── uiController.js — Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.
+│   │   ├── [core]
+│   │   │   ├── appContainer.js — Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar
+│   │   │   ├── splash.js — Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela
+│   │   │   ├── state.js — Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.
+│   │   │   ├── themeManager.js — Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.
+│   │   │   └── tooltip.js — Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma
+│   │   ├── [events]
+│   │   │   ├── domainBus.js — Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.
+│   │   │   ├── uiBus.js — scripts/renderer/events/eventUi.js
+│   │   │   └── uiDeclarativeEvents.js
+│   │   ├── index.html
+│   │   ├── renderer.js
+│   │   ├── [services]
+│   │   │   ├── aiService.js — Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
+│   │   │   ├── bookService.js — Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.
+│   │   │   ├── changelogService.js — Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra
+│   │   │   ├── creationService.js — Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.
+│   │   │   ├── deletionService.js — Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.
+│   │   │   ├── fileService.js — Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.
+│   │   │   ├── folderService.js — Serviço das pastas do usuário e da movimentação de arquivos entre pastas.
+│   │   │   ├── indexService.js — Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos
+│   │   │   ├── searchService.js — Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).
+│   │   │   ├── serviceManager.js — Agregador central de serviços (Facade). Instancia e gerencia o acesso
+│   │   │   └── spellService.js — Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
+│   │   └── [utils]
+│   │       ├── autoLinkText.js — Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e
+│   │       ├── bookFiles.js — Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos
+│   │       ├── bookIndex.js — Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual
+│   │       ├── changelogFormat.js — Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.
+│   │       ├── chatActions.js — Catálogo das ações nativas que um botão do chat pode disparar.
+│   │       ├── chatBackground.js — Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.
+│   │       ├── chatMarkdown.js — Conversão segura de Markdown (respostas da IA) em HTML para o chat.
+│   │       ├── deletePermission.js — Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.
+│   │       ├── diff.js — Comparação linha a linha entre duas versões de um texto.
+│   │       ├── helpers.js — Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.
+│   │       ├── historyCompare.js — Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown
+│   │       ├── markdown.js — Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
+│   │       └── template.js — Funções puras para interpretar arquivos-modelo (templates) do livro.
+│   └── [shared]
+│       ├── looseText.js — Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface
+│       └── tags.js — Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado
 ├── [templates]
-│   └── [book]
-│       ├── [.system]
-│       │   ├── [changelog]
-│       │   │   └── .gitkeep
-│       │   └── [chatlog]
-│       │       └── .gitkeep
-│       ├── [assets]
-│       │   ├── [characters]
-│       │   │   ├── folder.yml
-│       │   │   ├── index.md
-│       │   │   └── protagonista_x.md
-│       │   ├── [elements]
-│       │   │   ├── folder.yml
-│       │   │   ├── index.md
-│       │   │   └── magia.md
-│       │   ├── folder.yml
-│       │   ├── [places]
-│       │   │   ├── folder.yml
-│       │   │   ├── index.md
-│       │   │   └── reino_Y.md
-│       │   └── timeline.md
-│       ├── config.json
-│       ├── [content]
-│       │   ├── [cap_001]
-│       │   │   ├── 1_script.md
-│       │   │   ├── 2_draft.md
-│       │   │   ├── 3_metadata.md
-│       │   │   ├── [backlog]
-│       │   │   │   ├── 1_analysis.md
-│       │   │   │   ├── 2_foreshadowing.md
-│       │   │   │   ├── 3_roadmap.md
-│       │   │   │   └── folder.yml
-│       │   │   └── folder.yml
-│       │   ├── folder.yml
-│       │   ├── index.md
-│       │   └── plot.md
-│       ├── index.md
-│       └── [notes]
-│           └── folder.yml
+│   ├── [book]
+│   │   ├── [.system]
+│   │   │   ├── [changelog]
+│   │   │   │   └── .gitkeep
+│   │   │   └── [chatlog]
+│   │   │       └── .gitkeep
+│   │   ├── [assets]
+│   │   │   ├── [characters]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   └── template.md
+│   │   │   ├── [elements]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   └── template.md
+│   │   │   ├── folder.yml
+│   │   │   ├── [places]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   └── template.md
+│   │   │   └── timeline.md
+│   │   ├── config.json
+│   │   ├── [content]
+│   │   │   ├── [chapter_001]
+│   │   │   │   ├── 1_script.md
+│   │   │   │   ├── 2_draft.md
+│   │   │   │   ├── 3_metadata.md
+│   │   │   │   ├── [backlog]
+│   │   │   │   │   ├── 1_analysis.md
+│   │   │   │   │   ├── 2_foreshadowing.md
+│   │   │   │   │   ├── 3_roadmap.md
+│   │   │   │   │   └── folder.yml
+│   │   │   │   └── folder.yml
+│   │   │   ├── folder.yml
+│   │   │   ├── index.md
+│   │   │   └── plot.md
+│   │   ├── index.md
+│   │   └── [notes]
+│   │       └── folder.yml
+│   └── [system]
 ├── vite.main.config.mjs
 ├── vite.preload.config.mjs
 └── vite.renderer.config.mjs

@@ -1,12 +1,12 @@
-# DraftWeaver: Memória de Arquitetura e Padrões de Projeto
+# Astra Writter: Memória de Arquitetura e Padrões de Projeto
 
 Esta documentação serve como o nosso "manual de sobrevivência" e fonte única de verdade para o projeto. Escrevi este registro para consolidar o conhecimento técnico, as escolhas arquiteturais e os padrões que estamos adotando, garantindo que o contexto e a consistência do projeto se mantenham intactos independentemente dos limites de memória dos logs.
 
 ---
 
-## 1. O Que é o DraftWeaver?
+## 1. O Que é o Astra Writter?
 
-O **DraftWeaver** é um editor de livros assistido por IA, desenvolvido para manter a rigidez e a consistência em universos narrativos complexos. O aplicativo possui três modos de operação:
+O **Astra Writter** é um editor de livros assistido por IA, desenvolvido para manter a rigidez e a consistência em universos narrativos complexos. O aplicativo possui três modos de operação:
 
 - **Auxílio de Escrita:** O usuário comanda a IA, que redige trechos sujeitos a revisão humana direta.
 - **Criação Guiada:** A IA gera capítulo a capítulo com revisão e prompts do usuário.
@@ -77,6 +77,41 @@ Abandonamos chamadas diretas e acopladas entre funções. A comunicação do sis
 
 ---
 
+### Changelog e Rollback (`<livro>/.system/changelog`)
+
+Tudo o que é criado, alterado, excluído, movido, restaurado, salvo automaticamente (e lido pela IA) é registrado por `ChangelogService` (renderer) e gravado por `src/main/changelog.js` (main), com o autor e a data/hora exatas. Há **três autores**: **Usuário**, **IA** (provedor + modelo) e **Sistema** (ajustes colaterais feitos pelo próprio app, como renumerar capítulos ou, no futuro, o fallback automático de modelo de IA).
+
+- `logs/log_NNNN.jsonl`: informações (uma linha por registro). Rotaciona a cada 500 registros ou 256 KB.
+- `contents/content_NNNN.jsonl`: conteúdo para rollback (diferenças por linha de uma edição, ou o texto integral de um arquivo excluído). Rotaciona a cada 200 conteúdos ou 1 MB.
+- O registro aponta para o conteúdo como uma "chave estrangeira": `content: { file, index }`. Criações e leituras não têm conteúdo (`content: null`).
+- Ações registradas: `create`, `update`, `delete`, `move` (renomear/renumerar), `restore`, `read` (IA), `autosave` e `setting` (ex.: troca de provedor/modelo de IA; nunca a chave de API).
+- **Autosave:** há **um único registro por sessão de edição** de um arquivo (a sessão vai da abertura até trocar de arquivo, sincronizar, restaurar ou fechar o app). Cada novo salvamento do rascunho atualiza o mesmo registro (data/hora, diferenças e contagem de salvamentos).
+- Hashes SHA-1 do antes/depois garantem que a restauração nunca seja aplicada sobre um arquivo diferente do esperado (edições feitas fora do app cancelam a restauração).
+- **Restaurar nunca apaga registros.** Os registros posteriores à versão restaurada continuam no log, marcados com `purged: true`; apenas o **conteúdo** guardado deles é apagado (eles deixam de permitir rollback e o visualizador anota "conteúdo apagado · sem rollback"). A restauração gera um registro `restore`.
+- **Histórico de um arquivo** (botão "Histórico"): lista só as versões com conteúdo. Logo após restaurar uma versão, ela passa a ser a versão atual e some da lista (assim como o registro `restore`), restando as anteriores. Antes de restaurar, uma tela compara lado a lado a versão atual e a escolhida (Markdown interpretado; trechos removidos em vermelho e incluídos em verde, sutis) com o aviso do que será perdido; "Cancelar" volta à lista.
+- Arquivos que já existiam antes do changelog ganham a versão "original" (estado anterior ao primeiro registro).
+- Renomear/mover arquivos (`move`) preserva o histórico: a consulta segue os movimentos para trás.
+- O log de erros da IA fica fora do livro, em `<dados do usuário>/ai/errors.log` (limitado a ~256 KB: os registros mais antigos são descartados).
+
+### Estrutura dos livros e exclusões
+
+- Capítulos ficam em `content/chapter_NNN/` (antes `cap_NNN`). Livros antigos são migrados automaticamente ao listar os livros (`src/main/book-migrations.js`): pastas renomeadas, referências em `content/index.md`, `config.json` e no changelog atualizadas.
+- **Exclusão** (botão de lixeira ao passar o mouse no explorer): anotações e fichas do mundo, com modal de confirmação. Capítulos são excluídos pela **pasta inteira** (arquivos e subpastas) e os seguintes são **renumerados** sem deixar buracos; os ajustes colaterais (mover pastas, atualizar o índice e títulos padrão) entram no changelog com o autor **Sistema**.
+- **Permissão de exclusão** no frontmatter: `userDelete` e `aiDelete` (ver `docs/ai-tools.md` e `src/renderer/utils/deletePermission.js`). Arquivos da escrita (`content/`), índices (`index.md`) e modelos (`template.md`) nunca são excluídos individualmente; quem não pode editar um arquivo também não pode excluí-lo.
+- Variáveis de apelido (`aliases`) em personagens, ambientes e sistemas alimentam o botão "Linkar termos" do editor.
+
+### Editor (links, busca e rodapé)
+
+- Links internos usam o caminho do arquivo a partir da raiz do livro, sempre com barra inicial (`/assets/places/reino.md`). Aparecem como "tag" com contorno; **rosa** quando criados por "Linkar termos" (marcados com `#auto` até a sincronização, quando passam a azul); **cinza** quando o arquivo foi excluído. Botão direito em um link interno oferece "Remover link". Links da web abrem no navegador padrão.
+- Botões da toolbar do editor: link (arquivo do livro ou externo), procurar/substituir (`Ctrl+F`) e alternância entre texto formatado e Markdown.
+- Rodapé: palavras, tempo de leitura, conexões wiki e o status do salvamento automático.
+
+### Documentação das tools da IA
+
+A lista de tools da IA e o guia de uso ficam em `docs/ai-tools.md`. **Sempre que criar, alterar ou remover uma tool, atualize esse arquivo.**
+
+---
+
 ## 5. Planejamento Futuro (Roadmap Técnico)
 
 - **TypeScript:** Adoção de tipagem via TypeScript em todo o projeto.
@@ -86,3 +121,133 @@ Abandonamos chamadas diretas e acopladas entre funções. A comunicação do sis
   - _Playwright_ para testes end-to-end (E2E) de interface.
 
 ---
+
+---
+
+## 6. Design, tema e telas
+
+- **Tokens de design** em `src/renderer/assets/css/base/variables.css`: raios (`--radius-sm/md/lg`, meio-termo entre arredondado e pontudo), fundos (`--bg-*`), superfícies (`--surface*`), texto (`--text*`), linhas (`--line*`), acento (`--accent*`) e cores semânticas (`--danger`, `--warning`, `--success`). O tema claro é o `:root` (acento roxo, combina com a nebulosa) e o escuro é `body.dark-theme` (acento azul). Componentes devem usar os tokens, nunca cores fixas.
+- **Chat:** estrelas em viagem no tema escuro; no claro, a nebulosa animada (`components/Chat/nebula.js`, WebGL otimizado: resolução interna reduzida, 30 fps e pausa quando a gaveta está recolhida, fora da tela ou com a aba oculta).
+- **Abertura** (`core/splash.js`): sequência em estágios (ver "Tools de estrutura/histórico, índices, explorer e abertura"); a barra de título permanece visível.
+- **Editor:** toda instância nasce pelo `EditorKit` (barra personalizada, link, busca, bloqueio de edição). A caixa "Dados do arquivo" fica entre a barra e o texto; a guia do arquivo (toolbar) tem a caneta que a abre. Autosave é gravado ao trocar de arquivo/limpar o editor/fechar o app (`flushAutoSave`).
+- **Pastas do usuário** (`FolderService`): criar/renomear/excluir só em Anotações e dentro das categorias do Mundo (`userDelete`/`userRename` no `folder.yml`; pastas estruturais têm `false`). Arquivos podem ser arrastados entre pastas da mesma categoria; os links internos para eles são corrigidos (autor Sistema).
+- **Ortografia:** o sublinhado e o menu de sugestões (botão direito) vêm do corretor do Electron/Chromium; o contador do rodapé usa Hunspell próprio (ver "Ajustes seguintes"). Idioma e liga/desliga (`app_spell_language`, `app_spellcheck_enabled`) ficam nas configurações. A "gramática" é só a regra de palavras repetidas; não há correção gramatical offline completa.
+
+### 6.x Correções de interface (rodada de ajustes)
+
+- **Toolbar do editor:** os botões próprios (`dw-tb-btn`) zeram a margem padrão do Toast UI (`margin: 0 !important`), que os deixava 7px mais baixos. Os botões da direita ficam centralizados na faixa; só a guia do arquivo encosta na borda inferior.
+- **Guia do arquivo:** o corpo trapezoidal usa `isolation: isolate` (o `z-index: -1` do pseudo-elemento o jogava atrás do fundo da toolbar). A caneta só aparece se o arquivo tem algo editável (`humanWrite` e `editableFields`), com opacidade reduzida até o hover.
+- **Somente leitura:** `editor:unlock` (fim do bloqueio da IA) não libera mais arquivos somente leitura nem o estado "sem arquivo".
+- **Rodapé:** os avisos de links inválidos e problemas ortográficos só aparecem quando > 0; o clique no aviso percorre os itens (seleciona, rola e foca o editor): links inválidos (`EditorKit.getBrokenLinks/selectRange`) e problemas de escrita (`EditorKit.getWritingProblems`, `components/Editor/writingProblems.js`: palavras desconhecidas e repetidas em sequência, em ordem de texto). O contador de ortografia usa Hunspell próprio (ver "Ajustes seguintes").
+- **Chat no tema claro:** deixou de usar a paleta escura. Gaveta lilás, corpo rosa claro, nebulosa (canvas a 80%, fundo transparente, estrelas violeta, semente aleatória a cada montagem), balões e avisos opacos. No tema escuro as estrelas viajam na diagonal (canto inferior direito → superior esquerdo), com velocidade por profundidade; o paralaxe do mouse foi removido.
+- **Explorer:** ações da pasta (novo item, nova pasta, renomear, excluir) agrupadas à direita (`.folder-actions`), visíveis no hover. Seleção de itens somente leitura mantém a cor dos demais. Novo token `--line-strong`.
+- **Nebulosa (tema claro):** shader opaco e detalhado (como o original), canvas a 55% de opacidade sobre o rosa claro da div. A semente é sorteada em [1, 61) a cada montagem: sementes grandes (centenas) quebram a precisão do shader e geram tela preta.
+- **Estrelas (tema escuro):** deslocamento lento da direita para a esquerda, levemente para cima (`TRAVEL_SPEED`, `TRAVEL_RISE` em `Chat/animations.js`); estrelas cadentes caem para baixo, para a esquerda.
+- **Abertura:** o reset global fixa `font-family` em `*`, por isso cada linha do título sobrescreve a fonte também nos filhos (`.splash-per *`, `.splash-astra *`).
+- **Pastas:** pastas do usuário também podem ser arrastadas para dentro de outras (`FolderService.moveFolder`, mesma regra de categoria; cada arquivo vira um "move" no changelog e os links são corrigidos).
+- **Barra de título:** acompanha o tema. `--bg-header` é `#ece9f6` no claro e `#0e0f17` no escuro, e o `themeManager` chama `setNativeTheme` para o main recolorir os botões nativos (`update-titlebar-theme` em `ipc-handlers.js`: fundo e símbolos por tema). A tela de abertura é sempre `#0e0f17` (escuro) ou branca (claro).
+- **Layout:** sidebar com 481px e `border-right`; botão Sincronizar com 120px.
+
+
+## Tools de estrutura/histórico, índices, explorer e abertura (rodada atual)
+
+- **Novas tools da IA** (`structureTools`, `variableTools`, `historyTools`, `projectTools`): ver `docs/ai-tools.md`. Os serviços
+  `FolderService`/`DeletionService`/`ChangelogService.restore` aceitam o autor (`actor`) para registrar a IA no changelog; a
+  interface se atualiza pelo evento `book:structure-changed` (`deleteHandler.onStructureChanged`) e `explorer:advanced-changed`.
+- **Revisão da IA:** alterações só nos dados (frontmatter) deixaram de ser descartadas como "sem alteração"; a tela lista as variáveis alteradas.
+- **Índices:** `services/indexService.js` + `utils/bookIndex.js` — fichas criadas entram no `index.md` da categoria; arquivos/pastas/capítulos excluídos saem dos índices.
+- **Explorer:** `#sidebar-container > .sidebar` e `#explorer-container` agora são colunas flex limitadas à altura visível; só a árvore rola e ela termina acima do botão do assistente.
+- **Abertura:** a tela fica vazia até o app estar pronto (versão do app no rodapé); depois toca "Per Aspera Ad" → "Astra" + estrela cadente → pausa de 0,7 s → fade
+  (`core/splash.js`, classes `.stage-per`/`.stage-astra`/`.leaving`; tempos em constantes no topo do arquivo). Tema claro: fundo `#ece9f6` (igual ao header) e letras chumbo `#23232b`; entrada simples (fade de cima para baixo). "Astra" usa a fonte Foglihten No07 (`assets/fonts/`, licença OFL junto) e "Per Aspera Ad" a fonte do sistema; ambas nas variáveis `--splash-font-per` e `--splash-font-astra` (`splash.css`).
+
+
+## Busca tolerante, tags e correção ortográfica (rodada atual)
+
+- **Busca:** `shared/looseText.js` (usada em `main/book-search.js` e no destaque do explorer) ignora maiúsculas, acentos, pontuação e
+  artigos/conjunções/preposições: "vira lata" acha "vira-lata"; "grimório eldoria" acha "Grimório de Eldoria". Quando não há resultado,
+  a mensagem aparece logo abaixo da barra (antes ficava no rodapé do explorer).
+- **Tags:** variável especial `tags: [..]` no frontmatter (`shared/tags.js`: normalização `a-z`, acentos, `- _ / . 0-9`, hash FNV-1a → 40 cores
+  em `assets/css/components/tags.css`, versões clara/escura). Editadas na caixa "Dados do arquivo" (`components/Editor/tagInput.js`: vírgula/Enter
+  viram tag, sugestões das tags do livro com setas+Enter) e exibidas no cabeçalho da caixa. Na pesquisa, `#tag` (várias, todas precisam existir) lista
+  os arquivos com a tag, mostrando-a no lugar do trecho. Salvar passa por `variablesHandler.onVariablesSave` (campo `__tags`); a IA usa `tags` em
+  `get_file_variables`/`set_file_variables`.
+- **Correção:** switch "Correção ortográfica e gramatical" nas Configurações (liga/desliga o corretor do Chromium e o contador do rodapé, que
+  também conta palavras repetidas em sequência).
+
+### Ajustes seguintes (tags, ortografia, intro)
+
+- **Contador ortográfico:** o `webFrame.isWordMisspelled` não funciona com o corretor nativo do Windows, então o contador usa Hunspell em
+  WebAssembly (`hunspell-asm`) no processo principal (`main/spellchecker.js`, IPC `spell-check`/`spell-suggest`/`spell-add-word`) com os dicionários `dictionary-pt` (pt-BR),
+  `-en`, `-es`, `-fr`. (`nspell` foi descartado: expandir os afixos do dicionário português trava.) O sublinhado continua sendo do Chromium.
+  Palavras adicionadas pelo menu de contexto não contam como erro.
+- **Versão do app:** `app.getVersion()` (IPC `get-app-version`) = `version` do `package.json`; o Vite não tem versão própria do projeto.
+  É exibida no rodapé da tela de intro.
+- **Explorer/guia:** alterar nome/tags pelas variáveis atualiza o mapa do livro e redesenha o explorer (`file:variables-changed` →
+  `tree:updated`); a guia do arquivo mostra o asterisco quando há rascunho (`ToolbarComponent.refreshTabDirty`).
+- **Problemas de escrita (rodapé):** o IPC `spell-check` devolve a lista de palavras desconhecidas; o editor localiza cada ocorrência no documento
+  (`findWritingProblemRanges`), junto das palavras repetidas, e o clique no aviso percorre todas em ordem. Uma palavra errada e repetida conta uma vez.
+- **Guia do arquivo (toolbar):** a dica ao passar o mouse mostra o caminho relativo do arquivo real no disco (`file:opened.relativePath`).
+- **CSS do botão "Salvar dados":** o Toast UI define `.toastui-editor-defaultUI button { color }` com especificidade maior que uma classe simples, por
+  isso a regra usa `.file-data-box .file-data-save` (claro: letra `#f6f3ff`) e `body.dark-theme .file-data-box .file-data-save` (escuro: `#11111b`).
+- **Dependências novas:** `hunspell-asm`, `dictionary-pt`/`-en`/`-es`/`-fr`, `@fontsource/cinzel-decorative` (hoje sem uso na abertura).
+
+---
+
+## Documentação para o usuário
+
+O guia didático de uso do aplicativo fica em [`guia-do-usuario.md`](guia-do-usuario.md). **Ao criar ou mudar uma funcionalidade visível ao
+autor, atualize também o guia.**
+
+### Correção ortográfica própria, tooltips, fundos do chat e criação em pastas
+
+- **Sublinhado próprio (o corretor do Chromium fica sempre desligado):** `session.setSpellCheckerEnabled(false)` em `main.js`; o Windows e o plugin
+  davam resultados diferentes. O sublinhado é decoração do ProseMirror (`.writing-spell`/`.writing-repeated`) calculada por
+  `findWritingProblemRanges` a partir das palavras que o Hunspell não reconhece. Botão direito num problema abre o menu próprio
+  (`Editor/WritingMenu.js`): sugestões (`spell-suggest`), **Ignorar** (até fechar o app), **Adicionar ao dicionário** (`spell-add-word`, grava
+  `spell-dictionary.json` na pasta de dados do usuário e vale para todos os livros) e, para repetições, remover/ignorar.
+- **Dicionário do projeto:** títulos, nomes e apelidos (`data.aliases`) de **todas** as fichas do livro atual contam como palavras corretas
+  (`EditorComponent.getProjectWords`); textos linkados, código, links e HTML nunca são conferidos (`writingProblems.blockText`).
+- **Tooltips (`core/tooltip.js` + `assets/css/components/tooltip.css`):** qualquer `title`/`data-tooltip` vira uma dica estilizada com atraso de 140 ms;
+  o `title` é trocado por `data-tooltip` no primeiro mouseover. Os botões do Toast UI usam o mesmo visual.
+- **Criar dentro de pastas do usuário:** pastas do usuário em `assets/<categoria>/` ganham o "+" (ficha com o template da categoria; `loadEntityTemplate`
+  sobe até a pasta-mãe que tem `template.md`) e as de `notes/` ganham "Nova anotação em..." (`getNoteSpec(folder)`, `createNote(values, source, folder)`).
+- **Livro novo:** `createBook` grava `explorer_state.open_file = <livro>/content/plot.md`, então a Sinopse abre ao selecionar o livro.
+- **Plano de fundo do chat:** preferência por tema (`utils/chatBackground.js`, `localStorage`: `chat_bg_<tema>`, `chat_bg_color_<tema>_<tipo>`) com 4 tipos:
+  estrelas (padrão do escuro), nebulosa (padrão do claro), órbitas (`Chat/orbits.js`, SVG animado; presets em `ORBIT_PRESETS`) e cor sólida.
+  A cor é escolhível em "estrelas" (sem escolha vale o degradê padrão do tema), "órbitas" (fundo) e "sólida". `ChatComponent.applyChatBackground` monta e desmonta o fundo (`chat-bg:apply`).
+
+### Navegação por teclado no explorer e ajustes visuais
+
+- **Teclado no explorer (`Explorer/keyboardNav.js`):** depois de um clique no explorer, ↑ ↓ percorrem as linhas visíveis da aba com o destaque do hover
+  (classe `kb-focus`, sem selecionar nem abrir), ← → percorrem as opções do item (`kb-btn-focus`; arquivos: `.item-edit-btn`/`.item-delete-btn` do `<li>`;
+  pastas: `.folder-act-btn`), Enter alterna a pasta, abre o arquivo ou aciona a opção escolhida, e ↓ no último item destaca a gaveta do chat (Enter
+  dispara o mesmo clique do cabeçalho, que foca o campo de texto). O ponto de partida é o arquivo `.active` da aba (ou o primeiro item). As teclas só valem
+  com o foco no corpo da página ou no explorer, sem modal aberto; clicar fora ou trocar de aba reinicia.
+- **Sublinhado de problemas de escrita:** pontilhado de 1px com 70% de opacidade (`.writing-spell`, `.writing-repeated`), para não atrapalhar a leitura.
+- **Gaveta do chat fechada (tema escuro):** o cabeçalho "acende" em azul (gradiente que avança da esquerda, `background-size`) no hover e no `kb-focus`.
+- **Scroll das configurações:** barra fina de 8px com os tokens `--scrollbar-thumb(-hover)`.
+- **Órbitas (claro):** preset `#c0c8e6` (fundo), `#e1e1e1` (órbitas), `#ededed` (planetas), `#ffffff` (luas e estrelas), `#d1d1d1` (asteroides).
+
+### Exportar arquivo (Markdown, Word, PDF)
+
+- Botão **Exportar** na toolbar (`Toolbar`, menu `#export-menu`; só ativo com um arquivo aberto). O renderer (`handlers/exportHandler.js`) pega o texto do editor
+  (inclui o que ainda é rascunho), gera o HTML com `marked` + `DOMPurify` (links internos do livro viram texto simples) e chama o IPC `export-file`.
+- `main/export.js` pergunta onde salvar (`dialog.showSaveDialog`) e grava: **.md** (texto do editor), **.docx** (`html-to-docx`, dependência nova) e **.pdf**
+  (impressão `printToPDF` do Chromium numa janela invisível sem JavaScript, A4, fonte serifada). O nome sugerido é o título do arquivo.
+
+### Pesquisa com vários termos e tags clicáveis
+
+- **Vários termos:** a pesquisa aceita termos separados por vírgula e devolve os arquivos que casam com **qualquer** um (`parseQuery` em `main/book-search.js`).
+  Cada termo é tolerante (acentos, pontuação, artigos). Termos com `#` pesquisam tags (várias tags no mesmo termo, separadas por espaço, exigem todas).
+  Cada resultado guarda `matched` (índices dos termos que casaram). **Ordem** (`compareResults`): 1) mais termos encontrados; 2) empate: a ordem dos termos digitados; 3) empate: alfabética
+  (vale também para um termo só: o título não tem mais prioridade sobre o texto). O tipo exibido segue título → trecho do texto → tags. O explorer mostra os arquivos de cada pasta nessa ordem
+  (`data-rank`) e ordena as pastas pelo melhor resultado que contêm. O destaque (`highlightMatch`) marca todos os termos de texto.
+- **Tags do cabeçalho da caixa de dados:** clicar numa tag não abre/fecha a caixa; ela coloca `#tag` no campo de pesquisa do explorer e dispara a busca
+  (`EditorComponent.searchByTag`). Clicar fora das tags continua alternando a caixa.
+
+- **Abrir/fechar todas as pastas:** botão na mini toolbar do explorer (`ExplorerComponent.toggleAllFolders`): abre todas as pastas da aba ou, se todas já estão abertas, fecha todas; cada pasta é alternada pelo próprio clique, então o estado vai para o `config.json`.
+
+- **Nomes em disco em inglês e numerados:** pastas do usuário viram `folder_001`, `folder_002`... (o nome digitado fica só no `title` do `folder.yml`; o número é por pasta-mãe),
+  anotações `note_001.md` e fichas `character_001.md`, `place_001.md`, `element_001.md` (`CreationService`, `FolderService.createFolder`). Itens antigos mantêm o nome que já tinham.
+
+- **Overlays abaixo da barra de título:** `#modal-container` e `#settings-container` começam em `top: 30px` (altura de `#window-header`) e têm `height: calc(100vh - 30px)`, então o escurecimento/blur nunca cobre a barra de título (os botões nativos da janela ficam coerentes com o resto dela). Novos overlays de tela cheia devem seguir a mesma regra.

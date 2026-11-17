@@ -1,4 +1,4 @@
-# DraftWeaver
+# Astra Writter
 
 <p align="left">
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js"></a>
@@ -15,7 +15,7 @@
 
 ## Visão Geral
 
-O **DraftWeaver** é uma aplicação desktop nativa desenvolvida para resolver os desafios de gerenciamento de dados e continuidade textual em grandes projetos literários. A ferramenta utiliza uma arquitetura baseada no sistema de arquivos local (_file-driven_), eliminando a necessidade de bancos de dados tradicionais, e implementa um modelo flexível de integração com APIs de IA (_Bring-Your-Key_).
+O **Astra Writter** é uma aplicação desktop nativa desenvolvida para resolver os desafios de gerenciamento de dados e continuidade textual em grandes projetos literários. A ferramenta utiliza uma arquitetura baseada no sistema de arquivos local (_file-driven_), eliminando a necessidade de bancos de dados tradicionais, e implementa um modelo flexível de integração com APIs de IA (_Bring-Your-Key_).
 
 ### Modos de Operação
 
@@ -106,6 +106,12 @@ npm install
 ```bash
 npm start
 ```
+
+## Documentação
+
+- [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo.
+- [Memória de arquitetura](docs/project.md): decisões e padrões do projeto.
+- [Tools da IA](docs/ai-tools.md): o que a IA pode fazer e as regras de permissão.
 
 ## Licença
 

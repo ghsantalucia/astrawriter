@@ -158,7 +158,7 @@ async function generateTextMap() {
     const data = await parseEvents();
 
     let output = `==================================================\n`;
-    output += ` MAPA DE ARQUITETURA DE EVENTOS DO DRAFTWEAVER\n`;
+    output += ` MAPA DE ARQUITETURA DE EVENTOS DO ASTRA WRITTER\n`;
     output += `==================================================\n\n`;
 
     // Seção uiBus

@@ -1,245 +1,864 @@
 === MAPA DETALHADO DE CÓDIGO DA PASTA /SRC ===
 .
 ├── [main]
+│   ├── ai-error-log.js — [Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).]
+│   │   ├── ⚙️ clip(value) — Limita o tamanho de um texto.
+│   │   ├── ⚙️ errorLogPath(userDataDir) — Caminho do arquivo de log.
+│   │   ├── ⚙️ trim(file) — Descarta os registros mais antigos quando o arquivo ultrapassa o limite.
+│   │   ├── ⚙️ appendAiError(userDataDir, error) — Acrescenta um erro ao log.
+│   │   ├── ⚙️ readAiErrors(userDataDir) — Lê os registros do log, do mais recente para o mais antigo.
+│   │   └── ⚙️ clearAiErrors(userDataDir) — Apaga todo o log de erros.
+│   ├── book-migrations.js — [Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.]
+│   │   ├── ⚙️ insertFrontmatterFlag(text, key, value) — Insere uma chave booleana no frontmatter (após `advanced`, `aiWrite` ou ao final), se ela ainda não existir.
+│   │   ├── ⚙️ listMarkdown(dir) — Lista (recursivamente) os arquivos .md de uma pasta, ignorando pastas ocultas.
+│   │   ├── ⚙️ ensureDeleteFlags(bookPath, { log = true } = {}) — Garante a permissão de exclusão (`userDelete`) nos arquivos estruturais de um livro (ou do template): - índices, sinopse (`content/plot.md`), linha do tempo e arquivos dos capítulos: `userDelete: false`; - modelos de ficha (`template.md`): `userDelete: true`, herdado pelas fichas criadas a partir deles.
+│   │   ├── ⚙️ insertAliasesVariable(text, label) — Insere a variável `aliases` no frontmatter de uma ficha (logo após a variável `title`), se ainda não existir.
+│   │   ├── ⚙️ ensureAliasVariable(bookPath) — Garante a variável `aliases` nas fichas existentes do livro.
+│   │   ├── ⚙️ listFolderYml(dir) — Lista (recursivamente) os arquivos folder.yml de uma pasta, ignorando pastas ocultas.
+│   │   ├── ⚙️ ensureFolderFlags(bookPath, { log = true } = {}) — Garante `userDelete: false` e `userRename: false` nos folder.yml que ainda não definem essas permissões.
+│   │   └── ⚙️ migrateBook(bookPath, { pause = (task) — Migra um livro para a estrutura atual (idempotente: um livro já migrado não é alterado). pausado (no Windows, pastas observadas não podem ser renomeadas).
+│   ├── book-search.js — [Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal]
+│   │   ├── ⚙️ stripMarkdown(markdown) — Remove as marcações Markdown (títulos, citações, listas, negrito, itálico, código, links etc.) deixando só o texto. Usado para que o trecho exibido na busca apareça limpo, sem formatação.
+│   │   ├── ⚙️ cleanSnippet(markdown, term) — Monta o trecho limpo (sem Markdown) ao redor da primeira ocorrência do termo (busca tolerante).
+│   │   ├── ⚙️ buildSnippet(text, index, length) — Extrai um trecho curto do texto ao redor do primeiro ponto onde o termo aparece.
+│   │   ├── ⚙️ collectVariableValues(data) — Reúne o `content` preenchido de todas as variáveis (frontmatter `data`), inclusive as aninhadas.
+│   │   ├── ⚙️ collectMarkdownFiles(entries, dir) — Lista os arquivos .md de um diretório, priorizando o rascunho (.md.temp) quando existir.
+│   │   ├── ⚙️ compareResults(a, b) — Compara dois resultados da pesquisa: 1. mais termos encontrados primeiro; 2. empate: a ordem dos termos digitados (quem casa com o primeiro termo vem antes); 3. empate: ordem alfabética do título.
+│   │   ├── ⚙️ parseQuery(query) — Separa a pesquisa em termos (separados por vírgula), na ordem digitada. Termos começados por "#" pesquisam tags (várias tags no mesmo termo, separadas por espaço, precisam existir todas); os demais pesquisam título, texto e variáveis.
+│   │   ├── ⚙️ searchBook(bookPath, term) — Procura os termos em todos os arquivos Markdown do livro (título, conteúdo, variáveis e tags). Com vários termos separados por vírgula, o arquivo entra no resultado se casar com **qualquer** um deles. Resultados ordenados (título primeiro, depois o resto, ambos alfabéticos).
+│   │   └── ⚙️ walk(dir) — Percorre o diretório recursivamente, ignorando pastas ocultas (ex.: .system).
+│   ├── changelog.js — [Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em]
+│   │   ├── ⚙️ enqueue(bookPath, task) — Executa uma tarefa na fila do livro, serializando as gravações. @template T
+│   │   ├── ⚙️ hashText(text) — Calcula o hash SHA-1 de um texto.
+│   │   ├── ⚙️ computeHunks(oldText, newText) — Compara dois textos linha a linha e devolve os blocos de alteração (hunks). As linhas são separadas somente por "\n" (um "\r" fica dentro da linha), então juntar de volta com "\n" reproduz o texto byte a byte.
+│   │   ├── ⚙️ revertHunks(newText, hunks) — Desfaz os blocos de alteração: transforma a versão nova na versão antiga. @throws {Error} Se o texto não corresponde ao que o registro espera.
+│   │   ├── ⚙️ dirs(bookPath) — Caminhos das pastas do changelog de um livro.
+│   │   ├── ⚙️ listFiles(dir, prefix) — Lista os arquivos de uma pasta do changelog com um prefixo, em ordem crescente (do mais antigo ao mais novo).
+│   │   ├── ⚙️ numbered(prefix, number) — Monta o nome de um arquivo numerado.
+│   │   ├── ⚙️ numberOf(name) — Extrai o número de um nome de arquivo numerado.
+│   │   ├── ⚙️ readJsonLines(file) — Lê as linhas JSON de um arquivo (linhas inválidas viram `undefined`, preservando os índices).
+│   │   ├── ⚙️ writeJsonLines(file, values) — Regrava um arquivo JSONL com os valores informados.
+│   │   ├── ⚙️ prepareLogTarget(bookPath) — Descobre o próximo id global e o arquivo de log onde gravar o próximo registro (rotacionando por tamanho).
+│   │   ├── ⚙️ appendContent(bookPath, payload) — Grava um conteúdo no arquivo de conteúdo atual (criando um novo quando ele está cheio).
+│   │   ├── ⚙️ readContent(bookPath, ref) — Lê um conteúdo apontado por um registro.
+│   │   ├── ⚙️ readAllLogs(bookPath) — Lê todos os registros de todos os arquivos de log, do mais antigo ao mais novo.
+│   │   ├── ⚙️ toRelative(bookPath, filePath) — Converte um caminho absoluto em caminho relativo ao livro (com "/").
+│   │   ├── ⚙️ recordChange(bookPath, change) — Registra uma ação no changelog do livro.
+│   │   ├── ⚙️ fileChain(entries, relPath) — Registros (do mais antigo ao mais novo) que formam a "linha da vida" de um arquivo: os que mudam o seu estado, seguindo os renomeios/movimentos (`move`) para trás e ignorando os registros já sem conteúdo (`purged`).
+│   │   ├── ⚙️ originalVersion(chain, relPath) — Versão "original": quando o primeiro registro de um arquivo é uma alteração (o arquivo já existia antes do changelog), o estado anterior a ela também pode ser restaurado. O id é o do primeiro registro, negativado.
+│   │   ├── ⚙️ listFileHistory(bookPath, relPath) — Lista o histórico de versões de um arquivo (mais recente primeiro). Regras: - registros sem conteúdo (apagados por uma restauração) não aparecem; - logo após restaurar uma versão, ela É a versão atual do arquivo e não aparece na lista (nem o registro da restauração): sobram apenas as versões anteriores a ela, e `restoredFrom` descreve a versão restaurada; - depois de uma nova alteração, a versão mais recente é a atual (marcada com `isCurrent`).
+│   │   ├── ⚙️ readLogPage(bookPath, file = null) — Lê uma página do changelog (um arquivo de log) para a lista corrida da tela de configurações. Os registros vêm do mais recente para o mais antigo; `older` indica o próximo arquivo a carregar.
+│   │   ├── ⚙️ reconstruct(bookPath, filePath, entryId) — Reconstrói (em memória, sem gravar nada) o conteúdo de um arquivo em uma versão do histórico, desfazendo de trás para frente os registros posteriores. Cada passo é conferido pelos hashes. @throws {Error} Se a versão não existe, não é restaurável ou o arquivo foi alterado fora do sistema.
+│   │   ├── ⚙️ previewVersion(bookPath, filePath, entryId) — Conteúdo (texto) de um arquivo em uma versão do histórico, sem alterar nada (usado na tela de comparação).
+│   │   ├── ⚙️ restoreVersion(bookPath, filePath, entryId, actor) — Restaura um arquivo para a versão registrada em um ponto do histórico. Os registros posteriores NÃO são apagados (uma ação realizada nunca deixa de constar): eles são marcados com `purged: true` e apenas o seu conteúdo guardado é apagado, pois deixam de permitir rollback. Tudo é verificado (hashes) antes de qualquer gravação; se algo não confere, nada é alterado. @throws {Error} Se o registro não existe, não é restaurável ou o arquivo foi alterado fora do sistema.
+│   │   └── ⚙️ recordAutosave(bookPath, params) — Registra um salvamento automático (rascunho). Todos os salvamentos de uma mesma sessão de edição de um arquivo atualizam o MESMO registro (data/hora, diferenças e contagem); uma nova sessão cria um novo registro. (usado só quando a sessão ainda não existe).
+│   ├── export.js — [Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do]
+│   │   ├── ⚙️ safeName(title) — Nome de arquivo seguro a partir do título.
+│   │   ├── ⚙️ escapeHtml(text) — Escapa texto para HTML.
+│   │   ├── ⚙️ buildHtml(title, body) — Documento HTML completo, com estilo de impressão (usado no PDF e no Word).
+│   │   └── ⚙️ renderPdf(html) — Gera o PDF imprimindo o HTML em uma janela invisível (sem JavaScript).
 │   ├── file-watcher.js — [Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.]
-│   │   └── ⚙️ setupFileWatcher(mainWindow) — Configura e inicia o observador do sistema de arquivos para a pasta de livros.
+│   │   ├── ⚙️ setupFileWatcher(mainWindow) — Configura e inicia o observador do sistema de arquivos para a pasta de livros.
+│   │   ├── ⚙️ startWatching() — Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
+│   │   └── ⚙️ withFileWatcherPaused(task) — Executa uma operação que renomeia ou apaga PASTAS com o observador pausado. No Windows o Chokidar mantém as pastas observadas abertas, o que impede renomeá-las (EPERM); por isso o observador é fechado durante a operação e recriado depois. Eventos ocorridos nesse intervalo não são enviados (quem pediu a operação atualiza a interface). @template T
 │   ├── ipc-handlers.js — [Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).]
 │   │   ├── ⚙️ setupIpcHandlers(mainWindow) — Configura todos os ouvintes de eventos IPC do processo principal.
-│   │   └── ⚙️ buildTree(dir)
-│   └── main.js — [Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.]
+│   │   └── ⚙️ buildBookTree(dir)
+│   ├── main.js — [Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.]
+│   └── spellchecker.js — [Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os]
+│        ├── ⚙️ packageFor(language) — Pacote de dicionário para um idioma (aceita variações como "pt" ou "pt-PT").
+│        ├── ⚙️ getSpeller(language) — Carrega (uma vez) o corretor do idioma.
+│        ├── ⚙️ customFilePath() — Caminho do arquivo do dicionário personalizado.
+│        ├── ⚙️ loadCustomWords() — Palavras do dicionário personalizado do usuário.
+│        ├── ⚙️ addCustomWord(word) — Adiciona uma palavra ao dicionário personalizado (salvo em disco) e a todos os corretores já carregados.
+│        ├── ⚙️ readySpeller(language) — Corretor do idioma já com as palavras personalizadas aplicadas.
+│        ├── ⚙️ findMisspelled(language, words) — Quais das palavras o dicionário do idioma (mais o dicionário do usuário) não reconhece.
+│        └── ⚙️ suggestWord(language, word) — Sugestões de correção para uma palavra.
 ├── [preload]
 │   └── preload.js — [Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.]
-└── [renderer]
-     ├── [ai]
-     │   ├── aiGateway.js — [Roteador dinâmico de provedores de IA.]
-     │   │   └── ⚙️ processPrompt({ prompt, history = [] }, state) — Processa a instrução enviada direcionando para a pasta do provedor ativo no State.
-     │   ├── aiTools.js — [Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.]
-     │   └── [providers]
-     │        └── [mock]
-     │             └── index.js — [Módulo do Provedor Simulado (Mock)]
-     │                  └── ⚙️ sendRequest({ prompt }) — Simula a chamada de rede e retorna apenas a string de resposta crua.
-     ├── app.js — [Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.]
-     ├── [components]
-     │   ├── [Chat]
-     │   │   ├── ChatComponent.js — [Componente responsável pela renderização estrutural do chat do assistente de IA]
-     │   │   │   └── 📦 class ChatComponent — Representa o chat do assistente de IA.
-     │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
-     │   │   │       ├── ⚙️ onInit()
-     │   │   │       ├── ⚙️ initStarryBackground()
-     │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos específicos do chat.
-     │   │   │       ├── ⚙️ toggleAiDrawer() — Alterna o estado da gaveta (Drawer) com fade-in no canvas.
-     │   │   │       ├── ⚙️ setTimeout(window.resetStarsPosition, 50)
-     │   │   │       ├── ⚙️ setTimeout(window.resetStarsPosition, 350)
-     │   │   │       ├── ⚙️ scrollToBottom() — Rola o chat para o final, garantindo que a última mensagem esteja visível.
-     │   │   │       ├── ⚙️ requestAnimationFrame(()
-     │   │   │       ├── ⚙️ renderChatMessage(msgData) — Renderiza uma mensagem individual no DOM do chat.
-     │   │   │       ├── ⚙️ renderChatHistory(msgData, hasMore = true) — Renderiza um lote de mensagens do histórico no topo do container de chat com divisores de data. Mantém a ancoragem do scroll para evitar loops e pulos na tela.
-     │   │   │       ├── ⚙️ clearChatContainer() — Limpa o container de mensagens da interface.
-     │   │   │       ├── ⚙️ clearTimeout(this.scrollTimer)
-     │   │   │       ├── ⚙️ setChatLoadingState(isLoading) — Define o estado visual de carregamento do chat (bloqueando ou liberando a digitação).
-     │   │   │       ├── ⚙️ triggerSendMessage() — Captura o texto do input e dispara o evento de envio de mensagem via uiBus.
-     │   │   │       ├── ⚙️ setupAutoResizeAndInputListeners() — Configura os ouvintes de redimensionamento automático e atalhos de teclado para o textarea.
-     │   │   │       ├── ⚙️ setupScrollListener() — Configura o evento de rolagem para disparar o infinite scroll com delay de 1s. Se o usuário rolar para baixo antes de 1s, a busca é cancelada.
-     │   │   │       ├── ⚙️ clearTimeout(this.scrollTimer)
-     │   │   │       ├── ⚙️ formatDateLabel(timestamp) — Converte o timestamp para uma string formatada de data (DD/MM/YYYY).
-     │   │   │       ├── ⚙️ createMessageElement({ role, content }) — Cria a estrutura DOM de uma mensagem individual renderizada via template Handlebars.
-     │   │   │       ├── ⚙️ createDateDividerElement(dateText) — Cria o elemento visual do divisor de data no chat via template Handlebars.
-     │   │   │       └── ⚙️ createStartOfChatElement() — Cria o elemento visual indicando o início absoluto do histórico de conversa via template Handlebars.
-     │   │   └── animations.js — [Gerencia as animações da interface do chat de IA]
-     │   │        ├── ⚙️ initStarryBackground() — Inicializa o canvas e o loop de renderização do fundo estrelado interativo.
-     │   │        ├── ⚙️ updateDimensions()
-     │   │        ├── ⚙️ repositionStars()
-     │   │        ├── ⚙️ spawnShootingStar()
-     │   │        ├── ⚙️ render()
-     │   │        ├── ⚙️ createStars(count, width, height) — Cria e retorna a coleção inicial de objetos de estrelas com animações de brilho via GSAP.
-     │   │        ├── ⚙️ drawStar(ctx, star, mouseX, mouseY) — Desenha uma estrela individual no canvas considerando o efeito de paralaxe do mouse.
-     │   │        └── ⚙️ drawShootingStar(ctx, shootingStar) — Renderiza o efeito de estrela cadente com rastro em gradiente no canvas.
-     │   ├── Component.js
-     │   │   └── 📦 class Component — Classe base abstrata para todos os componentes do DraftWeaver. Gerencia ciclo de vida, herança pai-filho (Composite) e renderização via Handlebars.
-     │   │       ├── ⚙️ constructor(selector, context, templateHtml, params = null, parent = null) — Cria uma instância do componente.
-     │   │       ├── ⚙️ newChild(ComponentClass, selector, context, params = null) — Fábrica interna para instanciar e registrar um componente filho de forma limpa pelo pai.
-     │   │       ├── ⚙️ setChild(child) — Adiciona um componente filho à lista de gerenciamento.
-     │   │       ├── ⚙️ setupListeners() — Método padrão vazio (Hook). As filhas fazem override se precisarem de eventos.
-     │   │       ├── ⚙️ compile(templateStr, data = {}) — Compila uma string de template Handlebars com um contexto de dados e retorna a string HTML.
-     │   │       └── ⚙️ createDOMElement(htmlString) — Converte uma string HTML em um elemento DOM individual (Node).
-     │   ├── [Editor]
-     │   │   └── EditorComponent.js — [Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.]
-     │   │        └── 📦 class EditorComponent — Representa o Editor Markdown da aplicação baseado em eventos.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe EditorComponent. @constructor
-     │   │            ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface exclusivamente via uiBus.
-     │   │            ├── ⚙️ initMarkdownEditor() — Inicializa a biblioteca ToastUI Editor no elemento DOM recém-criado.
-     │   │            ├── ⚙️ openFile(path) — Gerencia a abertura de arquivos no editor, requisitando o conteúdo via uiBus e renderizando-o.
-     │   │            ├── ⚙️ setupInternalLinkHandler() — Escuta cliques dentro do container do editor para capturar navegações por links internos.
-     │   │            ├── ⚙️ handleEditorChange() — Monitora digitação e aguarda 1s sem digitação para disparar autosave.
-     │   │            ├── ⚙️ setEditorReadOnly(isReadOnly) — Define o estado de leitura/escrita do editor de texto.
-     │   │            ├── ⚙️ renderFileContent(fullPath, rawText) — Renderiza o conteúdo do arquivo no editor e atualiza a interface.
-     │   │            └── ⚙️ resetEditorState() — Reseta a interface do editor para o estado inicial sem arquivo aberto.
-     │   ├── [EditorOverlay]
-     │   │   └── EditorOverlayComponent.js — [Componente responsável pela renderização estrutural do editor overlay]
-     │   │        └── 📦 class EditorOverlayComponent — Representa o overlay do editor.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
-     │   │            └── ⚙️ toggleEditorOverlay(show, key, message = "", showSpinner = true) — Exibe o overlay respeitando as camadas (stack) por chave.
-     │   ├── [Explorer]
-     │   │   └── ExplorerComponent.js — [Componente responsável pela renderização estrutural e lógica do explorer de arquivos.]
-     │   │        └── 📦 class ExplorerComponent — Representa o explorer de arquivos.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe.
-     │   │            ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da UI e de domínio.
-     │   │            ├── ⚙️ toggleAdvancedExplorerView() — Controla e alterna a visibilidade dos elementos avançados no explorador.
-     │   │            ├── ⚙️ updateAdvancedVisibility()
-     │   │            ├── ⚙️ tabSelectionEvents() — Gerencia a seleção de abas de navegação do explorador.
-     │   │            ├── ⚙️ syncAdvancedModeView() — Sincroniza o estado visual do switch e do container de arquivos avançados com base nas configurações (config.json) do livro atual.
-     │   │            ├── ⚙️ setTimeout(()
-     │   │            ├── ⚙️ attemptSelection()
-     │   │            ├── ⚙️ updateFileTempStatus(filePath, isTemp) — Adiciona ou remove a indicação de arquivo temporário (.temp) na UI do Explorer.
-     │   │            └── ⚙️ clearAllTemp() — Remove todas as marcações de arquivos temporários (.temp) da interface do Explorer.
-     │   ├── [Modal]
-     │   │   ├── ModalComponent.js — [Classe gerenciadora de modais em pilha (Stack).]
-     │   │   │   └── 📦 class ModalComponent — Componente de Modal em Pilha (Stack), herdando da classe base Component.
-     │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ModalComponent.
-     │   │   │       ├── ⚙️ getContext() — Fornece o contexto de dados para a compilação do template Handlebars.
-     │   │   │       ├── ⚙️ onInit() — Gancho do ciclo de vida executado logo após a renderização inicial do HTML.
-     │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos (blindagem de cliques internos e botão de fechar).
-     │   │   │       └── ⚙️ close() — Fecha o modal atual, executa o callback opcional e limpa o elemento do DOM.
-     │   │   └── ModalManager.js — [Classe gerenciadora da pilha de modais dinâmicos da aplicação.]
-     │   │        └── 📦 class ModalManager — Gerenciador responsável por controlar a pilha de modais, overlay escuro e âncoras globais da aplicação.
-     │   │            ├── ⚙️ constructor(selector, context) — Cria uma instância do ModalManager.
-     │   │            ├── ⚙️ open(options) — Abre um novo modal empilhando-o sobre os anteriores.
-     │   │            ├── ⚙️ originalClose()
-     │   │            ├── ⚙️ handleModalClose() — Gerencia o comportamento visual da pilha ao fechar um modal (restaura o anterior ou esconde o overlay).
-     │   │            ├── ⚙️ toggleOverlay(show) — Alterna a visibilidade do overlay global escuro de fundo.
-     │   │            └── ⚙️ setupListeners() — Configura os ouvintes de eventos globais no barramento uiBus.
-     │   ├── [Settings]
-     │   │   └── SettingsComponent.js — [Componente responsável pela renderização estrutural da drawer de configurações]
-     │   │        └── 📦 class SettingsComponent — Representa a drawer de configurações.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos.
-     │   │            ├── ⚙️ open() — Abre a gaveta de configurações.
-     │   │            ├── ⚙️ close() — Fecha a gaveta de configurações.
-     │   │            └── ⚙️ toggleThemeSwitch(theme) — Altera o estado do switch de alteração do theme
-     │   ├── [Sidebar]
-     │   │   └── SidebarComponent.js — [Componente responsável pela renderização estrutural da barra lateral (Sidebar).]
-     │   │        └── 📦 class SidebarComponent — Representa o painel lateral esquerdo da aplicação.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface da sidebar.
-     │   │            └── ⚙️ selectLastBook()
-     │   ├── [Toast]
-     │   │   └── ToastComponent.js — [Componente responsável pela renderização estrutural do toast.]
-     │   │        └── 📦 class ToastComponent — Representa o toast da aplicação.
-     │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
-     │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
-     │   │            ├── ⚙️ show(message, type = "success") — Exibe uma mensagem de notificação toast temporária na tela.
-     │   │            └── ⚙️ clearTimeout(this._toastTimer)
-     │   ├── [Toolbar]
-     │   │   ├── ToolbarComponent.js — [Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).]
-     │   │   │   └── 📦 class ToolbarComponent — Representa a barra de ferramentas do editor.
-     │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ToolbarComponent.
-     │   │   │       ├── ⚙️ onInit() — Inicialização do componente executada após a renderização no DOM.
-     │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da UI (`uiBus`) e de interações do usuário no DOM.
-     │   │   │       ├── ⚙️ initAnimations() — Inicializa a animação visual do botão de salvar/sincronizar.
-     │   │   │       ├── ⚙️ handleSyncClick() — Dispara a solicitação para abertura do modal de sincronização de alterações pendentes.
-     │   │   │       ├── ⚙️ refreshSaveButtonState(hasPendingChanges = false) — Centraliza a regra de ativação/desativação do botão Salvar/Sincronizar.
-     │   │   │       └── ⚙️ setSaveStatus(status) — Atualiza o ícone visual de status de salvamento na UI.
-     │   │   └── animations.js — [Gerencia as animações da interface do usuário]
-     │   │        └── ⚙️ initSaveButtonAnimation()
-     │   └── index.js — [Barrel para exportação centralizada de todos os componentes de interface.]
-     ├── [controllers]
-     │   ├── domainController.js — [Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.]
-     │   │   └── 📦 class DomainController — Controller responsável pelas regras de negócio, IA e manipulação de dados.
-     │   │       ├── ⚙️ constructor(services, state) — Cria uma instância do DomainController e registra os ouvintes de eventos de domínio.
-     │   │       ├── ⚙️ registerEvents() — Registra todos os escutadores do barramento de domínio.
-     │   │       ├── ⚙️ normalizePath(payload.filePath)
-     │   │       └── ⚙️ normalizePath(payload.relativePath)
-     │   ├── [handlers]
-     │   │   ├── bookHandler.js — [Handler dos eventos relacionados ao livro/projeto]
-     │   │   │   ├── ⚙️ fetchBooks(state, bookService)
-     │   │   │   ├── ⚙️ onFolderToggle(state, bookService, payload) — Manipula a abertura/fechamento de pastas na árvore, atualizando o estado do livro atual.
-     │   │   │   ├── ⚙️ onAdvancedModeToggle(state, bookService, payload) — Manipula a alteração do modo avançado, atualizando o estado do livro atual e persistindo.
-     │   │   │   ├── ⚙️ onBookSelect(state, bookPath, bookService) — Handler de troca de livro.
-     │   │   │   ├── ⚙️ onBookChange(bookPath, state) — Manipula a alteração de livro, atualizando o estado global, resetando o editor e restaurando o último arquivo aberto (se houver) salvo no config.json.
-     │   │   │   └── ⚙️ onFetchBooksList(req, bookService) — Solicita lista de livros do backend e também confere qual o último livro selecionado. @async
-     │   │   ├── chapterHandler.js
-     │   │   ├── characterHandler.js
-     │   │   ├── chatHandler.js — [Handler para orquestração de eventos e mensagens do chat.]
-     │   │   │   ├── ⚙️ onSendMessage({ promptText }, aiService) — Trata o envio de uma mensagem digitada pelo usuário no chat.
-     │   │   │   ├── ⚙️ loadHistory(offset, aiService) — Carrega o histórico de mensagens do chat para a sessão atual do livro ativo. Se o lote inicial tiver <= 20 mensagens, busca arquivos anteriores até acumular >= 50 mensagens.
-     │   │   │   └── ⚙️ fetchMoreHistory(offset, aiService) — Busca mais histórico antigo quando o usuário rola o chat até o topo (Infinite Scroll).
-     │   │   ├── configHandler.js — [Handler para gerenciar alterações no arquivo config.json dos projetos.]
-     │   │   └── fileHandler.js — [Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.]
-     │   │        ├── ⚙️ syncFile(filePath, fileService, state) — Persiste as alterações de um único arquivo (socreve original com .temp e limpa estado)
-     │   │        ├── ⚙️ syncMultipleFiles(filePaths, fileService, state) — Sincroniza uma lista de caminhos de arquivos em lote.
-     │   │        ├── ⚙️ onSyncOpenModal(fileService, state) — Varre o sistema de arquivos via FileService e abre o modal de sincronização.
-     │   │        ├── ⚙️ attachSyncModalEvents(syncModal, fileService, state) — Gerencia os ouvintes de eventos e interações dentro do modal.
-     │   │        ├── ⚙️ onFileGet(req, state, fileService) — Realiza a consulta do arquivo no disco (com prioridade .temp), atualiza o state e notifica globalmente.
-     │   │        ├── ⚙️ onSaveTemp(path, content, fileService)
-     │   │        ├── ⚙️ onFileOpened(state, bookService, payload) — Manipula a abertura de um arquivo, atualizando o estado do livro atual e persistindo as configurações.
-     │   │        ├── ⚙️ onEditorReset(state) — Ações a serem tomadas quando o editor é resetado
-     │   │        ├── ⚙️ onTempDeleted(filePath, state, fileService)
-     │   │        └── ⚙️ handlePendingTempFiles(fileService)
-     │   └── uiController.js — [Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.]
-     │        └── 📦 class UiController — Controller responsável pelas reações visuais da interface.
-     │            ├── ⚙️ constructor(services, state) — Cria uma instância do UiController e registra os ouvintes de eventos da UI.
-     │            └── ⚙️ registerEvents() — Registra todos os escutadores do barramento de UI.
-     ├── [core]
-     │   ├── appContainer.js — [Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar]
-     │   │   └── 📦 class AppContainer — Orquestrador principal da aplicação no processo de renderização. Gerencia a inicialização e injeção de dependências das classes de serviços e UI.
-     │   │       ├── ⚙️ constructor() — Cria uma instância do AppContainer e inicializa suas dependências. @constructor
-     │   │       ├── ⚙️ async(component)
-     │   │       └── ⚙️ setupGlobalEvents() — Configura ouvintes globais de eventos na janela (arrastar arquivos, restrições de TAB, etc.).
-     │   ├── state.js — [Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.]
-     │   │   └── 📦 class State — Classe responsável por gerenciar o estado global compartilhado da aplicação.
-     │   │       └── ⚙️ constructor() — Cria uma instância do gerenciador de estado. @constructor
-     │   └── themeManager.js — [Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.]
-     │        └── 📦 class ThemeManager — Classe responsável por gerenciar temas visuais e preferências de claro/escuro da interface.
-     │            ├── ⚙️ constructor() — Cria uma instância do ThemeManager. @constructor
-     │            ├── ⚙️ init() — Inicializa o gerenciador de temas, recuperando o tema salvo e configurando os ouvintes de evento.
-     │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos.
-     │            ├── ⚙️ toggleTheme(isDark) — Alterna o tema atual e o persiste no armazenamento local.
-     │            └── ⚙️ applyTheme(isDark) — Aplica as classes visuais do tema no corpo da página, no editor e opcionalmente na janela nativa.
-     ├── [events]
-     │   ├── domainBus.js — [Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.]
-     │   ├── uiBus.js — [scripts/renderer/events/eventUi.js]
-     │   │   └── 📦 class UiEventBus
-     │   │       ├── ⚙️ constructor() — @constructor
-     │   │       ├── ⚙️ initDeclarativeEvents(this.bus)
-     │   │       ├── ⚙️ emit(event, payload = null) — @method emit
-     │   │       ├── ⚙️ on(event, callback, replay = true) — @method on
-     │   │       ├── ⚙️ setTimeout(()
-     │   │       ├── ⚙️ callback(item.payload)
-     │   │       ├── ⚙️ callback(reqContext)
-     │   │       ├── ⚙️ off(event, callback) — @method off
-     │   │       ├── ⚙️ req(eventBase, payload = {}) — @method req
-     │   │       ├── ⚙️ clearTimeout(timeout)
-     │   │       ├── ⚙️ reject(new Error(response.error)
-     │   │       ├── ⚙️ resolve(response.data)
-     │   │       └── ⚙️ onReq(event, callback) — @method onReq
-     │   └── uiDeclarativeEvents.js
-     │        └── ⚙️ initDeclarativeEvents(uiBus) — Inicializa o escutador global de eventos no documento.
-     ├── renderer.js
-     ├── [services]
-     │   ├── aiService.js — [Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.]
-     │   │   ├── ⚙️ getTodaySessionDate() — Obtém a data atual formatada como YYYY-MM-DD para nomear a sessão do chat.
-     │   │   └── 📦 class AiService — Classe de serviço da Inteligência Artificial.
-     │   │       ├── ⚙️ constructor(state) — Cria uma instância do AiService.
-     │   │       └── ⚙️ getCurrentChatLogFilePath(sessionIndex = 1) — Monta o caminho completo do arquivo de log da sessão atual.
-     │   ├── bookService.js — [Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.]
-     │   │   └── 📦 class BookService
-     │   │       └── ⚙️ constructor(state, services) — Cria uma instância do BookService.
-     │   ├── fileService.js — [Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.]
-     │   │   └── 📦 class FileService — Serviço de manipulação e persistência de arquivos locais via IPC do Electron.
-     │   │       ├── ⚙️ constructor(state) — Cria uma instância do FileService.
-     │   │       └── ⚙️ getTempPath(filePath) — Retorna o caminho do arquivo temporário (.temp) correspondente.
-     │   └── serviceManager.js — [Agregador central de serviços (Facade). Instancia e gerencia o acesso]
-     │        └── 📦 class ServiceManager — Gerencia todas as classes de serviços.
-     │            └── ⚙️ constructor(state) — Inicializa e agrupa todos os serviços da aplicação. @constructor
-     └── [utils]
-          ├── helpers.js — [Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.]
-          │   ├── ⚙️ normalizeItemMetadata(rawMetadata, fallbackTitle = "") — Garante que todas as chaves obrigatórias do objeto de metadados existam com valores padrão (fallbacks).
-          │   ├── ⚙️ normalizePath(p) — Normaliza caminhos de arquivo para evitar quebras em seletores CSS ou chamadas do Node/IPC.
-          │   ├── ⚙️ getRelativePath(fullPath) — Transforma um caminho completo em um caminho relativo a partir da pasta 'books', garantindo que a pasta do livro imediatamente abaixo de 'books' comece com 'book_'.
-          │   └── ⚙️ escapeHtml(text) — Utilitário simples para sanitizar textos HTML.
-          └── markdown.js — [Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.]
-               ├── ⚙️ parseMarkdown(fileContent, isYmlOnly = false) — Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
-               └── ⚙️ stringifyFrontmatter(metadata, body) — Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
+├── [renderer]
+│   ├── [ai]
+│   │   ├── aiGateway.js — [Roteador dinâmico de provedores de IA.]
+│   │   ├── aiTools.js — [Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.]
+│   │   ├── apiError.js — [Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para]
+│   │   │   ├── 📦 class AiApiError — Erro retornado por uma API de IA.
+│   │   │   │   └── ⚙️ constructor(message, info) — Método Construtor
+│   │   │   ├── ⚙️ formatDuration(ms) — Formata uma duração em português (ex.: "2 h 5 min", "45 s").
+│   │   │   ├── ⚙️ nextPacificMidnight(now = Date.now() — Calcula o instante (ms) da próxima meia-noite no fuso do Pacífico, quando as cotas diárias do Gemini renovam.
+│   │   │   ├── ⚙️ buildGeminiError(status, data, statusText, model) — Converte o corpo de erro do Gemini em um {@link AiApiError} legível.
+│   │   │   ├── ⚙️ buildClaudeError(response, data, model) — Converte a resposta de erro da API da Anthropic em um {@link AiApiError} legível.
+│   │   │   ├── ⚙️ describeStatus(name, status, detail) — Mensagem legível para os status HTTP mais comuns.
+│   │   │   ├── ⚙️ collectClaudeHeaders(headers) — Reúne os cabeçalhos de limite de uso da Anthropic.
+│   │   │   └── ⚙️ parseClaudeRateLimits(headers) — Extrai os limites de uso informados pela Anthropic nos cabeçalhos de uma resposta bem-sucedida.
+│   │   ├── [prompts]
+│   │   │   └── index.js — [Monta o prompt de sistema único, reutilizado por todos os provedores de IA.]
+│   │   │        └── ⚙️ buildSystemPrompt(state) — Prompt base (arquivo único) + contexto atual do app (livro, arquivo aberto e skills).
+│   │   ├── [providers]
+│   │   │   ├── [claude]
+│   │   │   │   ├── client.js — [Cliente HTTP da API da Anthropic.]
+│   │   │   │   │   ├── ⚙️ buildHeaders(apiKey) — Cabeçalhos comuns às chamadas.
+│   │   │   │   │   ├── ⚙️ parseResponse(response, model = "") — Lê o JSON da resposta e lança um erro legível (com status e detalhes) se a API falhou. Em caso de sucesso, anexa em `_rateLimits` os limites de uso informados nos cabeçalhos. @throws {import("../../apiError.js").AiApiError}
+│   │   │   │   │   └── ⚙️ fetchModels(apiKey) — Lista os modelos disponíveis para a chave informada.
+│   │   │   │   ├── config.js — [Constantes de conexão com a Messages API da Anthropic.]
+│   │   │   │   ├── index.js — [Módulo do Provedor Claude (Anthropic).]
+│   │   │   │   │   └── ⚙️ listModels(config) — Lista os modelos disponíveis na conta (usado para atualizar o select).
+│   │   │   │   └── models.js — [Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
+│   │   │   ├── [gemini]
+│   │   │   │   ├── client.js — [Cliente HTTP da API Gemini (generateContent).]
+│   │   │   │   │   ├── ⚙️ parseResponse(response, model = "") — Lê o JSON da resposta e lança um erro legível (com status e detalhes de cota) se a API falhou. @throws {import("../../apiError.js").AiApiError}
+│   │   │   │   │   └── ⚙️ fetchModels(apiKey) — Lista os modelos Gemini que suportam generateContent.
+│   │   │   │   ├── config.js — [Constantes de conexão com a API Gemini (Google AI).]
+│   │   │   │   ├── index.js — [Módulo do Provedor Gemini (Google).]
+│   │   │   │   │   └── ⚙️ listModels(config) — Lista os modelos disponíveis na conta (usado para atualizar o select).
+│   │   │   │   └── models.js — [Modelos do Gemini oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
+│   │   │   ├── index.js — [Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).]
+│   │   │   │   └── ⚙️ getProviderInfo(id)
+│   │   │   └── [mock]
+│   │   │        ├── index.js — [Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma]
+│   │   │        │   ├── ⚙️ parseCommand(prompt) — Converte o prompt em um plano: uma chamada de ferramenta ou uma resposta direta.
+│   │   │        │   ├── ⚙️ formatResults(results) — Formata o resultado das ferramentas como resposta final em Markdown.
+│   │   │        │   └── ⚙️ sendRequest({ prompt, systemPrompt = "", toolContext }) — Simula uma requisição ao provedor, executando ferramentas reais quando o comando pedir.
+│   │   │        └── models.js — [Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).]
+│   │   ├── [skills]
+│   │   │   └── index.js — [Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.]
+│   │   │        ├── ⚙️ listSkills() — Lista as skills disponíveis (sem o corpo).
+│   │   │        └── ⚙️ getSkill(name) — Obtém uma skill pelo nome.
+│   │   ├── toolLoop.js — [Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.]
+│   │   │   └── ⚙️ normalizeHistory(prompt, history) — Converte o histórico do chat em turnos alternados user/assistant, garantindo que o prompt atual seja o último (sem duplicá-lo caso já esteja no histórico).
+│   │   ├── [tools]
+│   │   │   ├── bookTools.js — [Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.]
+│   │   │   │   ├── ⚙️ readCurrent(located, ctx) — Lê o conteúdo atual (rascunho, se existir) e separa frontmatter e corpo.
+│   │   │   │   ├── ⚙️ saveDraft(located, frontmatter, body, ctx) — Grava o corpo como rascunho preservando o frontmatter e avisa a interface.
+│   │   │   │   ├── ⚙️ collectFiles(node, prefix, out) — Percorre a árvore listando os .md que a IA pode ler.
+│   │   │   │   ├── ⚙️ beginEdit(ctx) — Prepara uma edição: exige que não haja rascunhos pendentes no projeto e trava a tela. Deve ser chamada antes de qualquer leitura-para-escrita, já com a permissão validada.
+│   │   │   │   └── ⚙️ registerBookTools(registry) — Registra as ferramentas de arquivos do livro.
+│   │   │   ├── chatTools.js — [Ferramenta que permite à IA anexar botões à sua resposta no chat.]
+│   │   │   │   ├── ⚙️ buildButton(request, ctx) — Converte o pedido da IA em um botão `{label, event, data}`, validando a ação e os parâmetros. @throws {Error} Se a ação é desconhecida ou faltam parâmetros.
+│   │   │   │   └── ⚙️ registerChatTools(registry) — Registra a ferramenta de botões do chat.
+│   │   │   ├── creationTools.js — [Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.]
+│   │   │   │   ├── ⚙️ assertValuesFromAuthor(spec, values, conversation = {}) — Confere que cada campo obrigatório preenchido pela IA veio do autor: o valor precisa ser o padrão do campo ou aparecer (ignorando maiúsculas/acentos) nas mensagens recentes da conversa. Isso impede a IA de inventar respostas SEM obrigá-la a perguntar de novo o que o autor já disse — a causa do ciclo infinito de confirmações. @throws {Error} Se um campo obrigatório tem um valor que não consta na conversa.
+│   │   │   │   ├── ⚙️ assertAiCanCreate(kind, folder, ctx) — Garante que a IA pode criar o item no destino (a pasta precisa ter `aiWrite` ativo no folder.yml). @throws {Error} Se a IA não tem permissão de escrita na pasta de destino.
+│   │   │   │   ├── ⚙️ resolveEntityFolder(folder, ctx) — Resolve e valida a pasta de uma ficha, listando as opções quando ela é inválida ou omitida. @throws {Error} Se a pasta não aceita fichas.
+│   │   │   │   └── ⚙️ registerCreationTools(registry) — Registra as ferramentas de criação guiada.
+│   │   │   ├── historyTools.js — [Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de]
+│   │   │   │   ├── ⚙️ clampLimit(limit) — Limita a quantidade de itens pedida pela IA.
+│   │   │   │   ├── ⚙️ redactSecrets(text, state) — Remove de um texto qualquer chave de API (as salvas nas configurações e padrões comuns de URL/cabeçalho).
+│   │   │   │   ├── ⚙️ confirmRestore({ fileTitle, comparison, view, hasDraft }) — Pede a confirmação do autor para restaurar uma versão, mostrando a comparação lado a lado.
+│   │   │   │   └── ⚙️ registerHistoryTools(registry) — Registra as ferramentas de histórico e logs.
+│   │   │   ├── permissions.js — [Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).]
+│   │   │   │   ├── ⚙️ parseRelativePath(relPath, bookPath = "") — Valida um caminho relativo à raiz do livro e o divide em segmentos. Tolera `./`, barra inicial e caminhos absolutos que apontem para dentro do livro.
+│   │   │   │   ├── ⚙️ locateFile(state, relPath) — Localiza um arquivo .md na árvore do livro atual.
+│   │   │   │   ├── ⚙️ hasPermission(located, flag) — Indica se a IA possui a permissão ("aiRead" | "aiWrite") sobre o arquivo.
+│   │   │   │   ├── ⚙️ assertPermission(located, flag) — Lança erro se a IA não tiver a permissão necessária.
+│   │   │   │   ├── ⚙️ parseFolderPath(relPath, bookPath = "") — Valida o caminho de uma pasta relativo à raiz do livro e o divide em segmentos. @throws {Error} Se o caminho é inválido, oculto ou aponta para um arquivo.
+│   │   │   │   ├── ⚙️ locateFolder(state, segments) — Localiza o nó de uma pasta na árvore do livro atual. @throws {Error} Se a pasta não existe.
+│   │   │   │   ├── ⚙️ collectFolderFiles(node, prefix) — Lista todos os arquivos `.md` (com o frontmatter) dentro de uma pasta, incluindo subpastas.
+│   │   │   │   └── ⚙️ assertFolderPermission(metadata, flag, folderLabel) — Lança erro se a pasta não tiver a permissão da IA (`aiRead` / `aiWrite` / `aiDelete` no `folder.yml`).
+│   │   │   ├── projectTools.js — [Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o]
+│   │   │   │   ├── ⚙️ findBook(state, folderName) — Livro (da lista do app) correspondente a um nome de pasta, ou o atual quando nada é informado. @throws {Error} Se o livro não existe.
+│   │   │   │   └── ⚙️ registerProjectTools(registry) — Registra as ferramentas de projeto e de configuração consultável.
+│   │   │   ├── registry.js — [Registro de ferramentas (tool calling) independente de provedor.]
+│   │   │   │   └── 📦 class ToolRegistry — @typedef {Object} ToolDefinition @property {string} name @property {string} description @property {Object} parameters - JSON Schema (type: "object") dos argumentos. @property {(args: Object, ctx: Object) => Promise<string|Object>} execute
+│   │   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │   │       ├── ⚙️ register(tool) — Registra uma ferramenta.
+│   │   │   │       └── ⚙️ getDefinitions() — Definições expostas ao modelo (sem a função de execução).
+│   │   │   ├── skillTools.js — [Ferramenta que carrega skills (instruções) sob demanda.]
+│   │   │   │   └── ⚙️ registerSkillTools(registry)
+│   │   │   ├── structureTools.js — [Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo]
+│   │   │   │   ├── ⚙️ requireBook(ctx) — Garante que há um livro aberto. @throws {Error} Se nenhum livro está selecionado.
+│   │   │   │   ├── ⚙️ announceStructureChange(payload) — Avisa a interface que a estrutura do livro mudou.
+│   │   │   │   ├── ⚙️ resolveDestination(destination, ctx) — Valida o destino de uma movimentação: pasta existente com escrita permitida à IA.
+│   │   │   │   └── ⚙️ registerStructureTools(registry) — Registra as ferramentas de estrutura (pastas, mover e excluir).
+│   │   │   └── variableTools.js — [Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.]
+│   │   │        └── ⚙️ registerVariableTools(registry) — Registra as ferramentas de variáveis e de link automático.
+│   │   └── usageTracker.js — [Contador local de uso diário da IA, por provedor e modelo.]
+│   │        ├── ⚙️ today() — Data local atual no formato AAAA-MM-DD.
+│   │        ├── ⚙️ load() — Lê o contador salvo (descartando dias anteriores).
+│   │        ├── ⚙️ addDailyUsage(provider, model, amount) — Soma uma chamada ao contador do dia.
+│   │        ├── ⚙️ getDailyUsage(provider, model) — Uso de hoje para um provedor/modelo.
+│   │        ├── ⚙️ learnDailyQuota(provider, model, requestsPerDay) — Memoriza a cota diária de requisições de um modelo, descoberta quando a API a informa ao estourar o limite. É a única forma de saber o limite real da conta no Gemini: a API só revela o valor ao recusar a chamada.
+│   │        └── ⚙️ getDailyQuota(provider, model) — Cota diária de requisições já descoberta para um modelo.
+│   ├── app.js — [Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.]
+│   ├── [components]
+│   │   ├── [Chat]
+│   │   │   ├── ChatComponent.js — [Componente responsável pela renderização estrutural do chat do assistente de IA]
+│   │   │   │   └── 📦 class ChatComponent — Representa o chat do assistente de IA.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
+│   │   │   │       ├── ⚙️ onInit()
+│   │   │   │       ├── ⚙️ initStarryBackground()
+│   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos específicos do chat.
+│   │   │   │       ├── ⚙️ setInterval(()
+│   │   │   │       ├── ⚙️ applyChatBackground(isDark) — Define o fundo do chat conforme o tema e a preferência do usuário (estrelas, nebulosa, órbitas ou cor sólida).
+│   │   │   │       ├── ⚙️ pause()
+│   │   │   │       ├── ⚙️ resume()
+│   │   │   │       ├── ⚙️ destroy()
+│   │   │   │       ├── ⚙️ toggleAiDrawer() — Alterna o estado da gaveta (Drawer) com fade-in no canvas.
+│   │   │   │       ├── ⚙️ setTimeout(window.resetStarsPosition, 50)
+│   │   │   │       ├── ⚙️ setTimeout(window.resetStarsPosition, 350)
+│   │   │   │       ├── ⚙️ scrollToBottom() — Rola o chat para o final, garantindo que a última mensagem esteja visível.
+│   │   │   │       ├── ⚙️ requestAnimationFrame(()
+│   │   │   │       ├── ⚙️ renderChatMessage(msgData) — Renderiza uma mensagem individual no DOM do chat.
+│   │   │   │       ├── ⚙️ renderChatHistory(msgData, hasMore = true) — Renderiza um lote de mensagens do histórico no topo do container de chat com divisores de data. Mantém a ancoragem do scroll para evitar loops e pulos na tela.
+│   │   │   │       ├── ⚙️ clearChatContainer() — Limpa o container de mensagens da interface.
+│   │   │   │       ├── ⚙️ clearTimeout(this.scrollTimer)
+│   │   │   │       ├── ⚙️ setChatLoadingState(isLoading) — Define o estado visual de carregamento do chat (bloqueando ou liberando a digitação).
+│   │   │   │       ├── ⚙️ toggleWorkingIndicator(show) — Mostra/remove o indicador "A IA está trabalhando…" ao final das mensagens.
+│   │   │   │       ├── ⚙️ setWorkingLabel(label) — Altera o texto do indicador de trabalho, se ele estiver visível.
+│   │   │   │       ├── ⚙️ updateUsageBar(usage) — Atualiza a faixa de consumo de tokens da sessão, o uso de contexto e o limite de uso da IA.
+│   │   │   │       ├── ⚙️ updateLimitLine(usage, fmt) — Preenche a linha de limite de uso abaixo da faixa de tokens: - limite atingido (cota estourada, com contagem regressiva); - restante informado pela API (ex.: Claude); - uso de hoje contado pelo app (a API do Gemini não informa a cota restante).
+│   │   │   │       ├── ⚙️ triggerSendMessage() — Captura o texto do input e dispara o evento de envio de mensagem via uiBus.
+│   │   │   │       ├── ⚙️ navigateInputHistory(e, textarea) — Navega pelas mensagens já enviadas com as setas do teclado (como o histórico de um terminal). Seta para cima na primeira linha do campo traz a última mensagem do usuário (guardando o que estava escrito); seta para baixo na última linha avança e, ao passar da mais recente, devolve o rascunho guardado.
+│   │   │   │       ├── ⚙️ fillInput(textarea, text) — Preenche o campo de texto do chat, ajusta a altura e posiciona o cursor (no início enquanto navega pelo histórico, para que a seta continue navegando).
+│   │   │   │       ├── ⚙️ setupAutoResizeAndInputListeners() — Configura os ouvintes de redimensionamento automático e atalhos de teclado para o textarea.
+│   │   │   │       ├── ⚙️ setupScrollListener() — Configura o evento de rolagem para disparar o infinite scroll com delay de 1s. Se o usuário rolar para baixo antes de 1s, a busca é cancelada.
+│   │   │   │       ├── ⚙️ clearTimeout(this.scrollTimer)
+│   │   │   │       ├── ⚙️ formatDateLabel(timestamp) — Converte o timestamp para uma string formatada de data (DD/MM/YYYY).
+│   │   │   │       ├── ⚙️ createMessageElement({ role, content, buttons }) — Cria a estrutura DOM de uma mensagem individual renderizada via template Handlebars.
+│   │   │   │       ├── ⚙️ prepareButtons(buttons) — Prepara os botões de uma mensagem para o template, descartando qualquer evento fora da lista permitida (as mensagens vêm de um log em disco e de uma IA, então nunca emitimos eventos arbitrários).
+│   │   │   │       ├── ⚙️ createDateDividerElement(dateText) — Cria o elemento visual do divisor de data no chat via template Handlebars.
+│   │   │   │       └── ⚙️ createStartOfChatElement() — Cria o elemento visual indicando o início absoluto do histórico de conversa via template Handlebars.
+│   │   │   ├── animations.js — [Gerencia as animações da interface do chat de IA]
+│   │   │   │   ├── ⚙️ initStarryBackground() — Inicializa o canvas e o loop de renderização do fundo estrelado (estrelas em viagem diagonal contínua).
+│   │   │   │   ├── ⚙️ updateDimensions()
+│   │   │   │   ├── ⚙️ repositionStars()
+│   │   │   │   ├── ⚙️ spawnShootingStar()
+│   │   │   │   ├── ⚙️ render(_time, deltaMs)
+│   │   │   │   ├── ⚙️ createStars(count, width, height) — Cria e retorna a coleção inicial de objetos de estrelas com animações de brilho via GSAP.
+│   │   │   │   ├── ⚙️ advanceStar(star, dt, width, height) — Desloca a estrela devagar, da direita para a esquerda e levemente para cima; estrelas mais "próximas" (zFactor maior) andam mais rápido, dando profundidade. Ao sair por uma borda, reaparece na oposta.
+│   │   │   │   ├── ⚙️ drawStar(ctx, star) — Desenha uma estrela individual no canvas.
+│   │   │   │   └── ⚙️ drawShootingStar(ctx, shootingStar) — Renderiza o efeito de estrela cadente com rastro em gradiente no canvas.
+│   │   │   ├── nebula.js — [Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.]
+│   │   │   │   ├── ⚙️ compile(gl, type, src) — Compila um shader.
+│   │   │   │   ├── ⚙️ program(gl, vs, fs) — Liga um programa WebGL.
+│   │   │   │   └── ⚙️ mountNebula(el, options = {}) — Monta o fundo nebulosa dentro de um elemento (o canvas fica atrás do conteúdo).
+│   │   │   └── orbits.js — [Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,]
+│   │   │        ├── ⚙️ rng(seed) — Gerador pseudo-aleatório com seed (mulberry32): o mesmo seed gera sempre o mesmo arranjo.
+│   │   │        ├── ⚙️ el(name, attrs, style) — Cria um elemento SVG.
+│   │   │        ├── ⚙️ centerFor(corner) — Centro das órbitas conforme o canto escolhido.
+│   │   │        ├── ⚙️ drawPlanet(g, size, type, r, color) — Desenha um planeta (liso, com anel, com crateras ou listrado).
+│   │   │        ├── ⚙️ asteroidPath(r, size) — Contorno irregular de um asteroide.
+│   │   │        ├── ⚙️ starPath(s) — Estrela de quatro pontas.
+│   │   │        ├── ⚙️ build(o) — Monta a cena SVG.
+│   │   │        ├── ⚙️ applyColors(container, o) — Aplica as cores ao contêiner (variáveis CSS lidas pelo SVG).
+│   │   │        └── ⚙️ mountOrbits(container, options = {}) — Monta o fundo de órbitas dentro de um elemento.
+│   │   ├── Component.js
+│   │   │   └── 📦 class Component — Classe base abstrata para todos os componentes do Astra Writter. Gerencia ciclo de vida, herança pai-filho (Composite) e renderização via Handlebars.
+│   │   │       ├── ⚙️ constructor(selector, context, templateHtml, params = null, parent = null) — Cria uma instância do componente.
+│   │   │       ├── ⚙️ newChild(ComponentClass, selector, context, params = null) — Fábrica interna para instanciar e registrar um componente filho de forma limpa pelo pai.
+│   │   │       ├── ⚙️ setChild(child) — Adiciona um componente filho à lista de gerenciamento.
+│   │   │       ├── ⚙️ setupListeners() — Método padrão vazio (Hook). As filhas fazem override se precisarem de eventos.
+│   │   │       ├── ⚙️ compile(templateStr, data = {}) — Compila uma string de template Handlebars com um contexto de dados e retorna a string HTML.
+│   │   │       └── ⚙️ createDOMElement(htmlString) — Converte uma string HTML em um elemento DOM individual (Node).
+│   │   ├── [Dropdown]
+│   │   │   └── DropdownComponent.js — [Componente de dropdown (lista suspensa) personalizado e reutilizável.]
+│   │   │        └── 📦 class DropdownComponent — Dropdown com opções e botões de ação.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância do DropdownComponent.
+│   │   │            ├── ⚙️ getContext() — Fornece os dados do template (opções, ações, rótulo atual e estado aberto/fechado).
+│   │   │            ├── ⚙️ setupListeners() — Registra a abertura/fechamento do menu (clique no botão, clique fora e tecla Esc).
+│   │   │            ├── ⚙️ setOpen(open) — Abre ou fecha o menu.
+│   │   │            ├── ⚙️ setItems(items) — Substitui a lista de opções e redesenha o dropdown.
+│   │   │            └── ⚙️ setValue(value) — Define a opção selecionada e redesenha o dropdown.
+│   │   ├── [Editor]
+│   │   │   ├── EditorComponent.js — [Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.]
+│   │   │   │   └── 📦 class EditorComponent — Representa o Editor Markdown da aplicação baseado em eventos.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe EditorComponent. @constructor
+│   │   │   │       ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
+│   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface exclusivamente via uiBus.
+│   │   │   │       ├── ⚙️ initMarkdownEditor() — Cria o editor (pela fábrica compartilhada) no elemento DOM recém-renderizado.
+│   │   │   │       ├── ⚙️ getBookFiles() — Arquivos Markdown do livro atual (em cache enquanto a árvore for a mesma).
+│   │   │   │       ├── ⚙️ getCurrentRel() — Caminho do arquivo aberto relativo à raiz do livro.
+│   │   │   │       ├── ⚙️ runAutoLinks(terms) — Cria os links automáticos no texto do arquivo aberto (sempre no modo visual).
+│   │   │   │       ├── ⚙️ isReadOnly() — Indica se o editor está somente leitura.
+│   │   │   │       ├── ⚙️ setupInternalLinkHandler() — Escuta cliques dentro do editor para navegar por links internos e abrir links da web no navegador padrão.
+│   │   │   │       ├── ⚙️ handleEditorChange() — Monitora digitação e aguarda 1s sem digitação para disparar autosave.
+│   │   │   │       ├── ⚙️ clearTimeout(this.autoSaveTimer)
+│   │   │   │       ├── ⚙️ scheduleStats() — Agenda a atualização das estatísticas do rodapé sem pesar a digitação.
+│   │   │   │       ├── ⚙️ updateStats() — Recalcula e exibe as estatísticas do texto aberto: palavras, leitura, conexões wiki, links inválidos e problemas ortográficos (usando o corretor do próprio Electron/Chromium).
+│   │   │   │       ├── ⚙️ isCheckableWord(w)
+│   │   │   │       ├── ⚙️ q("#stat-words")
+│   │   │   │       ├── ⚙️ q("#stat-read")
+│   │   │   │       ├── ⚙️ q("#stat-links")
+│   │   │   │       ├── ⚙️ q("#stat-invalid")
+│   │   │   │       ├── ⚙️ q("#stat-invalid-item")
+│   │   │   │       ├── ⚙️ q("#stat-spell")
+│   │   │   │       ├── ⚙️ q("#stat-spell-item")
+│   │   │   │       ├── ⚙️ showSpell([])
+│   │   │   │       ├── ⚙️ getProjectWords() — Palavras do dicionário do projeto: títulos, nomes e apelidos de todas as fichas do livro atual (em minúsculas). Nunca são consideradas erro de escrita.
+│   │   │   │       ├── ⚙️ String(text || "")
+│   │   │   │       ├── ⚙️ add(file.metadata?.title)
+│   │   │   │       ├── ⚙️ add(file.metadata?.data?.title?.content)
+│   │   │   │       ├── ⚙️ splitAliases(file.metadata?.data?.aliases?.content)
+│   │   │   │       ├── ⚙️ computeProblemRanges(doc) — Problemas de escrita de um documento do editor (sublinhados e contador).
+│   │   │   │       ├── ⚙️ getWritingProblems() — Problemas de escrita do arquivo aberto (palavras desconhecidas e repetidas), na ordem do texto.
+│   │   │   │       ├── ⚙️ setupWritingMenu() — Menu do botão direito sobre um problema de escrita: sugestões, ignorar e adicionar ao dicionário.
+│   │   │   │       ├── ⚙️ async(event)
+│   │   │   │       ├── ⚙️ forget()
+│   │   │   │       ├── ⚙️ forget()
+│   │   │   │       ├── ⚙️ setupFooterWarnings() — Liga os avisos do rodapé: cada clique leva o cursor ao próximo item daquela lista (volta ao primeiro no fim).
+│   │   │   │       ├── ⚙️ buildDataBox() — Cria (uma vez) a caixa recolhível "Dados do arquivo" entre a barra de ferramentas e o texto do editor.
+│   │   │   │       ├── ⚙️ toggleDataBox(force) — Expande ou recolhe a caixa de dados.
+│   │   │   │       ├── ⚙️ renderDataBox() — Preenche a caixa com os campos do arquivo aberto (título e variáveis). Arquivos somente leitura mostram os campos desabilitados.
+│   │   │   │       ├── ⚙️ searchByTag(tag) — Coloca `#tag` no campo de pesquisa do explorer e dispara a pesquisa.
+│   │   │   │       ├── ⚙️ getKnownTags() — Tags já usadas nos arquivos do livro atual (sem repetir), para as sugestões do campo de tags.
+│   │   │   │       ├── ⚙️ parseTags(file.metadata?.tags)
+│   │   │   │       ├── ⚙️ setEditorReadOnly(isReadOnly) — Define o estado de leitura/escrita do editor de texto (bloqueia de verdade: teclado, colar, arrastar e IME).
+│   │   │   │       ├── ⚙️ renderFileContent(fullPath, rawText, isTemp = false) — Renderiza o conteúdo do arquivo no editor e atualiza a interface.
+│   │   │   │       └── ⚙️ resetEditorState() — Reseta a interface do editor para o estado inicial sem arquivo aberto, travando de verdade a edição.
+│   │   │   ├── EditorKit.js — [Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)]
+│   │   │   │   ├── ⚙️ normalizeExternalUrl(url) — Garante um endereço com protocolo (`google.com` vira `https://google.com`).
+│   │   │   │   └── 📦 class EditorKit — Editor Markdown completo (Toast UI + ferramentas do app).
+│   │   │   │       ├── ⚙️ onChange()
+│   │   │   │       ├── ⚙️ searchLinkTargets(this.getFiles()
+│   │   │   │       ├── ⚙️ buildToolbarItems() — Monta a barra: sem "código inline" e "bloco de código", com link próprio, procurar/substituir e alternador de visualização.
+│   │   │   │       ├── ⚙️ bindGlobalKeys() — Atalhos e cliques fora que fecham os painéis.
+│   │   │   │       ├── ⚙️ getView() — View do ProseMirror do modo ativo.
+│   │   │   │       ├── ⚙️ getBrokenLinks() — Links internos quebrados do documento aberto (posições do ProseMirror), na ordem do texto.
+│   │   │   │       ├── ⚙️ getWritingProblems() — Problemas de escrita (palavras desconhecidas e repetidas) do documento aberto, na ordem do texto.
+│   │   │   │       ├── ⚙️ selectRange({ from, to }) — Seleciona um trecho, rola o documento até ele e foca o editor (o cursor fica no trecho).
+│   │   │   │       ├── ⚙️ toggleViewMode() — Alterna entre texto formatado e Markdown cru.
+│   │   │   │       ├── ⚙️ setLocked(locked) — Bloqueia ou libera a edição (somente leitura). O bloqueio vale para teclado, colar, arrastar e IME, pois o próprio ProseMirror passa a não ser editável.
+│   │   │   │       ├── ⚙️ refresh() — Reaplica decorações e a propriedade `editable` do ProseMirror (sem alterar o documento).
+│   │   │   │       ├── ⚙️ getExistingPaths() — Caminhos (minúsculos) dos arquivos existentes, para detectar links quebrados.
+│   │   │   │       ├── ⚙️ setupLinkMenu(menu, container) — Menu de contexto (botão direito) dos links internos: remover link.
+│   │   │   │       ├── ⚙️ hide()
+│   │   │   │       ├── ⚙️ hide()
+│   │   │   │       └── ⚙️ destroy() — Destrói o editor e os painéis.
+│   │   │   ├── FindReplacePanel.js — [Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).]
+│   │   │   │   └── 📦 class FindReplacePanel — Painel de busca e substituição ligado a um editor Toast UI.
+│   │   │   │       ├── ⚙️ constructor(panel, { getView, isReadOnly, getPm }) — Método Construtor
+│   │   │   │       ├── ⚙️ getFind() — Busca ativa, no formato esperado pelo plugin de decoração.
+│   │   │   │       ├── ⚙️ isOpen() — Indica se o painel está aberto.
+│   │   │   │       ├── ⚙️ bind() — Liga os eventos do painel.
+│   │   │   │       ├── ⚙️ click(`[data-role="find-prev"]`, ()
+│   │   │   │       ├── ⚙️ click(`[data-role="find-next"]`, ()
+│   │   │   │       ├── ⚙️ click(`[data-role="find-close"]`, ()
+│   │   │   │       ├── ⚙️ click(`[data-role="replace-one"]`, ()
+│   │   │   │       ├── ⚙️ click(`[data-role="replace-all"]`, ()
+│   │   │   │       ├── ⚙️ open() — Abre o painel com o foco na busca (usando o texto selecionado no editor, se houver).
+│   │   │   │       ├── ⚙️ close() — Fecha o painel, remove os destaques e devolve o foco ao editor.
+│   │   │   │       ├── ⚙️ toggle() — Alterna o painel (botão da toolbar).
+│   │   │   │       ├── ⚙️ matches() — Ocorrências atuais no documento.
+│   │   │   │       ├── ⚙️ refresh(scroll = false) — Atualiza o contador, o destaque e (opcionalmente) rola até a ocorrência atual. Também deve ser chamado quando o documento muda enquanto o painel está aberto.
+│   │   │   │       ├── ⚙️ redraw() — Força o editor a reaplicar as decorações (sem alterar o documento).
+│   │   │   │       ├── ⚙️ reveal(match) — Seleciona a ocorrência e a leva à vista, sem tirar o foco do campo de busca.
+│   │   │   │       ├── ⚙️ step(direction) — Vai para a próxima (1) ou anterior (-1) ocorrência.
+│   │   │   │       ├── ⚙️ replaceCurrent() — Substitui a ocorrência atual e passa para a seguinte.
+│   │   │   │       ├── ⚙️ replaceMatches(this.getView()
+│   │   │   │       ├── ⚙️ replaceAll() — Substitui todas as ocorrências.
+│   │   │   │       └── ⚙️ replaceMatches(this.getView()
+│   │   │   ├── LinkPopup.js — [Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar]
+│   │   │   │   └── 📦 class LinkPopup — Popup de inserção de links.
+│   │   │   │       ├── ⚙️ constructor(popup, { search, getSelectedText, insert, onClose }) — Método Construtor
+│   │   │   │       ├── ⚙️ bind() — Liga os eventos do popup.
+│   │   │   │       ├── ⚙️ submitExternal()
+│   │   │   │       ├── ⚙️ isOpen() — Indica se o popup está aberto.
+│   │   │   │       ├── ⚙️ open(anchor) — Abre o popup embaixo de um botão.
+│   │   │   │       ├── ⚙️ close() — Fecha o popup.
+│   │   │   │       ├── ⚙️ showTab(tab) — Mostra a aba "internal" ou "external".
+│   │   │   │       ├── ⚙️ renderResults() — Lista os arquivos que combinam com o texto digitado: título em destaque e caminho abaixo, menor.
+│   │   │   │       ├── ⚙️ highlight() — Marca a linha ativa da lista (navegação por setas).
+│   │   │   │       └── ⚙️ pick(item) — Insere o link do arquivo escolhido. O texto selecionado no editor vira o texto do link; sem seleção, o texto é o título do arquivo.
+│   │   │   ├── WritingMenu.js — [Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao]
+│   │   │   │   └── 📦 class WritingMenu — Menu flutuante simples (um item por linha).
+│   │   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │   │       ├── ⚙️ open({ x, y, title, items }) — Abre o menu.
+│   │   │   │       ├── ⚙️ setTimeout(()
+│   │   │   │       └── ⚙️ close() — Fecha o menu.
+│   │   │   ├── editorTools.js — [Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):]
+│   │   │   │   ├── ⚙️ isInternalHref(href) — Indica se um href aponta para um arquivo Markdown do livro (e não para a web).
+│   │   │   │   ├── ⚙️ hrefToRelPath(href) — Caminho relativo à raiz do livro (minúsculo, sem barra inicial, `?` ou `#`) apontado por um href interno.
+│   │   │   │   ├── ⚙️ stripAutoLinkMarks(markdown) — Remove o marcador de link automático de todos os links do texto Markdown (usado ao sincronizar, quando os links passam a valer como links normais).
+│   │   │   │   ├── ⚙️ findBrokenLinkRanges(doc, existing, markdownMode) — Localiza os links internos que apontam para arquivos inexistentes, na ordem do documento. No modo formatado usa a marca de link; no modo Markdown procura `](caminho.md)` no texto.
+│   │   │   │   ├── ⚙️ findMatches(doc, term) — Procura um termo no documento (ignorando maiúsculas e acentos), bloco de texto por bloco de texto.
+│   │   │   │   ├── ⚙️ replaceMatches(view, matches, replacement) — Substitui ocorrências no documento em uma única transação (da última para a primeira, para as posições valerem).
+│   │   │   │   ├── ⚙️ applyAutoLinks(view, terms) — Cria links internos (marcados como automáticos) para todas as ocorrências dos termos no texto livre do documento. Não mexe em títulos, blocos de código, textos já linkados nem em código inline.
+│   │   │   │   ├── ⚙️ removeLinkAt(view, anchor) — Remove o link que envolve um elemento `<a>` do editor visual.
+│   │   │   │   └── ⚙️ createEditorPlugin(api) — Cria o plugin do Toast UI Editor que decora o documento: - links internos para arquivos que não existem mais (classe `wiki-broken` + tooltip); - ocorrências da busca (`find-match` e `find-current`), nos dois modos do editor. As decorações são recalculadas a cada atualização do estado, sempre consistentes com o documento atual.
+│   │   │   ├── tagInput.js — [Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou]
+│   │   │   │   ├── ⚙️ tagChipHtml(tag, clickable = false) — HTML de uma tag colorida (a cor é sempre a mesma para a mesma tag).
+│   │   │   │   └── 📦 class TagInput — Campo de entrada de tags.
+│   │   │   │       ├── ⚙️ constructor(root, { getKnownTags, onChange }) — Método Construtor
+│   │   │   │       ├── ⚙️ build() — Monta o DOM do campo.
+│   │   │   │       ├── ⚙️ setTimeout(()
+│   │   │   │       ├── ⚙️ setTags(tags) — Define as tags exibidas.
+│   │   │   │       ├── ⚙️ getTags() — Tags atuais (inclui o texto ainda não confirmado).
+│   │   │   │       ├── ⚙️ setDisabled(disabled) — Habilita/desabilita o campo.
+│   │   │   │       ├── ⚙️ renderChips() — Redesenha as tags.
+│   │   │   │       ├── ⚙️ add(raw) — Adiciona uma tag (normalizada, sem repetir).
+│   │   │   │       ├── ⚙️ addMany(parts) — Adiciona várias tags.
+│   │   │   │       ├── ⚙️ remove(tag) — Remove uma tag.
+│   │   │   │       ├── ⚙️ commitPending() — Transforma o texto digitado em tag.
+│   │   │   │       ├── ⚙️ onInput() — Reage à digitação: vírgula confirma a tag; senão atualiza as sugestões.
+│   │   │   │       ├── ⚙️ onKeyDown(e) — Teclado: Enter confirma (a sugestão marcada, se houver), setas navegam, Backspace remove a última tag.
+│   │   │   │       ├── ⚙️ updateSuggestions() — Busca (entre as tags já cadastradas no livro) as que combinam com o texto digitado.
+│   │   │   │       ├── ⚙️ renderList() — Desenha a lista de sugestões.
+│   │   │   │       ├── ⚙️ positionList() — Posiciona a lista (fixed) logo abaixo do campo, para ela poder passar dos limites da caixa de dados.
+│   │   │   │       └── ⚙️ closeList() — Fecha a lista de sugestões.
+│   │   │   └── writingProblems.js — [Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não]
+│   │   │        ├── ⚙️ isCheckableWord(word) — Indica se a palavra entra na verificação ortográfica (3+ letras e sem números).
+│   │   │        └── ⚙️ blockText(block, blockPos) — Texto de um bloco de texto com a posição do documento de cada caractere (nós que não são texto viram espaço).
+│   │   ├── [EditorOverlay]
+│   │   │   └── EditorOverlayComponent.js — [Componente responsável pela renderização estrutural do editor overlay]
+│   │   │        └── 📦 class EditorOverlayComponent — Representa o overlay do editor.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
+│   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
+│   │   │            └── ⚙️ toggleEditorOverlay(show, key, message = "", showSpinner = true) — Exibe o overlay respeitando as camadas (stack) por chave.
+│   │   ├── [Explorer]
+│   │   │   ├── ExplorerComponent.js — [Componente responsável pela renderização estrutural e lógica do explorer de arquivos.]
+│   │   │   │   └── 📦 class ExplorerComponent — Representa o explorer de arquivos.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe.
+│   │   │   │       ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
+│   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da UI e de domínio.
+│   │   │   │       ├── ⚙️ handleTempList(arr)
+│   │   │   │       ├── ⚙️ toggleAdvancedExplorerView() — Controla e alterna a visibilidade dos elementos avançados no explorador.
+│   │   │   │       ├── ⚙️ updateAdvancedVisibility()
+│   │   │   │       ├── ⚙️ tabSelectionEvents() — Gerencia a seleção de abas de navegação do explorador.
+│   │   │   │       ├── ⚙️ activateTab(folder) — Ativa uma aba: marca o botão, mostra a pasta raiz correspondente na árvore e atualiza a barra de ações e a mensagem de "sem resultados" da pesquisa.
+│   │   │   │       ├── ⚙️ syncAdvancedModeView() — Sincroniza o estado visual do switch e do container de arquivos avançados com base nas configurações (config.json) do livro atual.
+│   │   │   │       ├── ⚙️ getSearchInput() — Retorna o campo de texto da pesquisa.
+│   │   │   │       ├── ⚙️ isAdvancedModeOn() — Indica se o modo "Arquivos Avançados" está ligado.
+│   │   │   │       ├── ⚙️ toggleSearchClearButton(visible) — Exibe ou oculta o botão X da barra de pesquisa.
+│   │   │   │       ├── ⚙️ normalizePath(result.path)
+│   │   │   │       ├── ⚙️ toggleAllFolders() — Abre todas as pastas da aba atual; se todas já estiverem abertas, fecha todas. Cada pasta é alternada pelo próprio clique (assim o estado também é salvo no `config.json` do livro).
+│   │   │   │       ├── ⚙️ rerenderSearch() — Redesenha a pesquisa atual (ex.: quando o modo avançado é alternado).
+│   │   │   │       ├── ⚙️ resetSearch() — Zera a pesquisa sem redesenhar (usado ao trocar de livro, quando a árvore será recriada).
+│   │   │   │       ├── ⚙️ refreshSearchUi() — Atualiza os indicadores da pesquisa: bolinhas com a quantidade de matches em cada aba (removidas fora da pesquisa ou quando a aba não tem matches) e a mensagem de "sem resultados".
+│   │   │   │       ├── ⚙️ markActiveFile() — Marca como ativo, na árvore, o arquivo aberto no editor (sem abrir pastas nem trocar de aba).
+│   │   │   │       ├── ⚙️ normalizePath(span.dataset.absolutePath || "")
+│   │   │   │       ├── ⚙️ buildTree(node, currentPath, parentMeta = null) — Função principal de montagem recursiva da árvore a partir do dicionário em memória.
+│   │   │   │       ├── ⚙️ Number(f.dataset.rank)
+│   │   │   │       ├── ⚙️ createFolderNode(folderNode, folderName, relativePath, parentMeta = null) — Processa e cria o nó de pasta utilizando os metadados já cacheados no sub-nó.
+│   │   │   │       ├── ⚙️ categoryOf(bookRelative)
+│   │   │   │       ├── ⚙️ clearDropTargets() — Remove o realce das pastas-alvo do arrastar e soltar.
+│   │   │   │       ├── ⚙️ setupDragAndDrop() — Liga o soltar de arquivos sobre pastas (e sobre o fundo da árvore, que equivale à raiz de Anotações). A regra de quais movimentos valem é do FolderService; aqui só se identifica o alvo.
+│   │   │   │       ├── ⚙️ createFileNode(fileData, fileKey, relativePath, parentMeta = null) — Cria o nó de arquivo utilizando os metadados do Frontmatter já presentes no dicionário.
+│   │   │   │       ├── ⚙️ editableFields(meta, { title: fileRel.startsWith("notes/")
+│   │   │   │       ├── ⚙️ canDeleteFile(meta, relativePath.split("/")
+│   │   │   │       ├── ⚙️ categoryOf(fileRel)
+│   │   │   │       ├── ⚙️ clearTimeout(this._currentSelectionTimer)
+│   │   │   │       ├── ⚙️ attemptSelection()
+│   │   │   │       ├── ⚙️ updateFileTempStatus(filePath, isTemp) — Adiciona ou remove a indicação de arquivo temporário (.temp) na UI do Explorer.
+│   │   │   │       └── ⚙️ clearAllTemp() — Remove todas as marcações de arquivos temporários (.temp) e os elementos físicos do asterisco (*) da UI do Explorer.
+│   │   │   └── keyboardNav.js — [Navegação do explorer pelo teclado. Depois de clicar no explorer:]
+│   │   │        └── 📦 class ExplorerKeyboard — Navegação por teclado do explorer.
+│   │   │            ├── ⚙️ constructor(root) — Método Construtor
+│   │   │            ├── ⚙️ chatHeader()
+│   │   │            ├── ⚙️ rows() — Linhas visíveis da aba atual, na ordem da tela.
+│   │   │            ├── ⚙️ keyOf(row) — Identificador estável de uma linha (sobrevive a redesenhos da árvore).
+│   │   │            ├── ⚙️ current() — Linha destacada (procurada de novo se a árvore foi redesenhada).
+│   │   │            ├── ⚙️ buttons(row) — Opções (botões) de uma linha, da esquerda para a direita.
+│   │   │            ├── ⚙️ clearMarks() — Remove todo destaque de teclado.
+│   │   │            ├── ⚙️ deactivate() — Desliga a navegação (clique fora do explorer, troca de aba...).
+│   │   │            ├── ⚙️ reset() — Reinicia o ponto de partida (ex.: troca de aba), mantendo o teclado no explorer.
+│   │   │            ├── ⚙️ onMouseDown(e) — Clique no explorer: liga o teclado e define o ponto de partida (o item clicado, ou o arquivo selecionado da aba).
+│   │   │            ├── ⚙️ setTimeout(()
+│   │   │            ├── ⚙️ mark(row, btn = -1) — Destaca uma linha (e a rola para a vista).
+│   │   │            ├── ⚙️ markChat() — Destaca a gaveta do assistente de IA.
+│   │   │            ├── ⚙️ shouldHandle(e) — Se a tecla pertence ao explorer neste momento.
+│   │   │            └── ⚙️ onKeyDown(e) — Tratamento das teclas.
+│   │   ├── [Modal]
+│   │   │   ├── ModalComponent.js — [Classe gerenciadora de modais em pilha (Stack).]
+│   │   │   │   └── 📦 class ModalComponent — Componente de Modal em Pilha (Stack), herdando da classe base Component.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ModalComponent.
+│   │   │   │       ├── ⚙️ getContext() — Fornece o contexto de dados para a compilação do template Handlebars.
+│   │   │   │       ├── ⚙️ onInit() — Gancho do ciclo de vida executado logo após a renderização inicial do HTML.
+│   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos (blindagem de cliques internos e botão de fechar).
+│   │   │   │       └── ⚙️ close() — Fecha o modal atual, executa o callback opcional e limpa o elemento do DOM.
+│   │   │   └── ModalManager.js — [Classe gerenciadora da pilha de modais dinâmicos da aplicação.]
+│   │   │        └── 📦 class ModalManager — Gerenciador responsável por controlar a pilha de modais, overlay escuro e âncoras globais da aplicação.
+│   │   │            ├── ⚙️ constructor(selector, context) — Cria uma instância do ModalManager.
+│   │   │            ├── ⚙️ open(options) — Abre um novo modal empilhando-o sobre os anteriores.
+│   │   │            ├── ⚙️ originalClose()
+│   │   │            ├── ⚙️ openWizard(config) — Abre um modal contendo um wizard (formulário em passos) dinâmico.
+│   │   │            ├── ⚙️ handleModalClose() — Gerencia o comportamento visual da pilha ao fechar um modal (restaura o anterior ou esconde o overlay).
+│   │   │            ├── ⚙️ toggleOverlay(show) — Alterna a visibilidade do overlay global escuro de fundo.
+│   │   │            └── ⚙️ setupListeners() — Configura os ouvintes de eventos globais no barramento uiBus.
+│   │   ├── [Settings]
+│   │   │   └── SettingsComponent.js — [Componente responsável pela renderização estrutural da drawer de configurações]
+│   │   │        └── 📦 class SettingsComponent — Representa a drawer de configurações.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
+│   │   │            ├── ⚙️ getContext() — Contexto do template: lista de provedores com o ativo marcado.
+│   │   │            ├── ⚙️ onInit() — Preenche o formulário de IA com o provider ativo e sua chave salva.
+│   │   │            ├── ⚙️ syncChatBackgroundForm() — Preenche os seletores de plano de fundo do chat com a preferência salva (e mostra a cor quando o tipo usa cor).
+│   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos.
+│   │   │            ├── ⚙️ setChatBackgroundMode(theme, value)
+│   │   │            ├── ⚙️ setChatBackgroundColor(theme, getChatBackground(theme)
+│   │   │            ├── ⚙️ open() — Abre a gaveta de configurações.
+│   │   │            ├── ⚙️ close() — Fecha a gaveta de configurações.
+│   │   │            ├── ⚙️ collectAiForm() — Lê o formulário de IA.
+│   │   │            ├── ⚙️ syncAiForm(providerId) — Sincroniza select de modelos e campo de chave com o provider informado, usando o que está salvo (ou o modelo padrão).
+│   │   │            ├── ⚙️ setTimeout(()
+│   │   │            ├── ⚙️ toggleThemeSwitch(theme) — Altera o estado do switch de alteração do theme
+│   │   │            └── ⚙️ updateAiSummary() — Atualiza o resumo (provedor · modelo) mostrado quando o formulário de IA está recolhido.
+│   │   ├── [Sidebar]
+│   │   │   └── SidebarComponent.js — [Componente responsável pela renderização estrutural da barra lateral (Sidebar).]
+│   │   │        └── 📦 class SidebarComponent — Representa o painel lateral esquerdo da aplicação.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
+│   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface da sidebar.
+│   │   │            ├── ⚙️ updateBookList(books) — Atualiza as opções do dropdown de livros.
+│   │   │            └── ⚙️ selectLastBook()
+│   │   ├── [Toast]
+│   │   │   └── ToastComponent.js — [Componente responsável pela renderização estrutural do toast.]
+│   │   │        └── 📦 class ToastComponent — Representa o toast da aplicação.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
+│   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
+│   │   │            ├── ⚙️ show(message, type = "success") — Exibe uma notificação (toast) empilhada no canto inferior direito. Cada toast tem ícone conforme o tipo, uma barra de tempo restante e some sozinho; passar o mouse por cima pausa a contagem e clicar o dispensa.
+│   │   │            ├── ⚙️ requestAnimationFrame(()
+│   │   │            ├── ⚙️ clearTimeout(timer)
+│   │   │            ├── ⚙️ dismiss(toast) — Remove um toast com animação de saída.
+│   │   │            └── ⚙️ setTimeout(()
+│   │   ├── [Toolbar]
+│   │   │   ├── ToolbarComponent.js — [Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).]
+│   │   │   │   └── 📦 class ToolbarComponent — Representa a barra de ferramentas do editor.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ToolbarComponent.
+│   │   │   │       ├── ⚙️ onInit() — Inicialização do componente executada após a renderização no DOM.
+│   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da UI (`uiBus`) e de interações do usuário no DOM.
+│   │   │   │       ├── ⚙️ editableFields(metadata, { title: fileRel.startsWith("notes/")
+│   │   │   │       ├── ⚙️ setAutolinkButtonEnabled(enabled) — Habilita ou desabilita o botão de link automático (exige um arquivo editável aberto).
+│   │   │   │       ├── ⚙️ setHistoryButtonEnabled(enabled) — Habilita ou desabilita o botão de histórico de versões.
+│   │   │   │       ├── ⚙️ toggleExportMenu(force) — Abre ou fecha o menu de exportação.
+│   │   │   │       ├── ⚙️ closeExportMenu() — Fecha o menu de exportação.
+│   │   │   │       ├── ⚙️ cleanPath(path) — Caminho do arquivo oficial (normalizado, sem `.temp`) para comparar rascunhos.
+│   │   │   │       ├── ⚙️ refreshTabDirty() — Mostra o asterisco na guia quando o arquivo aberto tem rascunho (como no explorer).
+│   │   │   │       ├── ⚙️ showFileTab(title, canEdit, relativePath) — Mostra (ou esconde) a guia do arquivo aberto. O nome é o mesmo exibido no explorer e é cortado com reticências quando não cabe (a largura da guia é fixa).
+│   │   │   │       ├── ⚙️ initAnimations() — Inicializa a animação visual do botão de salvar/sincronizar.
+│   │   │   │       ├── ⚙️ handleSyncClick() — Dispara a solicitação para abertura do modal de sincronização de alterações pendentes.
+│   │   │   │       ├── ⚙️ refreshSaveButtonState() — Centraliza a regra de ativação/desativação do botão Salvar/Sincronizar.
+│   │   │   │       └── ⚙️ setSaveStatus(status) — Atualiza o status do salvamento automático, exibido no rodapé do editor (um ponto colorido e um texto discreto).
+│   │   │   └── animations.js — [Gerencia as animações da interface do usuário]
+│   │   │        └── ⚙️ initSaveButtonAnimation()
+│   │   ├── [Wizard]
+│   │   │   └── WizardComponent.js — [Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar]
+│   │   │        └── 📦 class WizardComponent — Wizard dinâmico renderizado dentro de um modal.
+│   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância do WizardComponent.
+│   │   │            ├── ⚙️ getContext() — Fornece os dados do passo atual para o template.
+│   │   │            ├── ⚙️ Boolean(this.config.allowSkip)
+│   │   │            ├── ⚙️ onInit() — Ao montar, foca o primeiro campo do passo.
+│   │   │            ├── ⚙️ setupListeners() — Registra os ouvintes de cliques/teclado do formulário e dos resultados enviados pelo controller.
+│   │   │            ├── ⚙️ listen(event, callback) — Registra um ouvinte no uiBus (sem replay) guardando a referência para remoção posterior.
+│   │   │            ├── ⚙️ isLast() — Indica se o passo atual é o último.
+│   │   │            ├── ⚙️ handleAction(action) — Executa a ação de um botão do wizard.
+│   │   │            ├── ⚙️ collectValues() — Lê os valores dos campos exibidos e os guarda nas respostas.
+│   │   │            ├── ⚙️ goTo(index) — Navega para outro passo, redesenhando o formulário com as respostas guardadas.
+│   │   │            ├── ⚙️ validateStep(index) — Valida os campos obrigatórios de um passo, destacando os vazios quando ele é o passo exibido.
+│   │   │            ├── ⚙️ submit() — Valida todos os passos e, estando tudo certo, emite `wizard:submit`. Se faltar um obrigatório em outro passo, volta até ele.
+│   │   │            ├── ⚙️ setBusy(busy) — Alterna o estado "processando": desabilita os botões enquanto o controller trabalha.
+│   │   │            ├── ⚙️ showError(message) — Exibe (ou oculta, com texto vazio) a mensagem de erro geral do wizard.
+│   │   │            ├── ⚙️ setFieldError(fieldEl, hasError) — Marca ou desmarca o aviso de campo obrigatório.
+│   │   │            ├── ⚙️ focusFirstField() — Foca o primeiro campo do passo atual.
+│   │   │            ├── ⚙️ focusField(fieldId) — Foca um campo pelo id.
+│   │   │            ├── ⚙️ close() — Fecha o modal que contém o wizard (a limpeza ocorre no `onClose` do modal).
+│   │   │            └── ⚙️ destroy() — Remove os ouvintes do barramento. Seguro para chamar mais de uma vez.
+│   │   └── index.js — [Barrel para exportação centralizada de todos os componentes de interface.]
+│   ├── [controllers]
+│   │   ├── domainController.js — [Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.]
+│   │   │   └── 📦 class DomainController — Controller responsável pelas regras de negócio, IA e manipulação de dados.
+│   │   │       ├── ⚙️ constructor(services, state) — Cria uma instância do DomainController e registra os ouvintes de eventos de domínio.
+│   │   │       └── ⚙️ registerEvents() — Registra todos os escutadores do barramento de domínio.
+│   │   ├── [handlers]
+│   │   │   ├── aiReviewHandler.js — [Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)]
+│   │   │   │   ├── ⚙️ onAiReviewOpen({ files }, fileService, state) — Abre, em sequência, a janela de comparação de cada arquivo alterado pela IA.
+│   │   │   │   ├── ⚙️ createAddedPlugin(added) — Cria o plugin do editor que marca (decoração `diff-added`) os blocos novos da IA no modo visual.
+│   │   │   │   ├── ⚙️ renderOld(body, removed) — Renderiza a versão antiga (Markdown interpretado e estático), marcando em vermelho os blocos removidos.
+│   │   │   │   ├── ⚙️ describeDataChanges(before, after) — Lista as variáveis do frontmatter (`data`) cujo valor mudou entre duas versões do arquivo.
+│   │   │   │   ├── ⚙️ reviewFile(originalPath, fileService, state) — Mostra a janela de comparação de um arquivo e resolve quando o usuário escolhe uma versão.
+│   │   │   │   └── ⚙️ toastError(error) — Avisa uma falha ao gravar a escolha do usuário.
+│   │   │   ├── bookHandler.js — [Handler dos eventos relacionados ao livro/projeto]
+│   │   │   │   ├── ⚙️ fetchBooks(state, bookService)
+│   │   │   │   ├── ⚙️ refreshBookList(state, bookService) — Recarrega a lista de livros do disco e avisa a interface (`books:updated`).
+│   │   │   │   ├── ⚙️ onFolderToggle(state, bookService, payload) — Manipula a abertura/fechamento de pastas na árvore, atualizando o estado do livro atual.
+│   │   │   │   ├── ⚙️ onAdvancedModeToggle(state, bookService, payload) — Manipula a alteração do modo avançado, atualizando o estado do livro atual e persistindo.
+│   │   │   │   ├── ⚙️ onBookSelect(state, bookPath, bookService) — Handler de troca de livro.
+│   │   │   │   ├── ⚙️ onBookChange(state) — Manipula a alteração de livro, atualizando o estado global, resetando o editor e restaurando o último arquivo aberto (se houver) salvo no config.json.
+│   │   │   │   ├── ⚙️ onFetchBooksList(req, bookService) — Solicita lista de livros do backend e também confere qual o último livro selecionado. @async
+│   │   │   │   ├── ⚙️ onAiLock(locked)
+│   │   │   │   └── ⚙️ clearBook(state) — Deixa o app vazio, aguardando a seleção de um livro (explorer, editor e chat limpos).
+│   │   │   ├── chapterHandler.js
+│   │   │   ├── characterHandler.js
+│   │   │   ├── chatHandler.js — [Handler para orquestração de eventos e mensagens do chat.]
+│   │   │   │   ├── ⚙️ onSystemNotice({ text }, aiService) — Mostra (e grava no histórico) uma mensagem "system" no chat, usada para eventos importantes realizados pela IA.
+│   │   │   │   ├── ⚙️ onCreationNotice(payload, aiService) — Avisa no chat quando um item (livro, capítulo, ficha ou anotação) foi criado pela IA. Criações feitas pelo usuário não geram aviso.
+│   │   │   │   ├── ⚙️ onQuickReply({ data }, aiService) — Trata o clique em um botão de resposta pronta: envia o texto do botão como se o usuário o tivesse digitado.
+│   │   │   │   ├── ⚙️ onSendMessage({ promptText }, aiService) — Trata o envio de uma mensagem digitada pelo usuário no chat.
+│   │   │   │   ├── ⚙️ loadHistory(offset, aiService) — Carrega o histórico de mensagens do chat para a sessão atual do livro ativo. Se o lote inicial tiver <= 20 mensagens, busca arquivos anteriores até acumular >= 50 mensagens.
+│   │   │   │   └── ⚙️ fetchMoreHistory(offset, aiService) — Busca mais histórico antigo quando o usuário rola o chat até o topo (Infinite Scroll).
+│   │   │   ├── configHandler.js — [Handler para gerenciar alterações no arquivo config.json dos projetos.]
+│   │   │   │   ├── ⚙️ onConfigChanged(payload, state, bookService)
+│   │   │   │   ├── ⚙️ onAiSettingsSave(data, aiService) — Persiste o provider de IA, o modelo e a chave de API escolhidos.
+│   │   │   │   ├── ⚙️ onAiModelsRequested({ provider }, aiService) — Busca os modelos disponíveis do provider e avisa a interface. Falhas (chave inválida, sem rede) são silenciosas: o select continua com a lista padrão.
+│   │   │   │   ├── ⚙️ onCurrentConfigChanged(state, config) — Processa a alteração de um arquivo config.json do projeto atual detectada no sistema de arquivos.
+│   │   │   │   ├── ⚙️ applySavedSpellLanguage() — Aplica o idioma de correção ortográfica salvo (usado ao iniciar o app) e sincroniza o seletor.
+│   │   │   │   ├── ⚙️ isSpellcheckEnabled() — Se a correção ortográfica e gramatical está ligada (padrão: ligada).
+│   │   │   │   ├── ⚙️ onSpellcheckToggled({ value }) — Liga/desliga a correção ortográfica e gramatical e avisa o editor para atualizar o rodapé.
+│   │   │   │   └── ⚙️ onSpellLanguageChanged({ value }) — Troca o idioma da correção ortográfica e o persiste.
+│   │   │   ├── creationHandler.js — [Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação]
+│   │   │   │   ├── ⚙️ onWizardSubmit(payload, state, services) — Trata o envio de um wizard: executa a ação do tipo correspondente e avisa o wizard do resultado (`wizard:completed` ou `wizard:failed`).
+│   │   │   │   ├── ⚙️ openCreated(result, state, services) — Após a criação pela interface, deixa o item pronto para uso: seleciona o livro novo ou abre o arquivo criado.
+│   │   │   │   ├── ⚙️ onTreeChanged({ bookPath }, state, bookService) — Atualiza o mapa de arquivos do livro atual e avisa a interface (`tree:updated`) quando o item criado pertence a ele.
+│   │   │   │   └── ⚙️ onBookCreated(state, bookService) — Reage à criação de um livro (pela UI ou pela IA): atualiza a lista de livros exibida.
+│   │   │   ├── deleteHandler.js — [Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:]
+│   │   │   │   ├── ⚙️ escapeHtml(text) — Escapa texto para uso seguro em HTML.
+│   │   │   │   ├── ⚙️ ensureUnlocked(state) — Verifica se o livro está livre para exclusões (a IA trabalhando trava o projeto).
+│   │   │   │   ├── ⚙️ onFileDeleteRequest(payload, state, deletion, services) — Trata o clique no botão de excluir de um arquivo: valida a permissão e abre a confirmação.
+│   │   │   │   └── ⚙️ onStructureChanged(payload, state, services) — Atualiza a interface depois de uma alteração de estrutura feita pela IA (pasta criada, arquivo ou pasta movidos ou excluídos, versão restaurada): explorer, rascunhos e o arquivo aberto no editor.
+│   │   │   ├── exportHandler.js — [Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.]
+│   │   │   │   ├── ⚙️ toExportHtml(markdown) — HTML do texto para Word e PDF: links internos do livro (que não existem fora do app) viram texto simples.
+│   │   │   │   └── ⚙️ onExportFile({ data }, state) — Exporta o arquivo aberto no formato escolhido (o app pergunta onde salvar).
+│   │   │   ├── fileHandler.js — [Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.]
+│   │   │   │   ├── ⚙️ syncFile(filePath, fileService, state) — Persiste as alterações de um único arquivo (socreve original com .temp e limpa estado)
+│   │   │   │   ├── ⚙️ syncMultipleFiles(filePaths, fileService, state) — Sincroniza uma lista de caminhos de arquivos em lote.
+│   │   │   │   ├── ⚙️ onSyncOpenModal(fileService, state, onDone = null) — Varre o sistema de arquivos via FileService e abre o modal de sincronização.
+│   │   │   │   ├── ⚙️ attachSyncModalEvents(syncModal, fileService, state) — Gerencia os ouvintes de eventos e interações dentro do modal.
+│   │   │   │   ├── ⚙️ onFileGet(req, state, fileService) — Realiza a consulta do arquivo no disco (com prioridade .temp), atualiza o state e notifica globalmente.
+│   │   │   │   ├── ⚙️ onSaveTemp(path, content, fileService)
+│   │   │   │   ├── ⚙️ onFileOpened(state, bookService, payload) — Manipula a abertura de um arquivo, atualizando o estado do livro atual e persistindo as configurações.
+│   │   │   │   ├── ⚙️ onEditorReset(state) — Ações a serem tomadas quando o editor é resetado
+│   │   │   │   ├── ⚙️ onTempChanged(filePath, state, bookService) — Manipula o evento de salvamento de arquivo temporário (.temp), validando se o arquivo pertence ao livro atualmente ativo antes de atualizar o estado. @async @function onTempSaved
+│   │   │   │   ├── ⚙️ onTempDeleted(filePath, state, fileService)
+│   │   │   │   ├── ⚙️ handlePendingTempFiles(fileService)
+│   │   │   │   └── ⚙️ onSyncRequireAll({ onDone }, fileService, state) — Exige que todos os rascunhos do projeto sejam resolvidos (usado antes de a IA editar arquivos).
+│   │   │   ├── folderHandler.js — [Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.]
+│   │   │   │   ├── ⚙️ refresh(state, services) — Atualiza a árvore do explorer e a lista de rascunhos após uma alteração de pastas/arquivos.
+│   │   │   │   ├── ⚙️ askName({ title, label, value = "", confirmLabel, onConfirm }) — Abre um modal com um campo de texto e devolve o valor digitado ao confirmar.
+│   │   │   │   ├── ⚙️ onFolderCreate(payload, state, folders, services) — Trata o pedido de nova pasta (botão da mini toolbar ou da pasta).
+│   │   │   │   ├── ⚙️ onFolderRename(payload, state, folders, services) — Trata o pedido de renomear uma pasta do usuário.
+│   │   │   │   ├── ⚙️ onFolderDelete(payload, state, folders, services) — Trata o pedido de excluir uma pasta do usuário: avisa sempre que os arquivos dentro dela também serão excluídos.
+│   │   │   │   ├── ⚙️ closeIfInside(state, rel) — Se o arquivo aberto estava dentro da pasta excluída, limpa o editor.
+│   │   │   │   ├── ⚙️ onFileMove({ file, dest }, state, folders, services) — Trata o soltar de um arquivo sobre uma pasta (arrastar e soltar). Movimentos entre categorias diferentes são recusados com um aviso.
+│   │   │   │   └── ⚙️ onFolderMove({ folder, dest }, state, folders, services) — Trata o soltar de uma pasta do usuário sobre outra pasta (mesma regra de categoria dos arquivos).
+│   │   │   ├── historyHandler.js — [Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no]
+│   │   │   │   └── ⚙️ onHistoryOpen(state, changelog, services) — Abre o modal com o histórico de versões do arquivo aberto no editor.
+│   │   │   ├── linkHandler.js — [Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e]
+│   │   │   │   └── ⚙️ onAutoLink(state) — Trata o clique no botão "Linkar termos".
+│   │   │   ├── logViewerHandler.js — [Handler dos visualizadores de logs da tela de configurações: o changelog do livro (lista corrida com]
+│   │   │   │   ├── ⚙️ onChangelogViewerOpen(state, changelog) — Abre o modal com o changelog do livro atual. Ao rolar até o fim do arquivo de log carregado, o próximo arquivo (mais antigo) é carregado automaticamente, até acabarem os arquivos.
+│   │   │   │   ├── ⚙️ mountChangelogList(root, changelog) — Liga a lista do changelog ao seu contêiner: carrega o arquivo de log mais recente e, conforme o usuário rola, os mais antigos.
+│   │   │   │   └── ⚙️ onAiErrorLogOpen() — Abre o modal com o log de erros retornados pela IA.
+│   │   │   ├── searchHandler.js — [Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.]
+│   │   │   │   ├── ⚙️ cancelPending() — Cancela qualquer pesquisa pendente ou em andamento.
+│   │   │   │   ├── ⚙️ onSearchChanged({ value }, state, searchService) — Trata a alteração do texto da pesquisa. Com texto, pesquisa após o debounce e publica `search:results`; vazio, cancela o modo de pesquisa publicando `search:cleared`.
+│   │   │   │   └── ⚙️ onSearchClear() — Trata o pedido de limpar a pesquisa (botão X): encerra o modo de pesquisa.
+│   │   │   └── variablesHandler.js — [Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo]
+│   │   │        ├── ⚙️ isOpenFile(state, path) — Indica se o caminho é o arquivo aberto no editor.
+│   │   │        ├── ⚙️ loadDocument(state, fileService, path) — Carrega o frontmatter e o corpo de um arquivo (do editor, se aberto; senão do disco, preferindo o rascunho).
+│   │   │        ├── ⚙️ onVariablesOpen(state, fileService, payload) — Abre o modal (wizard de passo único) com os campos do arquivo. Sem `payload.data.path`, usa o arquivo aberto.
+│   │   │        ├── ⚙️ onVariablesSave({ values, context }, state, fileService) — Salva os dados alterados no rascunho (.temp) do arquivo, esteja ele aberto no editor ou não, e notifica os barramentos. Renomear atualiza o título e o H1. @throws {Error} Se o arquivo não pode ser editado ou o rascunho não pôde ser gravado.
+│   │   │        └── ⚙️ onVariablesInlineSave({ values }, state, fileService) — Salva a caixa "Dados do arquivo" do editor (arquivo aberto) e avisa o resultado.
+│   │   └── uiController.js — [Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.]
+│   │        └── 📦 class UiController — Controller responsável pelas reações visuais da interface.
+│   │            ├── ⚙️ constructor(services, state) — Cria uma instância do UiController e registra os ouvintes de eventos da UI.
+│   │            ├── ⚙️ registerEvents() — Registra todos os escutadores do barramento de UI.
+│   │            └── ⚙️ openCreationWizard(kind, folder) — Pede ao handler de criação que abra o wizard do tipo informado.
+│   ├── [core]
+│   │   ├── appContainer.js — [Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar]
+│   │   │   └── 📦 class AppContainer — Orquestrador principal da aplicação no processo de renderização. Gerencia a inicialização e injeção de dependências das classes de serviços e UI.
+│   │   │       ├── ⚙️ constructor() — Cria uma instância do AppContainer e inicializa suas dependências. @constructor
+│   │   │       ├── ⚙️ async(component)
+│   │   │       └── ⚙️ setupGlobalEvents() — Configura ouvintes globais de eventos na janela (arrastar arquivos, restrições de TAB, etc.).
+│   │   ├── splash.js — [Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela]
+│   │   │   ├── ⚙️ initSplash() — Prepara a abertura conforme o tema salvo (claro: fundo da barra de título e letras chumbo) e começa a carregar as fontes. Não anima nada: a tela fica vazia até {@link hideSplash}.
+│   │   │   └── ⚙️ hideSplash() — Toca a sequência da abertura e a remove (o app chama quando fica pronto).
+│   │   ├── state.js — [Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.]
+│   │   │   └── 📦 class State — Classe responsável por gerenciar o estado global compartilhado da aplicação.
+│   │   │       └── ⚙️ constructor() — Cria uma instância do gerenciador de estado. @constructor
+│   │   ├── themeManager.js — [Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.]
+│   │   │   └── 📦 class ThemeManager — Classe responsável por gerenciar temas visuais e preferências de claro/escuro da interface.
+│   │   │       ├── ⚙️ constructor() — Cria uma instância do ThemeManager. @constructor
+│   │   │       ├── ⚙️ init() — Inicializa o gerenciador de temas, recuperando o tema salvo e configurando os ouvintes de evento.
+│   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos.
+│   │   │       ├── ⚙️ toggleTheme(isDark) — Alterna o tema atual e o persiste no armazenamento local.
+│   │   │       └── ⚙️ applyTheme(isDark) — Aplica as classes visuais do tema no corpo da página, no editor e opcionalmente na janela nativa.
+│   │   └── tooltip.js — [Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma]
+│   │        ├── ⚙️ ensureTip() — Cria (uma vez) o elemento da dica.
+│   │        ├── ⚙️ findHost(target) — Elemento (o próprio ou um ancestral) que tem dica.
+│   │        ├── ⚙️ readText(host) — Texto da dica do elemento; troca o `title` nativo por `data-tooltip`.
+│   │        ├── ⚙️ hide() — Esconde a dica e cancela a que estava agendada.
+│   │        ├── ⚙️ show(host) — Mostra a dica do elemento, abaixo dele (ou acima se não couber), centralizada e dentro da janela.
+│   │        └── ⚙️ initTooltips() — Liga as tooltips personalizadas ao documento (chamar uma vez).
+│   ├── [events]
+│   │   ├── domainBus.js — [Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.]
+│   │   ├── uiBus.js — [scripts/renderer/events/eventUi.js]
+│   │   │   └── 📦 class UiEventBus
+│   │   │       ├── ⚙️ constructor() — @constructor
+│   │   │       ├── ⚙️ initDeclarativeEvents(this.bus)
+│   │   │       ├── ⚙️ emit(event, payload = null) — @method emit
+│   │   │       ├── ⚙️ on(event, callback, replay = true) — @method on
+│   │   │       ├── ⚙️ setTimeout(()
+│   │   │       ├── ⚙️ callback(item.payload)
+│   │   │       ├── ⚙️ callback(reqContext)
+│   │   │       ├── ⚙️ off(event, callback) — @method off
+│   │   │       ├── ⚙️ req(eventBase, payload = {}) — @method req
+│   │   │       ├── ⚙️ clearTimeout(timeout)
+│   │   │       ├── ⚙️ reject(new Error(response.error)
+│   │   │       ├── ⚙️ resolve(response.data)
+│   │   │       └── ⚙️ onReq(event, callback) — @method onReq
+│   │   └── uiDeclarativeEvents.js
+│   │        └── ⚙️ initDeclarativeEvents(uiBus) — Inicializa o escutador global de eventos no documento.
+│   ├── renderer.js
+│   ├── [services]
+│   │   ├── aiService.js — [Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.]
+│   │   │   ├── ⚙️ getTodaySessionDate() — Obtém a data atual formatada como YYYY-MM-DD para nomear a sessão do chat.
+│   │   │   └── 📦 class AiService — Classe de serviço da Inteligência Artificial.
+│   │   │       ├── ⚙️ getCurrentChatLogFilePath(sessionIndex = 1) — Monta o caminho completo do arquivo de log da sessão atual.
+│   │   │       ├── ⚙️ getActiveModel() — Modelo ativo do provedor selecionado (o salvo nas configurações ou o padrão).
+│   │   │       ├── ⚙️ getProviderInfo(provider)
+│   │   │       ├── ⚙️ getContextWindow() — Janela de contexto do modelo ativo (da lista da API ou do catálogo padrão), se conhecida.
+│   │   │       ├── ⚙️ publishUsage() — Publica o consumo de tokens atual (e a janela de contexto) para a interface.
+│   │   │       ├── ⚙️ setLimit(provider, model, limit) — Guarda (ou limpa) o limite de uso conhecido do provedor/modelo ativo.
+│   │   │       ├── ⚙️ learnDailyQuota(provider, model, error.quotaValue)
+│   │   │       ├── ⚙️ resetUsage() — Zera o consumo de tokens (nova sessão de chat).
+│   │   │       └── ⚙️ saveMessage(message) — Salva uma nova mensagem no arquivo de log da sessão atual do livro ativo.
+│   │   ├── bookService.js — [Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.]
+│   │   │   └── 📦 class BookService
+│   │   │       └── ⚙️ constructor(state, services) — Cria uma instância do BookService.
+│   │   ├── changelogService.js — [Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra]
+│   │   │   └── 📦 class ChangelogService — Serviço de registro e consulta do changelog.
+│   │   │       ├── ⚙️ constructor(state) — Cria uma instância do ChangelogService.
+│   │   │       ├── ⚙️ userActor() — Autor "usuário".
+│   │   │       ├── ⚙️ systemActor() — Autor "Sistema": ajustes que o próprio app faz (renumerar capítulos, trocar de modelo por fallback...).
+│   │   │       ├── ⚙️ aiActor() — Autor "IA", com o provedor e o modelo ativos no momento.
+│   │   │       ├── ⚙️ actorFor(filePath) — Resolve o autor de uma gravação em arquivo oficial: se o conteúdo veio de um rascunho feito pela IA (e o usuário o aprovou), o autor é a IA; caso contrário, é o usuário.
+│   │   │       ├── ⚙️ markAiDraft(filePath) — Marca que o rascunho de um arquivo foi escrito pela IA.
+│   │   │       ├── ⚙️ clearDraft(filePath) — Esquece o autor do rascunho (ao sincronizar ou descartar).
+│   │   │       ├── ⚙️ key(filePath) — Chave normalizada (arquivo oficial, sem `.temp`) para o mapa de autores.
+│   │   │       ├── ⚙️ isTracked(filePath) — Indica se um caminho entra no changelog (conteúdo do livro; não rascunhos, `.system` nem config).
+│   │   │       ├── ⚙️ resolveBook(filePath, bookPath) — Caminho do livro ao qual um arquivo pertence (o livro atual, a menos que outro seja informado).
+│   │   │       ├── ⚙️ recordAiRead(filePath, tool) — Registra a leitura de um arquivo pela IA (útil para depurar o comportamento dela).
+│   │   │       ├── ⚙️ normalizePath(this.state.currentBookPath)
+│   │   │       ├── ⚙️ sessionKey(filePath, actorType) — Chave da sessão de um arquivo para um tipo de autor.
+│   │   │       ├── ⚙️ endSession(filePath) — Encerra as sessões de salvamento automático de um arquivo (a próxima edição abre um novo registro).
+│   │   │       ├── ⚙️ endSessionsExcept(keepPath = null) — Encerra as sessões de todos os arquivos, exceto o informado (usado ao trocar de arquivo no editor).
+│   │   │       ├── ⚙️ endAiSessions() — Encerra as sessões de rascunho da IA (quando ela termina de editar).
+│   │   │       └── ⚙️ recordMove(newPath, oldPath, actor, bookPath) — Registra que um arquivo mudou de caminho (ex.: capítulo renumerado). O histórico do arquivo continua valendo.
+│   │   ├── creationService.js — [Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.]
+│   │   │   ├── ⚙️ pad(n, size = 3) — Formata um número com zeros à esquerda.
+│   │   │   ├── ⚙️ nextNumber(names, regex) — Calcula o próximo número livre de uma sequência, a partir dos nomes existentes.
+│   │   │   ├── ⚙️ sanitizeFolder(folder) — Valida um caminho de pasta relativo à raiz do livro (sem `..`, sem pastas ocultas e sem caminho absoluto).
+│   │   │   └── 📦 class CreationService — Serviço de criação de conteúdo a partir dos modelos (templates) do projeto.
+│   │   │       ├── ⚙️ constructor(state, changelog = null) — Cria uma instância do CreationService.
+│   │   │       ├── ⚙️ requireBookPath() — Retorna o caminho do livro atual ou lança erro se nenhum estiver selecionado.
+│   │   │       ├── ⚙️ walk(sub, path)
+│   │   │       ├── ⚙️ walk(tree, "")
+│   │   │       ├── ⚙️ resolveValues(steps, values = {}) — Combina os valores informados com os valores padrão dos campos.
+│   │   │       ├── ⚙️ validate(spec, values) — Retorna os campos obrigatórios que ficaram sem resposta.
+│   │   │       ├── ⚙️ actorFor(source) — Autor de uma criação, conforme a origem.
+│   │   │       ├── ⚙️ renderTemplateFile(plot)
+│   │   │       ├── ⚙️ replaceFirstHeading(draft.body, title)
+│   │   │       ├── ⚙️ replaceFirstHeading(body, title)
+│   │   │       └── ⚙️ notify(event, payload) — Notifica os dois barramentos sobre um item criado.
+│   │   ├── deletionService.js — [Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.]
+│   │   │   └── 📦 class DeletionService — Serviço de exclusão de arquivos e capítulos.
+│   │   │       ├── ⚙️ constructor(state, changelog) — Método Construtor
+│   │   │       ├── ⚙️ requireBook() — Caminho do livro atual (normalizado, sem barra final). @throws {Error} Se nenhum livro está selecionado.
+│   │   │       └── ⚙️ notify(event, payload) — Notifica os dois barramentos.
+│   │   ├── fileService.js — [Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.]
+│   │   │   └── 📦 class FileService — Serviço de manipulação e persistência de arquivos locais via IPC do Electron.
+│   │   │       ├── ⚙️ constructor(state, changelog = null) — Cria uma instância do FileService.
+│   │   │       ├── ⚙️ getTempPath(filePath) — Retorna o caminho do arquivo temporário (.temp) correspondente.
+│   │   │       └── ⚙️ stripAutoLinkMarks(contentToSave)
+│   │   ├── folderService.js — [Serviço das pastas do usuário e da movimentação de arquivos entre pastas.]
+│   │   │   ├── ⚙️ categoryOf(bookRel) — Categoria oficial de um caminho relativo ao livro (`notes` ou `assets/<categoria>`), ou null.
+│   │   │   ├── 📦 class FolderService — Serviço de pastas do usuário e movimentação de arquivos.
+│   │   │   │   ├── ⚙️ constructor(state, changelog) — Método Construtor
+│   │   │   │   ├── ⚙️ requireBook() — Caminho do livro atual (normalizado, sem barra final).
+│   │   │   │   ├── ⚙️ canCreateIn(parentRel) — Indica se o usuário pode criar pastas dentro de um caminho (categoria oficial ou pasta do usuário).
+│   │   │   │   ├── ⚙️ checkMove(fileRel, destRel) — Verifica se um arquivo pode ser movido para uma pasta (mesma categoria oficial).
+│   │   │   │   ├── ⚙️ checkFolderMove(folderRel, destRel) — Verifica se uma pasta do usuário pode ser movida para dentro de outra pasta (mesma categoria oficial, nunca para dentro de si mesma).
+│   │   │   │   └── ⚙️ notify(event, payload) — Notifica os dois barramentos.
+│   │   │   └── ⚙️ escapeRegExp(text) — Escapa um texto para uso literal em expressão regular.
+│   │   ├── indexService.js — [Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos]
+│   │   ├── searchService.js — [Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).]
+│   │   │   └── 📦 class SearchService — Serviço que delega a busca de texto ao processo principal (que lê os arquivos do disco).
+│   │   ├── serviceManager.js — [Agregador central de serviços (Facade). Instancia e gerencia o acesso]
+│   │   │   └── 📦 class ServiceManager — Gerencia todas as classes de serviços.
+│   │   │       └── ⚙️ constructor(state) — Inicializa e agrupa todos os serviços da aplicação. @constructor
+│   │   └── spellService.js — [Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal]
+│   │        └── 📦 class SpellService — Serviço de verificação ortográfica por contagem.
+│   │            └── ⚙️ reset() — Chamado quando o idioma muda (o dicionário novo é carregado no primeiro uso).
+│   └── [utils]
+│        ├── autoLinkText.js — [Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e]
+│        │   ├── ⚙️ linkSegment(text, terms) — Linka os termos em um trecho de texto livre (sem links nem código).
+│        │   └── ⚙️ applyAutoLinksToMarkdown(body, terms) — Cria links internos para as ocorrências dos termos no corpo Markdown. Não mexe em títulos, blocos de código, código inline, imagens nem textos que já são links.
+│        ├── bookFiles.js — [Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos]
+│        │   ├── ⚙️ flattenBookTree(tree, bookPath) — Achata a árvore de arquivos do livro em uma lista de arquivos Markdown oficiais.
+│        │   ├── ⚙️ fileTitle(file) — Título de exibição de um arquivo.
+│        │   ├── ⚙️ isLinkTarget(file) — Indica se o arquivo pode ser destino de um link interno (ficha legível, fora modelos e índices).
+│        │   ├── ⚙️ toInternalHref(relPath) — Href interno de um arquivo (`/caminho/relativo.md`).
+│        │   ├── ⚙️ searchLinkTargets(files, term, limit = 30) — Procura destinos de link interno por nome, título ou caminho (ignora maiúsculas e acentos).
+│        │   ├── ⚙️ splitAliases(value) — Divide o valor da variável de apelidos em uma lista (separada por vírgula, ponto e vírgula ou quebra de linha).
+│        │   ├── ⚙️ buildAutoLinkTerms(files, currentRelPath = "") — Termos (nome e apelidos) que o link automático procura no texto, cada um apontando para o arquivo de origem. Só entram as fichas do mundo (`assets/<pasta>/arquivo.md`), nunca o próprio arquivo aberto.
+│        │   └── ⚙️ existingPathSet(files) — Conjunto de caminhos relativos (minúsculos) dos arquivos existentes, para validar links internos.
+│        ├── bookIndex.js — [Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual]
+│        │   ├── ⚙️ entityIndexPath(bookRelPath) — Caminho (relativo ao livro) do índice que lista um arquivo de ficha, ou null se o arquivo não é listado em índice. Fichas dentro de subpastas do usuário entram no índice da categoria (`assets/characters/index.md`).
+│        │   ├── ⚙️ indexPathsFor(bookRelPath) — Índices do livro que podem conter link para um arquivo excluído (capítulos e categorias do Mundo).
+│        │   ├── ⚙️ safeTitle(title) — Remove título de link do texto (colchetes quebrariam o Markdown).
+│        │   ├── ⚙️ indexLine(title, bookRelPath) — Linha de lista do índice para um arquivo.
+│        │   ├── ⚙️ lineLinksTo(line, paths) — Indica se uma linha do índice é o link de um dos caminhos (com ou sem barra inicial e `#fragmento`).
+│        │   ├── ⚙️ addIndexLink(indexContent, title, bookRelPath) — Acrescenta o link de um arquivo ao texto de um índice (sem duplicar se já estiver lá).
+│        │   └── ⚙️ removeIndexLinks(indexContent, bookRelPaths) — Remove do texto de um índice as linhas que apontam para os arquivos informados.
+│        ├── changelogFormat.js — [Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.]
+│        │   ├── ⚙️ formatDateTime(iso) — Formata uma data ISO como "DD/MM/AAAA HH:MM:SS" (horário local).
+│        │   ├── ⚙️ describeActor(actor) — Descreve quem realizou uma ação, com a classe de cor correspondente.
+│        │   ├── ⚙️ displayPath(path, action) — Nome exibido para o caminho registrado (`.` significa o livro inteiro ou, para configurações, o app).
+│        │   ├── ⚙️ summarizeEntry(entry) — Resumo curto de um registro (linhas alteradas, ferramenta usada, versão restaurada...).
+│        │   └── ⚙️ toViewEntry(entry) — Prepara um registro para o template de listagem.
+│        ├── chatActions.js — [Catálogo das ações nativas que um botão do chat pode disparar.]
+│        │   └── ⚙️ isAllowedChatEvent(event) — Indica se um evento pode ser disparado por um botão do chat.
+│        ├── chatBackground.js — [Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.]
+│        │   ├── ⚙️ modeUsesColor(mode) — Tipos que aceitam escolher a cor de fundo.
+│        │   ├── ⚙️ getChatBackground(theme) — Preferência salva (ou o padrão) para um tema.
+│        │   ├── ⚙️ hasSavedColor(theme, mode) — Se o usuário já escolheu uma cor para o tipo de fundo (nas estrelas, sem escolha vale o degradê padrão do tema).
+│        │   ├── ⚙️ getColor(theme, mode) — Cor salva (ou a padrão) de um tipo de fundo em um tema.
+│        │   ├── ⚙️ setChatBackgroundMode(theme, mode) — Salva o tipo de fundo de um tema.
+│        │   └── ⚙️ setChatBackgroundColor(theme, mode, color) — Salva a cor de um tipo de fundo em um tema.
+│        ├── chatMarkdown.js — [Conversão segura de Markdown (respostas da IA) em HTML para o chat.]
+│        │   └── ⚙️ renderChatMarkdown(markdown) — Converte Markdown em HTML sanitizado (qualquer HTML cru vindo da IA é filtrado).
+│        ├── deletePermission.js — [Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.]
+│        │   ├── ⚙️ canDeleteFile(metadata, bookRelPath, who = "user") — Indica se um arquivo pode ser excluído.
+│        │   ├── ⚙️ isChapterFolder(bookRelPath) — Indica se um caminho (relativo ao livro) é uma pasta de capítulo.
+│        │   └── ⚙️ chapterNumber(folderName) — Número de uma pasta de capítulo (`chapter_003` -> 3).
+│        ├── diff.js — [Comparação linha a linha entre duas versões de um texto.]
+│        │   └── ⚙️ diffLines(oldText, newText) — Compara dois textos e indica quais linhas foram removidas (versão antiga) e adicionadas (versão nova).
+│        ├── helpers.js — [Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.]
+│        │   ├── ⚙️ normalizeItemMetadata(rawMetadata, fallbackTitle = "") — Garante que todas as chaves obrigatórias do objeto de metadados existam com valores padrão (fallbacks).
+│        │   ├── ⚙️ normalizePath(p) — Normaliza caminhos de arquivo para evitar quebras em seletores CSS ou chamadas do Node/IPC.
+│        │   ├── ⚙️ getRelativePath(fullPath) — Transforma um caminho completo em um caminho relativo a partir da pasta 'books', garantindo que a pasta do livro imediatamente abaixo de 'books' comece com 'book_'.
+│        │   ├── ⚙️ escapeHtml(text) — Utilitário simples para sanitizar textos HTML.
+│        │   ├── ⚙️ highlightMatch(text, term) — Escapa o texto e destaca (com `<mark>`) as ocorrências do termo, ignorando maiúsculas, acentos, pontuação e artigos/conjunções (mesma regra da busca).
+│        │   └── ⚙️ uniqueId(prefix = "id") — Gera um identificador curto e único para correlacionar eventos (ex.: wizards abertos em paralelo).
+│        ├── historyCompare.js — [Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown]
+│        │   ├── ⚙️ groupSegments(lines, isChanged) — Agrupa linhas consecutivas com o mesmo estado (alterada ou não) em trechos que serão interpretados juntos como Markdown. Linhas em branco acompanham o trecho anterior, para não quebrar parágrafos e listas.
+│        │   ├── ⚙️ renderSegments(segments, kind) — Converte os trechos em HTML (Markdown interpretado e sanitizado), marcando os alterados.
+│        │   └── ⚙️ buildComparison(currentText, versionText) — Prepara a comparação entre o texto atual e uma versão do histórico.
+│        ├── markdown.js — [Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.]
+│        │   ├── ⚙️ parseSimpleYaml(yamlText) — Interpreta um texto YAML simples (chave: valor, uma por linha). Usado como alternativa quando o YAML é inválido.
+│        │   ├── ⚙️ parseYaml(yamlText) — Converte um texto YAML em objeto JS, caindo no interpretador simples se o YAML for inválido.
+│        │   ├── ⚙️ stringifyYaml(data) — Converte um objeto JS em texto YAML.
+│        │   ├── ⚙️ parseMarkdown(fileContent, isYmlOnly = false) — Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
+│        │   ├── ⚙️ splitFrontmatter(fileContent) — Separa o bloco de Frontmatter (texto bruto, intacto) do corpo do Markdown.
+│        │   └── ⚙️ stringifyFrontmatter(metadata, body) — Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
+│        └── template.js — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
+│             ├── ⚙️ slugify(text) — Gera um slug simples (minúsculo, sem acentos, separado por hífen).
+│             ├── ⚙️ isVariableLeaf(node) — Indica se um nó de `data` é uma variável (folha) e não um grupo de variáveis.
+│             ├── ⚙️ flattenVariables(data, prefix = []) — Achata o objeto `data` em uma lista de variáveis, com o caminho completo como id.
+│             ├── ⚙️ editableFields(metadata, { title = false } = {}) — Campos editáveis de um arquivo: as variáveis do frontmatter (`data`) e, quando o arquivo não tem a variável `title` mas aceita renomeação, um campo sintético "Título".
+│             ├── ⚙️ setVariableContent(data, path, value) — Grava o `content` de uma variável (por caminho) dentro de um objeto `data`, criando a variável se faltar.
+│             ├── ⚙️ parseSections(body) — Divide o corpo do modelo em prefácio e seções `##`, ignorando `##` dentro de blocos de código.
+│             ├── ⚙️ parseTemplate(rawContent) — Interpreta o conteúdo bruto de um arquivo-modelo.
+│             ├── ⚙️ allFields(steps) — Lista todos os campos (de todos os passos) em uma só lista.
+│             ├── ⚙️ findMissingRequired(steps, values) — Retorna os campos obrigatórios que estão vazios nos valores informados.
+│             ├── ⚙️ resolveTitle(template, values) — Descobre o título (de interface) do novo arquivo: variável `title`, senão a primeira variável obrigatória preenchida, senão o título do próprio modelo.
+│             ├── ⚙️ applyTemplateValues(template, values) — Aplica as respostas ao modelo, produzindo frontmatter e corpo finais (o modelo original não é alterado). - Variáveis: o `content` recebe o valor informado; `placeholder` e `required` são mantidos. - Seções: a resposta substitui a citação-descrição; se vazia, o texto original da seção é mantido.
+│             ├── ⚙️ renderTemplateFile({ metadata, body }) — Serializa o resultado de {@link applyTemplateValues} em texto de arquivo (frontmatter + corpo).
+│             ├── ⚙️ replaceFirstHeading(body, title) — Substitui o primeiro título de nível 1 do corpo (ou insere um no topo, se não houver).
+│             └── ⚙️ appendToBody(fileContent, line) — Anexa um texto ao final do corpo de um arquivo, preservando o frontmatter intacto.
+└── [shared]
+     ├── looseText.js — [Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface]
+     │   ├── ⚙️ foldText(text) — Normaliza um texto (minúsculas e sem acentos) preservando o comprimento, para que os índices valham no original.
+     │   ├── ⚙️ tokenize(folded) — Divide o texto (já normalizado) em palavras, com a posição de cada uma no original.
+     │   ├── ⚙️ looseWords(term) — Palavras significativas do termo pesquisado (sem artigos/conjunções/preposições e sem pontuação).
+     │   └── ⚙️ findMatches(text, term) — Todas as ocorrências do termo no texto, de forma tolerante (ver o topo do arquivo). Também aceita a ocorrência literal (ignorando só maiúsculas/acentos), útil enquanto a palavra ainda está sendo digitada.
+     └── tags.js — [Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado]
+          ├── ⚙️ normalizeTag(raw) — Normaliza uma tag: minúsculas, sem "#", espaços internos viram hífen e só ficam letras (com acento), números e `- _ / .`.
+          ├── ⚙️ parseTags(input) — Converte uma lista/texto (separado por vírgulas) em tags normalizadas, sem repetição, na ordem digitada.
+          └── ⚙️ tagColorIndex(tag) — Índice (0 a TAG_COLOR_COUNT-1) da cor da tag: hash FNV-1a das letras, portanto nunca muda para a mesma tag.

@@ -1,0 +1,463 @@
+# Guia do Usuário — Astra Writter
+
+Este guia ensina, passo a passo, a usar o Astra Writter para escrever e organizar um livro. Ele foi escrito para quem **usa** o
+aplicativo (autores), não para quem desenvolve. Para a parte técnica, veja [`project.md`](project.md) e
+[`ai-tools.md`](ai-tools.md).
+
+> **Como ler:** se você é iniciante, siga os capítulos 1 a 4 na ordem. Os demais são consultas: volte a eles quando precisar.
+
+## Sumário
+
+1. [Primeiros passos](#1-primeiros-passos)
+2. [Conhecendo a tela](#2-conhecendo-a-tela)
+3. [Como o livro é organizado](#3-como-o-livro-é-organizado)
+4. [Escrevendo: rascunho e sincronização](#4-escrevendo-rascunho-e-sincronização)
+5. [Dados e tags de um arquivo](#5-dados-e-tags-de-um-arquivo)
+6. [Links entre arquivos](#6-links-entre-arquivos)
+7. [Pesquisa](#7-pesquisa)
+8. [Correção ortográfica e gramatical](#8-correção-ortográfica-e-gramatical)
+9. [Pastas, mover e excluir](#9-pastas-mover-e-excluir)
+10. [Histórico e changelog](#10-histórico-e-changelog)
+11. [O assistente de IA](#11-o-assistente-de-ia)
+12. [Permissões: quem pode mexer em quê](#12-permissões-quem-pode-mexer-em-quê)
+13. [Dúvidas e problemas comuns](#13-dúvidas-e-problemas-comuns)
+14. [Glossário](#14-glossário)
+
+---
+
+## 1. Primeiros passos
+
+### Abrir o aplicativo
+
+Ao abrir, aparece uma tela de abertura ("Per Aspera Ad Astra") com a versão do aplicativo no rodapé. Em seguida a tela principal é
+carregada, já no último livro em que você trabalhou.
+
+### Criar seu primeiro livro
+
+1. No canto superior esquerdo, clique no **nome do livro** (a lista de livros).
+2. Escolha **"Criar novo livro"**.
+3. Responda às perguntas da janela (título e demais informações) e confirme.
+
+O Astra Writter cria uma pasta para o livro com a estrutura padrão (capítulo 1, personagens, lugares, anotações...), abre o livro e já mostra a **Sinopse** no editor.
+
+> **Seus dados ficam no seu computador.** O livro é uma pasta de arquivos Markdown (`.md`). Não há banco de dados nem conta online:
+> você pode copiar, versionar ou fazer backup da pasta como qualquer outra.
+
+### Escolher o tema
+
+Clique na **engrenagem** (Configurações) ao lado do nome do livro e use **Modo escuro** para alternar entre o tema claro (roxo) e o
+escuro (azul).
+
+### Plano de fundo do chat
+
+Em **Configurações → Aparência → Plano de fundo do chat** (recolhido por padrão; clique para abrir) você escolhe o fundo do assistente, separadamente para o tema escuro e para o claro:
+**Estrelas**, **Nebulosa**, **Órbitas** (planetas, luas e asteroides animados) ou **Cor sólida**. Em *Estrelas*, *Órbitas* e *Cor sólida* aparece um
+seletor para escolher a **cor de fundo**.
+
+---
+
+## 2. Conhecendo a tela
+
+| Área | Onde fica | Para que serve |
+| --- | --- | --- |
+| **Lista de livros e engrenagem** | Topo da barra lateral | Trocar de livro, criar livro, abrir as Configurações |
+| **Explorer** | Barra lateral | Árvore de arquivos, com as abas **Anotações**, **Escrita** e **Mundo**, a pesquisa e a mini barra de ferramentas |
+| **Assistente de Escrita** | Rodapé da barra lateral | Chat com a IA (abre e recolhe com a seta ▲) |
+| **Guia do arquivo** | Barra de ferramentas, acima do editor | Nome do arquivo aberto, com a caneta de dados e o `*` de rascunho |
+| **Botões da barra** | Canto superior direito | **Auto-link**, **Histórico**, **Exportar** e **Sincronizar** |
+| **Editor** | Centro | Onde você escreve |
+| **Caixa "Dados do arquivo"** | Entre a barra e o texto | Variáveis e tags do arquivo |
+| **Rodapé do editor** | Base do editor | Palavras, tempo de leitura, conexões, avisos e status de salvamento |
+
+**Dica:** quase todo botão tem uma dica: pare o mouse sobre ele por um instante. Passe o mouse sobre o nome do arquivo na guia para ver o **caminho real do arquivo no disco** (por exemplo
+`book_001/assets/characters/character_001.md`). Isso ajuda quando o nome exibido é diferente do nome do arquivo.
+
+### Navegar pelo teclado no explorer
+
+Clique em qualquer ponto do explorer e use o teclado:
+
+| Tecla | O que faz |
+| --- | --- |
+| **↑ / ↓** | Move o destaque entre os arquivos e pastas da aba atual (só destaca, não abre). O ponto de partida é o arquivo selecionado na aba, ou o primeiro item. |
+| **→ / ←** | Percorre as **opções** do item destacado (criar, renomear, editar, excluir...). |
+| **Enter** | Em uma pasta: abre/fecha. Em um arquivo: abre no editor. Com uma opção escolhida: aciona essa opção. |
+| **↓ no último item** | Seleciona o **Assistente de Escrita**; **Enter** abre a gaveta e já coloca o cursor no campo de mensagem. |
+| **Esc** | Limpa o destaque. |
+
+### Mini barra do explorer
+
+Logo abaixo da pesquisa:
+
+- **Olho** — mostra ou oculta os *arquivos avançados* (índices e arquivos técnicos).
+- **Árvore de pastas** — abre todas as pastas da aba; se já estiverem todas abertas, fecha todas.
+- **Novo capítulo** (aba Escrita), **Nova pasta** e **Nova anotação** (aba Anotações).
+
+---
+
+## 3. Como o livro é organizado
+
+O explorer tem três abas, que correspondem às três pastas principais do livro:
+
+| Aba | Pasta | O que guarda |
+| --- | --- | --- |
+| **Escrita** | `content/` | Capítulos, sinopse (`plot.md`) e o índice de capítulos |
+| **Mundo** | `assets/` | Personagens, locais (ambientes), conceitos/sistemas e a linha do tempo |
+| **Anotações** | `notes/` | Anotações livres e pastas que você criar |
+
+### Capítulos
+
+Cada capítulo é uma pasta `content/chapter_001/`, `chapter_002/`... com arquivos de apoio:
+
+- **Manuscrito** (`2_draft.md`) — o texto do capítulo em si.
+- **Roteiro** (`1_script.md`) e **Metadados** (`3_metadata.md`).
+- **Backlog** — análise, pistas de foreshadowing e roadmap do capítulo.
+
+Para criar um, use **Novo capítulo** na aba Escrita. Ao excluir um capítulo, os seguintes são **renumerados** automaticamente para não
+sobrar buracos.
+
+### Fichas do Mundo
+
+Personagens, locais e conceitos são *fichas*: arquivos com **dados** (variáveis, como nome, apelidos e idade) e seções de texto.
+Para criar uma, passe o mouse sobre a pasta da categoria (por exemplo **Personagens**) e clique no **+** ("Novo item em..."). A janela
+pergunta os dados e as seções, e a ficha é criada.
+
+### Índices automáticos
+
+Cada categoria tem um arquivo de índice (visível com o olho ligado, por exemplo "Índice de Personagens"). **Você não precisa
+editá-lo:** quando uma ficha é criada, o link dela entra no índice; quando é excluída, o link sai. O mesmo vale para os capítulos.
+
+---
+
+## 4. Escrevendo: rascunho e sincronização
+
+Este é o conceito mais importante do Astra Writter.
+
+### Dois estados para cada arquivo
+
+- **Arquivo oficial** (`nome.md`) — a versão "valendo".
+- **Rascunho** (`nome.md.temp`) — o que você digitou e ainda não sincronizou.
+
+Enquanto você digita, o texto é **salvo automaticamente como rascunho**. Um arquivo com rascunho mostra um **`*`** ao lado do nome, no
+explorer e na guia do arquivo.
+
+### Sincronizar
+
+Clique em **Sincronizar** (canto superior direito) para transformar os rascunhos em versões oficiais. A sincronização:
+
+1. grava o texto oficial;
+2. registra a versão no histórico (veja o [capítulo 10](#10-histórico-e-changelog));
+3. remove o `*`.
+
+Quando a IA vai editar algo, o app **exige que tudo esteja
+sincronizado** antes (para nunca misturar o seu rascunho com o dela).
+
+### Barra de ferramentas do editor
+
+Títulos, negrito, itálico, tachado, linha, citação, listas (com marcadores, numeradas e de tarefas), recuo, tabela, imagem, link,
+**procurar e substituir** (`Ctrl+F`) e a alternância entre **texto formatado** e **Markdown cru**.
+
+### Exportar o arquivo
+
+O botão **Exportar** (barra superior, ao lado de Histórico) salva o arquivo aberto fora do aplicativo. Escolha o formato:
+
+| Formato | Para que serve |
+| --- | --- |
+| **Markdown** (`.md`) | O texto como está no editor, para usar em outros programas de escrita. |
+| **Word** (`.docx`) | Para enviar a editores e revisores ou continuar o trabalho no Word. |
+| **PDF** | Para ler, imprimir ou compartilhar com a formatação pronta (página A4). |
+
+Depois de escolher, o aplicativo pergunta **onde salvar**. O texto exportado inclui o que você acabou de digitar, mesmo sem sincronizar.
+Os links entre arquivos do livro viram texto simples (eles só funcionam dentro do aplicativo); links da web continuam links.
+
+### Arquivos somente leitura
+
+Um cadeado no explorer indica que o arquivo **não pode ser editado por você** (por exemplo, índices). A permissão é definida no
+próprio arquivo; veja o [capítulo 12](#12-permissões-quem-pode-mexer-em-quê).
+
+---
+
+## 5. Dados e tags de um arquivo
+
+### Caixa "Dados do arquivo"
+
+Fica entre a barra de ferramentas e o texto. Clique em **"Dados do arquivo"** (ou na **caneta** da guia) para abrir ou fechar.
+Contém:
+
+- **Tags** do arquivo;
+- as **variáveis** da ficha (nome, apelidos, idade, papel na história...). O nome da ficha também é editado aqui: ao mudá-lo, o
+  título do arquivo, a linha de título do texto, o explorer e a guia são atualizados.
+
+Clique em **Salvar dados** para gravar. As alterações vão para o **rascunho** do arquivo, como qualquer edição.
+
+> Você também pode abrir os dados de um arquivo **sem abri-lo**, pelo ícone de **lápis** que aparece ao passar o mouse sobre ele
+> no explorer.
+
+### Tags
+
+Tags são etiquetas para agrupar arquivos de qualquer categoria (por exemplo `magia`, `vilão`, `arco-1`).
+
+**Como adicionar:**
+
+1. Abra a caixa de dados e clique no campo **Tags**.
+2. Digite a palavra e use **vírgula** ou **Enter**: ela vira uma tag colorida.
+3. Para remover, clique no **×** da tag (ou use **Backspace** com o campo vazio).
+
+**Sugestões:** ao digitar, aparecem as tags que já existem em outros arquivos do livro. Navegue com **↑ ↓** e escolha com **Enter**,
+ou clique.
+
+**Regras:**
+
+- O **#** é só enfeite: aparece antes de cada tag, mas não precisa ser digitado (se digitar, ele é removido).
+- Tudo vira **minúsculo**. São aceitos letras (inclusive acentuadas), números e os símbolos `- _ / .`.
+- Espaços no meio da tag viram hífen: `alta fantasia` → `alta-fantasia`. Espaços ao redor das vírgulas são ignorados.
+- A **cor** de cada tag é escolhida automaticamente a partir do texto dela: a mesma tag tem **sempre a mesma cor** (há 40 cores,
+  com versões para o tema claro e o escuro).
+
+As tags do arquivo aparecem também no cabeçalho da caixa, à frente de "Dados do arquivo · N campos". **Clique numa tag** do cabeçalho para
+pesquisar por ela: o `#tag` é colocado no campo de pesquisa do explorer (clicar fora das tags abre ou fecha a caixa). Mais sobre pesquisa no
+[capítulo 7](#7-pesquisa).
+
+---
+
+## 6. Links entre arquivos
+
+Links ligam suas fichas e capítulos entre si (como uma wiki).
+
+- **Inserir um link:** botão de **link** na barra do editor. Procure o arquivo do livro pelo nome ou informe um endereço da web.
+- **Auto-link:** o botão **Auto-link** (barra superior) transforma automaticamente em links as menções a **nomes e apelidos das
+  fichas** que aparecem no texto. É útil depois de escrever um capítulo inteiro. Os links criados pelo auto-link aparecem em **rosa**
+  até a sincronização, quando passam a azul. Títulos, código e textos que já são links são ignorados.
+- **Apelidos:** preencha a variável de apelidos da ficha (separados por vírgula) para que o auto-link também reconheça esses nomes.
+- **Remover um link:** clique com o botão direito sobre ele e escolha **Remover link**.
+- **Link quebrado:** se o arquivo de destino for excluído, o link fica **cinza**.
+
+### Avisos no rodapé
+
+No rodapé do editor aparecem avisos quando há problemas, por exemplo **"2 links internos inválidos"**. **Clique no aviso** para o cursor
+ir ao primeiro problema; clique de novo para ir ao próximo, em ordem (no fim, volta ao primeiro).
+
+---
+
+## 7. Pesquisa
+
+O campo de pesquisa fica acima da árvore de arquivos e procura em **títulos, textos e variáveis** de todo o livro. Os resultados
+mostram o trecho encontrado, com o termo destacado, e cada aba mostra um número com a quantidade de resultados.
+
+### Pesquisa tolerante
+
+Você não precisa digitar exatamente como está escrito. A busca ignora **maiúsculas, acentos, pontuação** (vírgulas, hífens,
+travessões) e as palavrinhas **artigos, conjunções e preposições** (*o, a, e, de, do, em, para...*):
+
+| Você digita | Encontra |
+| --- | --- |
+| `vira lata` | "vira-lata" |
+| `grimório eldoria` | "Grimório de Eldoria" |
+| `grande magnífico` | "o grande e magnífico" |
+
+### Vários termos de uma vez
+
+Separe os termos com **vírgula** para procurar vários de uma vez: `reino, magia` mostra os arquivos que têm **reino** ou **magia**. Vale
+para texto e para tags, inclusive misturados (`conceito, #vilão`). Uma vírgula sobrando no fim é ignorada.
+
+**Em que ordem os resultados aparecem:**
+
+1. quem casa com **mais termos** vem primeiro (um arquivo que tem os 3 termos fica à frente de um que tem só 1);
+2. se empatar, vale a **ordem dos termos** que você digitou (quem casa com o primeiro termo vem antes de quem casa só com o segundo);
+3. se ainda empatar, **ordem alfabética**.
+
+Como o explorer é uma árvore, isso vale dentro de cada pasta, e as pastas com os melhores resultados sobem.
+
+### Pesquisa por tags
+
+Comece com **#**: `#magia` mostra os arquivos que têm uma tag com esse nome (basta parte do nome). A tag encontrada aparece no
+lugar do trecho de texto. Com várias (`#magia #vilão`), o arquivo precisa ter **todas**.
+
+Ao tentar um `#` com vários termos, lembre: **espaço** junta tags no mesmo termo (todas precisam existir) e **vírgula** separa termos (qualquer um serve).
+
+Se nada for encontrado, a mensagem **"Sem resultados para a pesquisa"** aparece logo abaixo da barra.
+
+---
+
+## 8. Correção ortográfica e gramatical
+
+- **Sublinhado ondulado vermelho** nas palavras que o dicionário não conhece e **laranja** nas palavras repetidas em sequência ("de de").
+- **Clique com o botão direito** sobre um sublinhado para abrir o menu:
+  - **sugestões** de correção (clique para trocar a palavra);
+  - **Ignorar** — deixa de marcar essa palavra até você fechar o aplicativo;
+  - **Adicionar ao dicionário** — a palavra passa a ser aceita sempre (vale para todos os seus livros);
+  - nas repetições: **Remover a repetição** ou **Manter assim**.
+- **O dicionário do livro:** os **nomes e apelidos de todas as fichas** do livro (personagens, locais, conceitos...) já fazem parte do
+  dicionário daquele livro. Por isso, o nome de um personagem nunca é marcado como erro e você não precisa adicioná-lo. Textos que já
+  são links, código e endereços também não são conferidos.
+- **Rodapé:** mostra **"N problemas de escrita"**. Clique no aviso para ir ao problema seguinte, na ordem do texto.
+- **Configurações → Idioma e correção:** o switch **"Correção ortográfica e gramatical"** liga ou desliga tudo (sublinhado, menu e
+  contador) e **Idioma da correção** troca o dicionário (português do Brasil, inglês, espanhol, francês).
+
+> A parte gramatical é uma verificação simples (palavras repetidas). Para uma revisão de estilo e gramática mais profunda, peça ao
+> assistente de IA.
+
+---
+
+## 9. Pastas, mover e excluir
+
+### Criar arquivos direto numa pasta
+
+Passe o mouse sobre uma pasta criada por você: em **Anotações** aparece **Nova anotação em...**; dentro de **Personagens**, **Ambientes**
+e **Conceitos** aparece o **+** ("Novo item em..."). O processo é o mesmo da categoria, mas o arquivo já nasce dentro da pasta, sem
+precisar movê-lo.
+
+### Pastas
+
+Em **Anotações** e dentro de cada categoria do **Mundo** você pode criar suas próprias pastas (botão **Nova pasta**, ou o ícone de pasta
+ao passar o mouse sobre uma pasta). Pastas criadas por você têm um ícone próprio e podem ser **renomeadas** e **excluídas**
+(excluir uma pasta apaga tudo o que há dentro dela, e o aplicativo pede confirmação).
+
+### Mover
+
+**Arraste** arquivos e pastas para outra pasta **da mesma categoria** (um personagem só vai para outra pasta de personagens). Os links
+internos que apontavam para o arquivo são corrigidos automaticamente.
+
+### Excluir
+
+Passe o mouse sobre o arquivo e clique na **lixeira**. Uma janela pede confirmação. O conteúdo excluído continua no
+[changelog](#10-histórico-e-changelog) (ele registra o texto integral). Alguns itens nunca são excluídos individualmente: arquivos de
+capítulo (apague o capítulo inteiro), índices e modelos.
+
+---
+
+## 10. Histórico e changelog
+
+O Astra Writter registra **tudo** o que acontece no livro: quem fez (você, a IA ou o próprio sistema), o quê e quando.
+
+### Histórico de um arquivo
+
+Com o arquivo aberto, clique em **Histórico**. A lista mostra as versões anteriores. Escolha uma para ver a **comparação lado a lado**
+com a versão atual (o que foi removido em vermelho, o que foi incluído em verde) e clique em **Restaurar esta versão** para voltar a
+ela. Restaurar não apaga o registro das versões seguintes, mas elas deixam de poder ser restauradas.
+
+### Changelog do livro
+
+**Configurações → Registros → Changelog do livro** mostra todas as ações do livro. Há ainda o **Log de erros da IA**, com falhas de
+conexão ou limite de uso dos provedores.
+
+---
+
+## 11. O assistente de IA
+
+O **Assistente de Escrita** fica no rodapé da barra lateral. Clique na seta ▲ para abrir o chat.
+
+### Configurar (uma vez)
+
+1. Abra **Configurações → Inteligência artificial → Provedor e modelo**.
+2. Escolha o **provedor** (Claude ou Gemini) e o **modelo**.
+3. Cole a **chave de API** do provedor e salve.
+
+> **A chave é sua** (modelo *Bring-Your-Key*): fica salva só no seu computador e nunca é mostrada à IA. Há também um provedor **Mock**,
+> usado apenas para testes, que não chama nenhuma IA real.
+
+### O que a IA pode fazer
+
+Conversando em linguagem natural, você pode pedir à IA, por exemplo:
+
+- ler e resumir arquivos, revisar o tom, checar a consistência entre capítulos e fichas;
+- redigir ou reescrever trechos e acrescentar texto a um arquivo;
+- criar capítulos, personagens, locais e anotações;
+- criar, mover e excluir pastas e arquivos (se você permitir);
+- alterar variáveis e tags de fichas, e ativar o auto-link em um arquivo;
+- consultar o histórico e o changelog, e restaurar uma versão antiga (**sempre pedindo a sua confirmação**);
+- dizer quais modelos de IA estão configurados (sem nunca revelar a chave).
+
+A lista completa e técnica está em [`ai-tools.md`](ai-tools.md).
+
+### Como a IA mexe nos seus arquivos (com segurança)
+
+1. **Você controla o acesso.** A IA só lê o que está marcado como legível e só altera o que está marcado como editável
+   ([capítulo 12](#12-permissões-quem-pode-mexer-em-quê)). Por padrão, ela **não exclui nada**.
+2. **Antes de editar**, o aplicativo pede que todos os seus rascunhos estejam sincronizados.
+3. **Enquanto a IA trabalha**, o projeto fica **bloqueado** para você (um aviso aparece no editor), evitando edições simultâneas.
+4. **Toda edição da IA vira rascunho.** Ao terminar, abre-se a **tela de revisão** com a comparação lado a lado: você escolhe **manter a
+   versão nova** ou **descartar** e ficar com a antiga. Alterações só em dados e tags também aparecem ali ("Idade: 31 → 33").
+5. Tudo fica registrado no changelog, com o autor **IA**.
+
+### Dicas para pedir bem
+
+- Seja específico: "Reescreva a abertura do capítulo 2 com um tom mais sombrio" funciona melhor que "melhore o capítulo".
+- Peça uma coisa de cada vez quando for alterar muitos arquivos, para revisar com calma.
+- Se a IA disser que não pode, é porque a permissão do arquivo não deixa — ajuste a permissão se quiser.
+
+---
+
+## 12. Permissões: quem pode mexer em quê
+
+As permissões ficam no topo de cada arquivo `.md` (o chamado *frontmatter*, entre linhas `---`) e, para as pastas, no arquivo
+`folder.yml`. Você pode editá-las em qualquer editor de texto.
+
+```yaml
+---
+title: "Reino de Eldoria"
+humanRead: true      # você pode ler
+humanWrite: true     # você pode editar
+aiRead: true         # a IA pode ler
+aiWrite: true        # a IA pode editar (sempre via rascunho)
+aiDelete: false      # a IA pode excluir (ausente = não)
+tags: [reino, magia] # tags do arquivo
+---
+```
+
+| Campo | O que controla |
+| --- | --- |
+| `humanRead` / `humanWrite` | Se **você** pode ler / editar. `humanWrite: false` deixa o arquivo somente leitura (cadeado). |
+| `aiRead` / `aiWrite` | Se a **IA** pode ler / editar. |
+| `userDelete` | `false` impede que **você** exclua; ausente segue `humanWrite`. |
+| `aiDelete` | `true` permite que a **IA** exclua. Ausente: não exclui. |
+| `tags` | Lista de tags do arquivo (use a caixa de dados em vez de editar à mão). |
+
+Nas pastas (`folder.yml`), `userDelete` e `userRename` indicam pastas **criadas por você** (as únicas que podem ser renomeadas,
+movidas ou excluídas). Veja os detalhes no capítulo de permissões do [`ai-tools.md`](ai-tools.md#permissões).
+
+---
+
+## 13. Dúvidas e problemas comuns
+
+**Digitei algo e o arquivo mostra `*`. Perdi alguma coisa?**
+Não. O `*` indica que há um **rascunho** salvo automaticamente. Clique em **Sincronizar** para torná-lo oficial.
+
+**O botão Sincronizar está desativado.**
+Não há rascunhos pendentes (ou o projeto está bloqueado enquanto a IA trabalha).
+
+**O editor está bloqueado e não consigo digitar.**
+Ou a IA está trabalhando (aguarde a revisão) ou o arquivo é somente leitura (cadeado no explorer). Veja o
+[capítulo 12](#12-permissões-quem-pode-mexer-em-quê).
+
+**A IA disse que não tem acesso a um arquivo.**
+O arquivo tem `aiRead: false` (ou `aiWrite: false` para edição). Ajuste a permissão no frontmatter se quiser liberar.
+
+**A pesquisa não acha um arquivo que acabei de editar.**
+A pesquisa lê também os rascunhos. Confira se o termo está no título, no texto ou nas variáveis, ou use `#tag` para tags.
+
+**Excluí algo sem querer.**
+Abra o **Changelog do livro**: o texto integral de arquivos excluídos fica guardado e pode ser recuperado.
+
+**O corretor marca uma palavra que existe.**
+Clique com o botão direito nela e escolha **Adicionar ao dicionário** (ou **Ignorar**). Nomes e apelidos das fichas do livro já são aceitos
+automaticamente; se o nome ainda aparece sublinhado, confira se ele está no título ou nos apelidos da ficha.
+
+**Como faço backup?**
+Copie a pasta do livro (dentro de `books/`). Tudo — texto, permissões, histórico — está nela.
+
+---
+
+## 14. Glossário
+
+| Termo | Significado |
+| --- | --- |
+| **Livro** | Uma pasta com todos os arquivos de um projeto. |
+| **Ficha** | Arquivo do Mundo (personagem, local, conceito) com dados e seções. |
+| **Variável / dado** | Campo de uma ficha (nome, idade, apelidos...). |
+| **Tag** | Etiqueta colorida para agrupar arquivos; pesquisável com `#`. |
+| **Rascunho** (`.md.temp`) | Alterações ainda não sincronizadas; indicado pelo `*`. |
+| **Sincronizar** | Transformar rascunhos em versões oficiais. |
+| **Frontmatter** | Bloco entre `---` no topo do arquivo com título, permissões e dados. |
+| **Auto-link** | Criação automática de links para fichas citadas no texto. |
+| **Changelog** | Registro de tudo o que foi feito no livro, com autor e data. |
+| **Tool (ferramenta)** | Ação que a IA pode executar no livro, sempre respeitando as permissões. |

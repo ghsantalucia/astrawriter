@@ -84,3 +84,34 @@
 # Toast
 
 [ ] exibe corretamente as mensagens e aparência desejada
+
+## Pesquisa, tags e correção
+
+[ ] a pesquisa ignora maiúsculas, acentos, pontuação e artigos/conjunções ("vira lata" acha "vira-lata")
+[ ] a mensagem "Sem resultados" aparece logo abaixo da barra de pesquisa
+[ ] `#tag` pesquisa por tags e mostra a tag no lugar do trecho
+[ ] vírgula/Enter transformam o texto em tag; "#" digitado é removido; letras viram minúsculas
+[ ] as sugestões de tags aparecem sobre a caixa (sem rolagem), com setas e Enter
+[ ] a mesma tag tem sempre a mesma cor, nos temas claro e escuro
+[ ] alterar o nome nas variáveis atualiza explorer e guia
+[ ] a guia do arquivo mostra o (asterisk) quando há rascunho e o caminho real no tooltip
+[ ] o switch de correção liga/desliga sublinhado e contador do rodapé
+[ ] clicar em "problemas de escrita" percorre palavras desconhecidas e repetidas em ordem
+[ ] o botão "Salvar dados" é legível nos dois temas
+[ ] o sublinhado de ortografia é o próprio (o do Windows não aparece) e o menu oferece sugestões, ignorar e adicionar ao dicionário
+[ ] nomes e apelidos das fichas do livro nunca são marcados como erro; textos linkados também não
+[ ] toda dica (title) aparece estilizada após um pequeno atraso
+[ ] pastas do usuário têm "Novo item"/"Nova anotação" e o arquivo nasce dentro da pasta
+[ ] criar um livro abre a Sinopse no editor
+[ ] o plano de fundo do chat muda por tema (estrelas, nebulosa, órbitas, cor sólida) e guarda a cor escolhida
+[ ] as setas destacam itens do explorer como o hover, sem selecionar; ← → escolhem as opções; Enter abre/fecha pasta, abre arquivo ou aciona a opção
+[ ] ↓ no último item destaca o Assistente e Enter o abre com o foco no campo de texto
+[ ] a gaveta do chat fechada acende em azul ao passar o mouse (tema escuro)
+[ ] o botão Exportar só fica ativo com um arquivo aberto e o menu oferece Markdown, Word e PDF
+[ ] a exportação pergunta onde salvar e gera .md, .docx e .pdf com o texto atual do editor
+[ ] clicar numa tag do cabeçalho da caixa de dados pesquisa por ela e não abre/fecha a caixa
+[ ] vírgula separa termos na pesquisa e o resultado traz arquivos que casam com qualquer um
+[ ] na pesquisa com vírgulas, os resultados ficam por quantidade de termos, depois pela ordem dos termos e por último em ordem alfabética
+[ ] o botão de pastas da mini toolbar abre todas as pastas da aba e, se já estiverem abertas, fecha todas
+[ ] "Limpar log" do log de erros da IA pede confirmação antes de apagar
+[ ] nenhum overlay (modais e gaveta de configurações) cobre a barra de título da janela
