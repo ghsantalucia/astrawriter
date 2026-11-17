@@ -1,11 +1,73 @@
-<span id="page-title">Nenhum arquivo selecionado</span>
-<div
-  id="save-status-indicator"
-  class="save-status saved hidden"
-  title="Status de salvamento automático"
+<!-- Guias dos arquivos (hoje só há uma; preparada para várias no futuro) -->
+<div class="file-tabs" role="tablist" id="file-tabs">
+  <div class="file-tab hidden" id="file-tab" role="tab" aria-selected="true" tabindex="0" event-click="tab:activate">
+    <span class="file-tab-name" id="file-tab-name"></span>
+    <span class="file-tab-dirty hidden" id="file-tab-dirty" title="Rascunho não sincronizado">*</span>
+    <button
+      type="button"
+      class="file-tab-edit"
+      id="file-tab-edit"
+      event-click="file-data:toggle"
+      title="Editar os dados do arquivo (nome e variáveis)"
+      aria-label="Editar os dados do arquivo"
+    >
+      <i class="fa-solid fa-pen"></i>
+    </button>
+  </div>
+</div>
+<div class="toolbar-actions">
+<button
+  id="btn-autolink"
+  class="btn-toolbar-icon"
+  event-click="autolink:run"
+  title="Cria links automáticos para os nomes e apelidos de fichas do livro encontrados neste texto"
+  disabled
 >
-  <i class="fas fa-check-circle"></i>
-  <span class="status-text">Salvo</span>
+  <span class="icon-link-stars" aria-hidden="true">
+    <i class="fa-solid fa-link"></i>
+    <svg class="icon-ai-star" viewBox="0 0 24 24" focusable="false">
+      <path d="M12 0C12.6 7.2 16.8 11.4 24 12 16.8 12.6 12.6 16.8 12 24 11.4 16.8 7.2 12.6 0 12 7.2 11.4 11.4 7.2 12 0Z" />
+    </svg>
+  </span>
+  <span>Auto-link</span>
+</button>
+<button
+  id="btn-history"
+  class="btn-toolbar-icon"
+  event-click="history:open-modal"
+  title="Histórico de versões do arquivo"
+  disabled
+>
+  <i class="fa-solid fa-clock-rotate-left"></i>
+  <span>Histórico</span>
+</button>
+<div class="export-wrap">
+  <button
+    id="btn-export"
+    class="btn-toolbar-icon"
+    event-click="export:toggle-menu"
+    title="Exportar o arquivo aberto (Markdown, Word ou PDF)"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    disabled
+  >
+    <i class="fa-solid fa-download"></i>
+    <span>Exportar</span>
+  </button>
+  <div class="export-menu hidden" id="export-menu" role="menu">
+    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="md">
+      <i class="fa-brands fa-markdown"></i>
+      <span>Markdown <small>.md</small></span>
+    </button>
+    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="docx">
+      <i class="fa-solid fa-file-word"></i>
+      <span>Word <small>.docx</small></span>
+    </button>
+    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="pdf">
+      <i class="fa-solid fa-file-pdf"></i>
+      <span>PDF <small>.pdf</small></span>
+    </button>
+  </div>
 </div>
 <button id="btn-save" class="btn-save-gsap" event-click="sync:open-modal">
   <svg class="btn-border-svg">
@@ -21,3 +83,4 @@
   </svg>
   <span class="btn-text">Sincronizar</span>
 </button>
+</div>

@@ -1,0 +1,109 @@
+<!-- Painéis flutuantes compartilhados por todo editor do app (inseridos pelo EditorKit) -->
+<div class="find-panel hidden" role="search" data-panel="find">
+  <div class="find-row">
+    <input
+      data-role="find-input"
+      type="text"
+      placeholder="Procurar"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <span data-role="find-count" class="find-count"></span>
+    <button
+      type="button"
+      data-role="find-prev"
+      class="find-btn"
+      title="Anterior (Shift+Enter)"
+    ><i class="fa-solid fa-chevron-up"></i></button>
+    <button
+      type="button"
+      data-role="find-next"
+      class="find-btn"
+      title="Próximo (Enter)"
+    ><i class="fa-solid fa-chevron-down"></i></button>
+    <button
+      type="button"
+      data-role="find-close"
+      class="find-btn"
+      title="Fechar (Esc)"
+    ><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="find-row">
+    <input
+      data-role="replace-input"
+      type="text"
+      placeholder="Substituir por"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button
+      type="button"
+      data-role="replace-one"
+      class="find-text-btn"
+    >Substituir</button>
+    <button
+      type="button"
+      data-role="replace-all"
+      class="find-text-btn"
+    >Substituir tudo</button>
+  </div>
+</div>
+
+<div class="link-popup hidden" data-panel="link">
+  <div class="link-tabs">
+    <button type="button" class="link-tab active" data-tab="internal"><i
+        class="fa-solid fa-book-open"
+      ></i>
+      Arquivo do livro</button>
+    <button type="button" class="link-tab" data-tab="external"><i
+        class="fa-solid fa-globe"
+      ></i>
+      Link externo</button>
+  </div>
+  <div class="link-pane" data-pane="internal">
+    <input
+      data-role="link-search"
+      type="text"
+      placeholder="Buscar arquivo pelo nome..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <ul data-role="link-results" class="link-results"></ul>
+  </div>
+  <div class="link-pane hidden" data-pane="external">
+    <label>URL</label>
+    <input
+      data-role="link-url"
+      type="text"
+      placeholder="https://"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <label>Texto do link</label>
+    <input
+      data-role="link-text"
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <div class="link-actions">
+      <button
+        type="button"
+        data-role="link-cancel"
+        class="link-btn"
+      >Cancelar</button>
+      <button
+        type="button"
+        data-role="link-external-ok"
+        class="link-btn primary"
+      >Inserir</button>
+    </div>
+  </div>
+</div>
+
+<div class="link-context-menu hidden" data-panel="link-menu">
+  <button type="button" data-role="link-remove"><i
+      class="fa-solid fa-link-slash"
+    ></i>
+    Remover link</button>
+</div>

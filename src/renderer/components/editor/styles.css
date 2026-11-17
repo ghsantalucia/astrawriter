@@ -4,6 +4,7 @@
 
 #editor-container {
   background: var(--editor-toolbar);
+  border-left: 1px solid var(--border-app-strong);
 }
 
 .CodeMirror {
@@ -13,8 +14,8 @@
 }
 
 #markdown-editor {
-  flex-grow: 1;
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -47,7 +48,7 @@ body.dark-theme .toastui-editor-defaultUI *::-webkit-scrollbar-track {
 
 body.dark-theme .toastui-editor-defaultUI *::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb) !important;
-  border-radius: 4px !important;
+  border-radius: var(--radius-sm) !important;
 }
 
 body.dark-theme .toastui-editor-defaultUI *::-webkit-scrollbar-thumb:hover {
@@ -67,7 +68,7 @@ body.dark-theme .toastui-editor-defaultUI *::-webkit-scrollbar-thumb:hover {
 }
 
 .toastui-editor-defaultUI {
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   height: 100% !important;
 }
 
@@ -122,12 +123,12 @@ body.dark-theme .toastui-editor-defaultUI *::-webkit-scrollbar-thumb:hover {
 }
 
 .toastui-editor-defaultUI-toolbar {
-  border-bottom: 1px solid #b2b2b2 !important;
+  border-bottom: 1px solid var(--border-app) !important;
 }
 
 body.dark-theme .toastui-editor-defaultUI-toolbar {
   background-color: var(--editor-toolbar) !important;
-  border-bottom: 1px solid #313244 !important;
+  border-bottom: 1px solid var(--border-app) !important;
 }
 
 .toastui-editor-defaultUI,
@@ -135,13 +136,837 @@ body.dark-theme .toastui-editor-defaultUI-toolbar {
   border: none !important;
 }
 
+/* ==========================================================================
+   LINKS
+   - externos: texto azul simples (sem sublinhado), mudam de cor ao passar o mouse;
+   - internos (arquivos do livro): aparência de "tag" com contorno;
+   - automáticos (ainda não revisados/sincronizados): rosa;
+   - para arquivo que não existe mais: cinza.
+   ========================================================================== */
+
 .toastui-editor-contents a,
 .toastui-editor-main a {
-  color: #89b4fa !important;
+  color: var(--accent) !important;
   text-decoration: none !important;
+  cursor: pointer;
+  transition: color 0.15s ease;
 }
 
 .toastui-editor-contents a:hover,
 .toastui-editor-main a:hover {
-  text-decoration: underline !important;
+  color: #b9d3ff !important;
+  text-decoration: none !important;
+}
+
+.toastui-editor-contents a[href$=".md"]:not([href^="http"]),
+.toastui-editor-contents a[href$=".md#auto"],
+.toastui-editor-main a[href$=".md"]:not([href^="http"]),
+.toastui-editor-main a[href$=".md#auto"] {
+  display: inline;
+  padding: 0 3px;
+  color: #7cc4fa !important;
+  background: rgba(56, 189, 248, 0.11);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: var(--radius-sm);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.toastui-editor-contents a[href$=".md"]:not([href^="http"]):hover,
+.toastui-editor-contents a[href$=".md#auto"]:hover,
+.toastui-editor-main a[href$=".md"]:not([href^="http"]):hover,
+.toastui-editor-main a[href$=".md#auto"]:hover {
+  color: #a6dcff !important;
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Link criado pelo "Linkar termos": rosa, para o autor revisar antes de sincronizar */
+.toastui-editor-contents a[href$="#auto"],
+.toastui-editor-main a[href$="#auto"] {
+  color: var(--danger) !important;
+  background: color-mix(in srgb, var(--danger) 11%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.toastui-editor-contents a[href$="#auto"]:hover,
+.toastui-editor-main a[href$="#auto"]:hover {
+  color: #f8a9bf !important;
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+}
+
+/* Link para arquivo que foi excluído */
+.toastui-editor-contents a[href]:not([href^="http"]):has(.wiki-broken),
+.toastui-editor-main a[href]:not([href^="http"]):has(.wiki-broken) {
+  color: var(--text-subtle) !important;
+  background: rgba(127, 132, 156, 0.12) !important;
+  border-color: rgba(127, 132, 156, 0.35) !important;
+  border-style: dashed !important;
+}
+
+/* ==========================================================================
+   BARRA DE FERRAMENTAS DO EDITOR (botões próprios)
+   ========================================================================== */
+
+.toastui-editor-toolbar-icons.dw-tb-btn {
+  background-image: none !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-editor);
+  font-size: 0.95rem;
+}
+
+.toastui-editor-toolbar-icons.dw-tb-btn.active {
+  background-color: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+
+/* O alternador de visualização substitui as abas Write/Preview do modo Markdown */
+.toastui-editor-md-tab-container,
+.toastui-editor-mode-switch {
+  display: none !important;
+}
+
+/* ==========================================================================
+   BUSCA: destaque das ocorrências
+   ========================================================================== */
+
+.find-match {
+  background: color-mix(in srgb, var(--warning) 30%, transparent);
+  border-radius: 2px;
+}
+
+.find-match.find-current {
+  background: color-mix(in srgb, var(--warning) 65%, transparent);
+  color: #11111b;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 90%, transparent);
+}
+
+/* ==========================================================================
+   PAINÉIS FLUTUANTES (procurar e substituir / inserir link / menu de contexto)
+   ========================================================================== */
+
+.find-panel,
+.link-popup,
+.link-context-menu {
+  position: absolute;
+  z-index: 95;
+  background: var(--card-overlay-bg, var(--surface-raised));
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 28px var(--shade-strong, rgba(0, 0, 0, 0.3));
+  font-size: 0.82rem;
+}
+
+.find-panel.hidden,
+.link-popup.hidden,
+.link-context-menu.hidden {
+  display: none;
+}
+
+.find-panel {
+  top: 58px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  width: 360px;
+}
+
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.find-panel input,
+.link-popup input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  background: var(--hover);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+
+.find-panel input:focus,
+.link-popup input:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.find-count {
+  min-width: 64px;
+  text-align: center;
+  color: var(--text-muted, var(--text-subtle));
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.find-count.empty {
+  color: var(--danger);
+}
+
+.find-btn,
+.find-text-btn,
+.link-btn {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.78rem;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.find-btn {
+  width: 26px;
+  height: 26px;
+}
+
+.find-text-btn,
+.link-btn {
+  padding: 6px 10px;
+  border-color: var(--line);
+}
+
+.find-btn:hover,
+.find-text-btn:hover,
+.link-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.link-btn.primary {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* Caixa de inserção de link */
+.link-popup {
+  width: 370px;
+  padding: 10px;
+}
+
+.link-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.link-tab {
+  flex: 1;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.link-tab.active {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.link-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.link-pane.hidden {
+  display: none;
+}
+
+.link-pane label {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+
+.link-results {
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.link-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.link-result.active,
+.link-result:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.link-result-title {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.link-result-path {
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.link-empty {
+  padding: 10px;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.link-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Menu de contexto do link */
+.link-context-menu {
+  padding: 4px;
+  min-width: 150px;
+}
+
+.link-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link-context-menu button:hover {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+
+/* ==========================================================================
+   RODAPÉ DO EDITOR (estatísticas e status do salvamento)
+   ========================================================================== */
+
+.editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: none;
+  height: 30px;
+  padding: 0 20px;
+  background: var(--editor-toolbar);
+  border-top: 1px solid var(--line-soft);
+  color: var(--text-muted, var(--text-subtle));
+  font-size: 0.72rem;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+.editor-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-sep {
+  opacity: 0.45;
+}
+
+/* ==========================================================================
+   CAIXA "DADOS DO ARQUIVO" (dentro do editor, entre a barra e o texto)
+   ========================================================================== */
+
+.file-data-box {
+  flex: none;
+  background: var(--editor-toolbar);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.file-data-box.hidden {
+  display: none;
+}
+
+.file-data-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 20px;
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  font-size: 0.78rem;
+  letter-spacing: 0.2px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-data-head:hover .file-data-title,
+.file-data-head:hover {
+  color: var(--text);
+}
+
+.file-data-arrow {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  transition: transform 0.2s ease;
+}
+
+.file-data-box.open .file-data-arrow {
+  transform: rotate(90deg);
+}
+
+.file-data-count,
+.file-data-title {
+  color: var(--text-subtle);
+  font-size: 0.7rem;
+}
+
+.file-data-pen {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--text-subtle);
+}
+
+.file-data-body {
+  padding: 10px 20px 14px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.file-data-body[hidden] {
+  display: none;
+}
+
+.file-data-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px 16px;
+}
+
+.file-data-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+}
+
+.file-data-field input {
+  padding: 6px 9px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+
+.file-data-field input:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.file-data-field input:disabled {
+  opacity: 0.6;
+}
+
+.file-data-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.file-data-box .file-data-save {
+  padding: 6px 14px;
+  background: var(--accent);
+  color: #f6f3ff; /* tema claro: branco-lilás sobre o roxo */
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Tema escuro: o destaque é azul claro, então a letra é escura */
+body.dark-theme .file-data-box .file-data-save {
+  color: #11111b;
+}
+
+.file-data-save:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.file-data-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Aviso discreto no rodapé (sem cor de alerta) */
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-item.hidden {
+  display: none;
+}
+
+.stat-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 4px;
+  background: transparent;
+  color: inherit;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  cursor: pointer;
+}
+
+.stat-warn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.stat-warn i {
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+.editor-footer {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Links no tema claro: azuis escuros, com bom contraste sobre o fundo branco */
+body:not(.dark-theme) .toastui-editor-contents a,
+body:not(.dark-theme) .toastui-editor-main a {
+  color: #1a56b0 !important;
+}
+
+body:not(.dark-theme) .toastui-editor-contents a:hover,
+body:not(.dark-theme) .toastui-editor-main a:hover {
+  color: #0b3a80 !important;
+}
+
+body:not(.dark-theme)
+  .toastui-editor-contents
+  a[href$=".md"]:not([href^="http"]),
+body:not(.dark-theme) .toastui-editor-contents a[href$=".md#auto"],
+body:not(.dark-theme) .toastui-editor-main a[href$=".md"]:not([href^="http"]),
+body:not(.dark-theme) .toastui-editor-main a[href$=".md#auto"] {
+  color: #0b4f9c !important;
+  background: rgba(14, 116, 200, 0.1);
+  border-color: rgba(14, 116, 200, 0.45);
+}
+
+body:not(.dark-theme)
+  .toastui-editor-contents
+  a[href$=".md"]:not([href^="http"]):hover,
+body:not(.dark-theme)
+  .toastui-editor-main
+  a[href$=".md"]:not([href^="http"]):hover {
+  color: #083a75 !important;
+  background: rgba(14, 116, 200, 0.2);
+  border-color: rgba(14, 116, 200, 0.65);
+}
+
+body:not(.dark-theme) .toastui-editor-contents a[href$="#auto"],
+body:not(.dark-theme) .toastui-editor-main a[href$="#auto"] {
+  color: #b01e4b !important;
+  background: rgba(207, 51, 88, 0.1);
+  border-color: rgba(207, 51, 88, 0.45);
+}
+
+/* Tema claro: link para arquivo excluído fica cinza (mais específico que as regras azuis e rosa acima) */
+body:not(.dark-theme)
+  .toastui-editor-contents
+  a[href]:not([href^="http"]):has(.wiki-broken),
+body:not(.dark-theme)
+  .toastui-editor-main
+  a[href]:not([href^="http"]):has(.wiki-broken) {
+  color: #6b6f82 !important;
+  background: rgba(100, 104, 125, 0.1) !important;
+  border-color: rgba(100, 104, 125, 0.4) !important;
+  border-style: dashed !important;
+}
+
+/* ==========================================================================
+   TAGS NA CAIXA "DADOS DO ARQUIVO"
+   ========================================================================== */
+
+.file-data-head {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+/* A caixa é só de interface: não se seleciona o texto dela (os campos continuam selecionáveis) */
+.file-data-box {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.file-data-box input,
+.file-data-box textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Tags no cabeçalho, depois de "Dados do arquivo X campos |" */
+.file-data-tags {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.file-data-tags .tag-chip {
+  flex: none;
+}
+
+.file-data-sep {
+  color: var(--text-subtle);
+  opacity: 0.6;
+  margin: 0 2px;
+}
+
+.file-data-tags-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+}
+
+.tag-input {
+  position: relative;
+}
+
+.tag-input-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 4px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: text;
+}
+
+.tag-input-box:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.tag-input-chips {
+  display: contents;
+}
+
+.tag-input-field {
+  flex: 1 1 120px;
+  min-width: 120px;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-size: 0.82rem;
+}
+
+.tag-input-field:disabled {
+  opacity: 0.6;
+}
+
+.tag-input-box:has(.tag-input-field:disabled) {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tag-remove {
+  margin-left: 2px;
+  padding: 0 2px;
+  background: transparent;
+  color: inherit;
+  border: none;
+  font-size: 0.85rem;
+  line-height: 1;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.tag-remove:hover {
+  opacity: 1;
+}
+
+.tag-input-list {
+  /* posição calculada pelo JS (fixed): a lista pode ultrapassar a caixa de dados sem gerar rolagem */
+  position: fixed;
+  z-index: 1000;
+  min-width: 200px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 0.25);
+}
+
+.tag-input-list[hidden] {
+  display: none;
+}
+
+.tag-input-list li {
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tag-input-list li:hover,
+.tag-input-list li.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* ==========================================================================
+   PROBLEMAS DE ESCRITA (sublinhado próprio) E MENU DE CONTEXTO
+   ========================================================================== */
+
+/* Sublinhado discreto (pontilhado fino): sinaliza sem poluir a leitura nem a escrita */
+.writing-spell,
+.writing-repeated {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.writing-spell {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--danger, #db2e34) 90%,
+    transparent
+  );
+}
+
+.writing-repeated {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--warning, #e0a100) 70%,
+    transparent
+  );
+}
+
+.writing-menu {
+  position: fixed;
+  z-index: 100001;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 5px;
+  background: var(--surface-raised, var(--surface));
+  color: var(--text);
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 32px rgb(10 8 24 / 0.3);
+  font-size: 0.82rem;
+}
+
+.writing-menu-title {
+  padding: 6px 10px 7px;
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+  border-bottom: 1px solid var(--line-soft, var(--line));
+  margin-bottom: 4px;
+}
+
+.writing-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  color: inherit;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.writing-menu-item i {
+  width: 14px;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+}
+
+.writing-menu-item:not(:disabled):hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.writing-menu-item:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.writing-menu-item.muted {
+  color: var(--text-subtle);
+  font-style: italic;
+}
+
+.writing-menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line-soft, var(--line));
+}
+
+/* Tags do cabeçalho: clicar pesquisa por elas */
+.tag-chip.tag-link {
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.tag-chip.tag-link:hover {
+  filter: brightness(1.12) saturate(1.2);
+  text-decoration: underline;
+}
+
+.toastui-editor-contents a[href]:not([href^="http"]):has(.wiki-broken),
+.toastui-editor-main a[href]:not([href^="http"]):has(.wiki-broken) {
+  color: var(--text-subtle) !important;
 }
