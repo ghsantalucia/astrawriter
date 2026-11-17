@@ -5,7 +5,21 @@
 import fs from "node:fs";
 import path from "node:path";
 const matter = require("gray-matter");
-import { app, ipcMain, dialog } from "electron";
+import { app, ipcMain, dialog, shell, session } from "electron";
+import { searchBook } from "./book-search.js";
+import { exportDocument } from "./export.js";
+import { addCustomWord, findMisspelled, suggestWord } from "./spellchecker.js";
+import {
+  recordChange,
+  recordAutosave,
+  listFileHistory,
+  previewVersion,
+  readLogPage,
+  restoreVersion,
+} from "./changelog.js";
+import { appendAiError, readAiErrors, clearAiErrors } from "./ai-error-log.js";
+import { migrateBook } from "./book-migrations.js";
+import { withFileWatcherPaused } from "./file-watcher.js";
 
 /** Arquivo JSON (na pasta de dados do usuário) com o provider de IA ativo e suas chaves. */
 const AI_SETTINGS_FILE = "ai-settings.json";
@@ -20,14 +34,68 @@ export function setupIpcHandlers(mainWindow) {
 
     if (isDark) {
       mainWindow.setTitleBarOverlay({
-        color: "#181926",
+        color: "#0e0f17",
         symbolColor: "#cdd6f4",
       });
     } else {
       mainWindow.setTitleBarOverlay({
-        color: "#1e1e2f",
-        symbolColor: "#ffffff",
+        color: "#ece9f6",
+        symbolColor: "#2b2542",
       });
+    }
+  });
+
+  // Abre um link da web (ou e-mail) no navegador padrão do sistema; outros protocolos são recusados
+  ipcMain.handle("open-external", async (event, url) => {
+    try {
+      const parsed = new URL(String(url));
+      if (!["http:", "https:", "mailto:"].includes(parsed.protocol)) {
+        return { success: false, error: "Protocolo não permitido." };
+      }
+      await shell.openExternal(parsed.toString());
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Correção ortográfica própria (Hunspell + dicionário do usuário); o corretor do Chromium fica sempre desligado
+  ipcMain.handle("spell-check", async (event, language, words) => {
+    try {
+      return await findMisspelled(language, words);
+    } catch (err) {
+      console.error("[MAIN IPC spell-check] Erro:", err);
+      return [];
+    }
+  });
+
+  ipcMain.handle("spell-suggest", async (event, language, word) => {
+    try {
+      return await suggestWord(language, word);
+    } catch {
+      return [];
+    }
+  });
+
+  ipcMain.handle("spell-add-word", async (event, word) => {
+    try {
+      await addCustomWord(word);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Versão do app (a do package.json; o Vite não tem versão própria do projeto)
+  ipcMain.handle("get-app-version", () => app.getVersion());
+
+  // Exportar o arquivo aberto (Markdown, Word ou PDF)
+  ipcMain.handle("export-file", async (event, payload) => {
+    try {
+      return await exportDocument(mainWindow, payload);
+    } catch (err) {
+      console.error("[MAIN IPC export-file] Erro:", err);
+      return { success: false, error: err.message };
     }
   });
 
@@ -82,6 +150,47 @@ export function setupIpcHandlers(mainWindow) {
     }
   });
 
+  // Exclui uma pasta inteira (com tudo o que há dentro).
+  ipcMain.handle("delete-folder", async (event, folderPath) => {
+    try {
+      if (!folderPath)
+        return { success: false, error: "Caminho não fornecido." };
+      const target = path.normalize(folderPath);
+      if (!fs.existsSync(target)) {
+        return { success: false, error: `A pasta não existe: ${target}` };
+      }
+      await withFileWatcherPaused(() =>
+        fs.promises.rm(target, { recursive: true, force: true }),
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("[MAIN IPC delete-folder] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Renomeia/move um arquivo ou pasta. Falha se o destino já existir, para nunca sobrescrever.
+  ipcMain.handle("rename-path", async (event, fromPath, toPath) => {
+    try {
+      if (!fromPath || !toPath) {
+        return { success: false, error: "Caminhos não fornecidos." };
+      }
+      const from = path.normalize(fromPath);
+      const to = path.normalize(toPath);
+      if (!fs.existsSync(from)) {
+        return { success: false, error: `A origem não existe: ${from}` };
+      }
+      if (fs.existsSync(to)) {
+        return { success: false, error: `O destino já existe: ${to}` };
+      }
+      await withFileWatcherPaused(() => fs.promises.rename(from, to));
+      return { success: true };
+    } catch (err) {
+      console.error("[MAIN IPC rename-path] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
   ipcMain.handle("save-file", async (event, filePath, content) => {
     try {
       // Garante que o diretório pai exista antes de salvar
@@ -94,6 +203,176 @@ export function setupIpcHandlers(mainWindow) {
     } catch (err) {
       return { success: false, error: err.message };
     }
+  });
+
+  // Retorna os caminhos-base do projeto: pasta dos livros e pasta do template de livro.
+  ipcMain.handle("get-paths", async () => ({
+    booksDir: path.join(process.cwd(), "books"),
+    templatesDir: path.join(process.cwd(), "templates", "book"),
+  }));
+
+  // Lista o conteúdo de um diretório (nome e se é pasta). Retorna [] se não existir.
+  ipcMain.handle("list-dir", async (event, dirPath) => {
+    try {
+      if (!dirPath || !fs.existsSync(dirPath)) return [];
+      const entries = await fs.promises.readdir(path.normalize(dirPath), {
+        withFileTypes: true,
+      });
+      return entries.map((entry) => ({
+        name: entry.name,
+        isDirectory: entry.isDirectory(),
+      }));
+    } catch (err) {
+      console.error("[MAIN IPC list-dir] Erro:", err);
+      return [];
+    }
+  });
+
+  // Clona uma pasta inteira (recursivamente). Falha se o destino já existir, para nunca sobrescrever.
+  ipcMain.handle("copy-folder", async (event, sourcePath, destPath) => {
+    try {
+      if (!sourcePath || !destPath) {
+        return { success: false, error: "Caminhos não fornecidos." };
+      }
+      const source = path.normalize(sourcePath);
+      const dest = path.normalize(destPath);
+
+      if (!fs.existsSync(source)) {
+        return {
+          success: false,
+          error: `Pasta de origem não existe: ${source}`,
+        };
+      }
+      if (fs.existsSync(dest)) {
+        return { success: false, error: `O destino já existe: ${dest}` };
+      }
+
+      await fs.promises.cp(source, dest, {
+        recursive: true,
+        errorOnExist: true,
+      });
+      return { success: true };
+    } catch (err) {
+      console.error("[MAIN IPC copy-folder] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Pesquisa um termo nos títulos e conteúdos dos arquivos Markdown de um livro.
+  ipcMain.handle("search-book", async (event, bookPath, term) => {
+    try {
+      return await searchBook(path.normalize(bookPath || ""), term);
+    } catch (err) {
+      console.error("[MAIN IPC search-book] Erro:", err);
+      return [];
+    }
+  });
+
+  // ----- Changelog do livro (criações, alterações, exclusões, leituras da IA e restaurações) -----
+
+  // Registra uma ação no changelog do livro.
+  ipcMain.handle("changelog-record", async (event, bookPath, change) => {
+    try {
+      const entry = await recordChange(path.normalize(bookPath), {
+        ...change,
+        filePath: path.normalize(change.filePath),
+      });
+      return { success: true, entry };
+    } catch (err) {
+      console.error("[MAIN IPC changelog-record] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Histórico de versões de um arquivo (mais recente primeiro).
+  ipcMain.handle("changelog-file-history", async (event, bookPath, relPath) => {
+    try {
+      return await listFileHistory(path.normalize(bookPath), relPath);
+    } catch (err) {
+      console.error("[MAIN IPC changelog-file-history] Erro:", err);
+      return { entries: [], restoredFrom: null };
+    }
+  });
+
+  // Uma página (arquivo de log) do changelog, do mais recente para o mais antigo.
+  ipcMain.handle("changelog-page", async (event, bookPath, file) => {
+    try {
+      return await readLogPage(path.normalize(bookPath), file || null);
+    } catch (err) {
+      console.error("[MAIN IPC changelog-page] Erro:", err);
+      return { file: null, entries: [], older: null };
+    }
+  });
+
+  // Registra um salvamento automático (um único registro por sessão de edição do arquivo).
+  ipcMain.handle("changelog-autosave", async (event, bookPath, params) => {
+    try {
+      const entry = await recordAutosave(path.normalize(bookPath), {
+        ...params,
+        filePath: path.normalize(params.filePath),
+      });
+      return { success: true, entry };
+    } catch (err) {
+      console.error("[MAIN IPC changelog-autosave] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Conteúdo de uma versão do histórico (e o atual), sem alterar nada: usado na comparação antes de restaurar.
+  ipcMain.handle(
+    "changelog-preview",
+    async (event, bookPath, filePath, entryId) => {
+      try {
+        const result = await previewVersion(
+          path.normalize(bookPath),
+          path.normalize(filePath),
+          entryId,
+        );
+        return { success: true, ...result };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    },
+  );
+
+  // Restaura um arquivo para uma versão do histórico (os registros posteriores perdem o conteúdo guardado).
+  ipcMain.handle(
+    "changelog-restore",
+    async (event, bookPath, filePath, entryId, actor) => {
+      try {
+        const result = await restoreVersion(
+          path.normalize(bookPath),
+          path.normalize(filePath),
+          entryId,
+          actor,
+        );
+        return { success: true, ...result };
+      } catch (err) {
+        console.error("[MAIN IPC changelog-restore] Erro:", err);
+        return { success: false, error: err.message };
+      }
+    },
+  );
+
+  // ----- Log de erros da IA -----
+
+  ipcMain.handle("ai-log-error", async (event, error) => {
+    try {
+      await appendAiError(app.getPath("userData"), error || {});
+      return { success: true };
+    } catch (err) {
+      console.error("[MAIN IPC ai-log-error] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle("ai-log-read", async () =>
+    readAiErrors(app.getPath("userData")),
+  );
+
+  ipcMain.handle("ai-log-clear", async () => {
+    await clearAiErrors(app.getPath("userData"));
+    return { success: true };
   });
 
   // Lê as configurações de IA (provider ativo + chaves de API). Retorna null se ainda não existirem.
@@ -140,6 +419,16 @@ export function setupIpcHandlers(mainWindow) {
         if (entry.isDirectory()) {
           const bookPath = path.join(booksDir, entry.name);
           const configPath = path.join(bookPath, "config.json");
+
+          // Atualiza livros antigos para a estrutura atual (ex.: cap_NNN -> chapter_NNN)
+          try {
+            await migrateBook(bookPath, { pause: withFileWatcherPaused });
+          } catch (migrationError) {
+            console.error(
+              `Erro ao migrar o livro ${entry.name}:`,
+              migrationError,
+            );
+          }
           let configData = {};
 
           if (fs.existsSync(configPath)) {

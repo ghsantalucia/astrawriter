@@ -5,15 +5,34 @@
 const chokidar = require("chokidar");
 const path = require("path");
 
+/** Observador ativo (null enquanto pausado). */
+let watcher = null;
+/** Janela que recebe os eventos. */
+let targetWindow = null;
+
 /**
  * Configura e inicia o observador do sistema de arquivos para a pasta de livros.
  * @param {BrowserWindow} mainWindow - Instância da janela principal do Electron para envio de eventos IPC.
  */
 export function setupFileWatcher(mainWindow) {
+  targetWindow = mainWindow;
+  startWatching();
+  console.log(
+    "[FileWatcher] Monitoramento iniciado em:",
+    path.join(process.cwd(), "books"),
+  );
+}
+
+/**
+ * Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
+ * @returns {void}
+ */
+function startWatching() {
+  const mainWindow = targetWindow;
   // Caminho absoluto para a pasta books na raiz do projeto
   const booksPath = path.join(process.cwd(), "books");
 
-  const watcher = chokidar.watch(booksPath, {
+  watcher = chokidar.watch(booksPath, {
     ignored: /(^|[/\\])\../, // ignora arquivos ocultos
     persistent: true,
     ignoreInitial: true,
@@ -67,6 +86,25 @@ export function setupFileWatcher(mainWindow) {
       });
     }
   });
+}
 
-  console.log("[FileWatcher] Monitoramento iniciado em:", booksPath);
+/**
+ * Executa uma operação que renomeia ou apaga PASTAS com o observador pausado. No Windows o Chokidar mantém as pastas
+ * observadas abertas, o que impede renomeá-las (EPERM); por isso o observador é fechado durante a operação e
+ * recriado depois. Eventos ocorridos nesse intervalo não são enviados (quem pediu a operação atualiza a interface).
+ * @template T
+ * @param {() => Promise<T>} task - Operação com pastas.
+ * @returns {Promise<T>} Resultado da operação.
+ */
+export async function withFileWatcherPaused(task) {
+  const paused = watcher;
+  if (paused) {
+    watcher = null;
+    await paused.close();
+  }
+  try {
+    return await task();
+  } finally {
+    if (paused && targetWindow) startWatching();
+  }
 }

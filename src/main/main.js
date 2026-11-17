@@ -2,7 +2,7 @@
  * @file Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
  */
 
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, shell } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 
@@ -25,7 +25,7 @@ const createWindow = () => {
     height: 800,
     // Aponta para o ícone na pasta public da raiz
     icon: path.join(process.cwd(), "public", "icon.ico"),
-    title: "DraftWeaver",
+    title: "Astra Writter",
     titleBarStyle: "hidden",
     titleBarOverlay: {
       color: "#0e0f17" /* Cor de fundo da barra para combinar com a Sidebar */,
@@ -58,6 +58,20 @@ const createWindow = () => {
     );
   }
 
+  // O sublinhado e as sugestões são do próprio app (Hunspell + dicionário do livro); o corretor do Chromium fica desligado
+  mainWindow.webContents.session.setSpellCheckerEnabled(false);
+
+  // Links externos nunca abrem dentro do app: vão para o navegador padrão
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^(https?:|mailto:)/i.test(url)) shell.openExternal(url);
+    return { action: "deny" };
+  });
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    if (url === mainWindow.webContents.getURL()) return;
+    event.preventDefault();
+    if (/^(https?:|mailto:)/i.test(url)) shell.openExternal(url);
+  });
+
   // Atalhos em modo de desenvolvimento (F12 e F5)
   mainWindow.webContents.on("before-input-event", (event, input) => {
     if (!app.isPackaged && input.type === "keyDown") {
@@ -72,16 +86,30 @@ const createWindow = () => {
     }
   });
 
-  // Menu de contexto com Inspecionar Elemento em modo dev
+  // Menu de contexto: edição e, em desenvolvimento, inspecionar (a correção ortográfica tem menu próprio no editor)
   mainWindow.webContents.on("context-menu", (e, props) => {
-    if (!app.isPackaged) {
-      Menu.buildFromTemplate([
-        {
-          label: "Inspecionar Elemento",
-          click: () => mainWindow.webContents.inspectElement(props.x, props.y),
-        },
-      ]).popup(mainWindow);
+    const items = [];
+    const wc = mainWindow.webContents;
+
+    if (props.isEditable) {
+      items.push(
+        { role: "cut", label: "Recortar" },
+        { role: "copy", label: "Copiar" },
+        { role: "paste", label: "Colar" },
+      );
+    } else if (props.selectionText) {
+      items.push({ role: "copy", label: "Copiar" });
     }
+
+    if (!app.isPackaged) {
+      if (items.length) items.push({ type: "separator" });
+      items.push({
+        label: "Inspecionar Elemento",
+        click: () => wc.inspectElement(props.x, props.y),
+      });
+    }
+
+    if (items.length) Menu.buildFromTemplate(items).popup(mainWindow);
   });
 
   // Configuração do menu superior nativo
