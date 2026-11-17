@@ -4,6 +4,7 @@
 
 import { uiBus } from "../events/uiBus.js";
 import { parseMarkdown, stringifyFrontmatter } from "../utils/markdown.js";
+import { stripAutoLinkMarks } from "../components/Editor/editorTools.js";
 
 /**
  * Serviço de manipulação e persistência de arquivos locais via IPC do Electron.
@@ -13,9 +14,11 @@ export class FileService {
   /**
    * Cria uma instância do FileService.
    * @param {Object} state - Instância do gerenciador de estado global da aplicação.
+   * @param {import('./changelogService.js').ChangelogService} [changelog] - Serviço do changelog (registra as alterações).
    */
-  constructor(state) {
+  constructor(state, changelog = null) {
     this.state = state;
+    this.changelog = changelog;
   }
 
   // ========== Ciclo de vida do arquivo ========== //
@@ -32,8 +35,33 @@ export class FileService {
     }
 
     try {
+      // Ao virar conteúdo oficial, os links automáticos deixam de ser "pendentes de revisão" (ficam azuis)
+      content = stripAutoLinkMarks(content);
+
+      // Estado anterior e autor (usuário, ou IA se o conteúdo veio de um rascunho dela) para o changelog
+      const tracked = this.changelog?.isTracked(fullPath);
+      const before = tracked
+        ? await window.electronAPI.readFile(fullPath)
+        : null;
+      const actor = this.changelog?.actorFor(fullPath);
+
       // 1. Grava no arquivo oficial
       const res = await window.electronAPI.saveFile(fullPath, content);
+
+      if (res.success && tracked) {
+        await this.changelog.record({
+          action: before === null ? "create" : "update",
+          filePath: fullPath,
+          before,
+          after: content,
+          actor,
+        });
+      }
+      if (res.success) {
+        this.changelog?.clearDraft(fullPath);
+        // Sincronizou: a sessão de salvamento automático deste arquivo termina (a próxima edição abre outra)
+        this.changelog?.endSession(fullPath);
+      }
 
       if (res.success) {
         // 2. Remove o arquivo .temp
@@ -97,7 +125,27 @@ export class FileService {
    */
   async deleteFile(fullPath) {
     try {
-      return await window.electronAPI.deleteFile(fullPath);
+      // Rascunho descartado: o autor (IA) deixa de importar. Arquivo oficial excluído: guarda o conteúdo no changelog.
+      if (/\.temp$/.test(fullPath)) {
+        this.changelog?.clearDraft(fullPath);
+        this.changelog?.endSession(fullPath);
+      }
+      const tracked = this.changelog?.isTracked(fullPath);
+      const before = tracked
+        ? await window.electronAPI.readFile(fullPath)
+        : null;
+
+      const result = await window.electronAPI.deleteFile(fullPath);
+
+      if (result?.success && tracked && before !== null) {
+        await this.changelog.record({
+          action: "delete",
+          filePath: fullPath,
+          before,
+          actor: this.changelog.actorFor(fullPath),
+        });
+      }
+      return result;
     } catch (error) {
       console.error(
         `[FILE SERVICE] Erro ao deletar arquivo em ${fullPath}:`,
@@ -110,15 +158,29 @@ export class FileService {
   // ========== Ciclo de vida do arquivo .temp ========== //
 
   /**
-   * Salva o rascunho no arquivo .temp e notifica a interface via barramento de UI.
+   * Salva o rascunho no arquivo .temp e registra o salvamento automático no changelog (um único registro por
+   * sessão de edição do arquivo, atualizado a cada salvamento).
    * @param {string} fullPath - Caminho completo do arquivo original.
    * @param {string} content - Conteúdo a ser gravado no rascunho.
+   * @param {Object} [options]
+   * @param {Object} [options.actor] - Quem está salvando (padrão: usuário).
    * @returns {Promise<Object>} Resultado da operação de salvamento.
    */
-  async saveTempFile(fullPath, content) {
+  async saveTempFile(fullPath, content, options = {}) {
     if (!fullPath) return { success: false, error: "Caminho inválido." };
     const tempPath = this.getTempPath(fullPath);
+    const actor = options.actor || this.changelog?.userActor();
+
+    // A base da sessão (conteúdo antes do 1º salvamento) precisa ser lida antes de gravar o rascunho
+    const session = this.changelog
+      ? await this.changelog.beginAutosave(fullPath, actor).catch(() => null)
+      : null;
+
     const result = await window.electronAPI.saveFile(tempPath, content);
+
+    if (result?.success && session) {
+      await this.changelog.recordAutosave(fullPath, session, content, actor);
+    }
 
     return result;
   }
@@ -237,6 +299,14 @@ export class FileService {
 
     if (res.success) {
       uiBus.emit("temp-file:synced", { filePath });
+
+      // Se o arquivo aberto tinha links automáticos, recarrega o editor para que passem a aparecer em azul
+      if (
+        this.state?.currentFilePath === filePath &&
+        stripAutoLinkMarks(contentToSave) !== contentToSave
+      ) {
+        uiBus.emit("editor:open-file", { path: filePath });
+      }
     }
 
     return res;

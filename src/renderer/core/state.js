@@ -13,6 +13,9 @@ export const DEFAULT_TREE_METADATA = {
   aiRead: false,
   aiWrite: false,
   advanced: false,
+  // Permissão de exclusão: null = regra padrão (ver utils/deletePermission.js)
+  userDelete: null,
+  aiDelete: null,
   title: null, // Será tratado no merge se precisar do nome do arquivo
   description: null,
 };
@@ -86,6 +89,18 @@ export class State {
      * @type {{inputTokens: number, outputTokens: number, contextTokens: number}}
      */
     this.aiUsage = { inputTokens: 0, outputTokens: 0, contextTokens: 0 };
+
+    /**
+     * Limites de uso conhecidos por "provedor|modelo": restante informado pela API ou bloqueio por cota estourada.
+     * @type {Object<string, {kind: "remaining"|"blocked", until?: number, period?: string, message?: string}>}
+     */
+    this.aiLimits = {};
+
+    /**
+     * Criação guiada iniciada pela IA que aguarda a resposta do autor (ver ai/tools/creationTools.js).
+     * @type {{kind: string, folder?: string, messageId: number}|null}
+     */
+    this.pendingCreation = null;
 
     /**
      * Instância do editor de texto ativo.

@@ -9,6 +9,15 @@ import * as file from "./handlers/fileHandler.js";
 import * as chat from "./handlers/chatHandler.js";
 import * as config from "./handlers/configHandler.js";
 import * as aiReview from "./handlers/aiReviewHandler.js";
+import * as search from "./handlers/searchHandler.js";
+import * as creation from "./handlers/creationHandler.js";
+import * as variables from "./handlers/variablesHandler.js";
+import * as history from "./handlers/historyHandler.js";
+import * as logViewer from "./handlers/logViewerHandler.js";
+import * as exporter from "./handlers/exportHandler.js";
+import * as links from "./handlers/linkHandler.js";
+import * as del from "./handlers/deleteHandler.js";
+import * as folderHandler from "./handlers/folderHandler.js";
 
 /**
  * Controller responsável pelas reações visuais da interface.
@@ -32,11 +41,17 @@ export class UiController {
   registerEvents() {
     // Evento de inicialização do app
     uiBus.on("app:ready", async () => {
+      config.applySavedSpellLanguage();
       // Recupera lista de livros cadastrados
       const bookList = await book.fetchBooks(this.state, this.services.book);
       // Envia para preparar o frontend
       uiBus.emit("books:updated", bookList);
-      // Restaura o último livro aberto caso exista
+      // Restaura o último livro aberto; sem livro, o app fica vazio aguardando a seleção
+      if (!this.state.currentBookPath) {
+        book.clearBook(this.state);
+        uiBus.emit("editor:reseted");
+        return;
+      }
       uiBus.emit("book:selected", this.state.currentBookPath);
       // Restaura o último arquivo aberto caso exista
       if (this.state.currentFilePath) {
@@ -89,13 +104,17 @@ export class UiController {
 
     // Abre a janela de comparação das alterações feitas pela IA
     uiBus.on("ai-review:open", (payload) => {
-      aiReview.onAiReviewOpen(payload, this.services.file);
+      aiReview.onAiReviewOpen(payload, this.services.file, this.state);
     });
 
-    // Lida com seleção de livro/projeto
+    // Lida com seleção de livro/projeto (vindo do dropdown, o caminho está em data-value)
     uiBus.on("book:selected", (e) => {
       if (e.nativeEvent) {
-        book.onBookSelect(this.state, e.value, this.services.book);
+        book.onBookSelect(
+          this.state,
+          e.data?.value ?? e.value,
+          this.services.book,
+        );
       } else {
         book.onBookSelect(this.state, e, this.services.book);
       }
@@ -110,6 +129,12 @@ export class UiController {
       config.onCurrentConfigChanged(this.state, this.state.currentBookMetadata);
     });
 
+    // Nenhum livro selecionado: limpa o chat e o editor
+    uiBus.on("book:cleared", () => {
+      uiBus.emit("chat:clear");
+      uiBus.emit("editor:reset");
+    });
+
     // Lida com editor resetado (nenhum arquivo aberto)
     uiBus.on("editor:reseted", () => {
       file.onEditorReset(this.state);
@@ -122,6 +147,8 @@ export class UiController {
 
     // Evento disparado quando um arquivo é aberto com sucesso
     uiBus.on("file:opened", (data) => {
+      // Trocar de arquivo encerra as sessões de salvamento automático dos demais
+      this.services.changelog.endSessionsExcept(data.fullPath);
       file.onFileOpened(this.state, this.services.book, data);
     });
 
@@ -133,6 +160,16 @@ export class UiController {
     // Envia mensagem para IA
     uiBus.on("chat:send-message", (data) => {
       chat.onSendMessage(data, this.services.ai);
+    });
+
+    // Liga/desliga a correção ortográfica e gramatical
+    uiBus.on("spellcheck:toggle", (payload) => {
+      config.onSpellcheckToggled(payload);
+    });
+
+    // Idioma da correção ortográfica
+    uiBus.on("language:changed", (payload) => {
+      config.onSpellLanguageChanged(payload);
     });
 
     // Salva provider, modelo e chave de API da IA
@@ -164,6 +201,178 @@ export class UiController {
       file.onTempChanged(filePath, this.state, this.services.book);
     });
 
+    // Nome/tags alterados pelas variáveis: atualiza o mapa do livro e redesenha o explorer
+    uiBus.on("file:variables-changed", async ({ path }) => {
+      await file.onTempChanged(path, this.state, this.services.book);
+      uiBus.emit("tree:updated");
+    });
+
+    //==========================================//
+    //        Pesquisa no explorer              //
+    //==========================================//
+
+    // Texto da pesquisa alterado (digitação)
+    uiBus.on("search:changed", (payload) => {
+      search.onSearchChanged(payload, this.state, this.services.search);
+    });
+
+    // Botão X da pesquisa
+    uiBus.on("search:clear", () => {
+      search.onSearchClear();
+    });
+
+    //==========================================//
+    //   Criação de livros, capítulos e fichas  //
+    //==========================================//
+
+    // Intenções de criação (botões do dropdown de livros, do explorer e do chat)
+    uiBus.on("book:create", () => this.openCreationWizard("book"));
+    uiBus.on("chapter:create", () => this.openCreationWizard("chapter"));
+    uiBus.on("note:create", (payload) =>
+      this.openCreationWizard("note", payload?.data?.folder),
+    );
+    uiBus.on("entity:create", (payload) =>
+      this.openCreationWizard("entity", payload.data?.folder),
+    );
+
+    // Envio de um wizard (criação ou edição de variáveis)
+    uiBus.on("wizard:submit", (payload) => {
+      creation.onWizardSubmit(payload, this.state, this.services);
+    });
+
+    // Itens criados (pela UI ou pela IA): mantém lista de livros e árvore de arquivos atualizadas
+    uiBus.on("book:created", (payload) => {
+      creation.onBookCreated(this.state, this.services.book);
+      chat.onCreationNotice(payload, this.services.ai);
+    });
+    uiBus.on("chapter:created", (payload) => {
+      creation.onTreeChanged(payload, this.state, this.services.book);
+      chat.onCreationNotice(payload, this.services.ai);
+    });
+    uiBus.on("file:created", (payload) => {
+      creation.onTreeChanged(payload, this.state, this.services.book);
+      chat.onCreationNotice(payload, this.services.ai);
+    });
+
+    // Aviso "system" no chat sobre eventos importantes feitos pela IA (ex.: arquivo alterado)
+    uiBus.on("chat:system-notice", (payload) => {
+      chat.onSystemNotice(payload, this.services.ai);
+    });
+
+    // Botão de caneta do explorer (e botão do chat): modal de dados do arquivo, aberto ou não no editor
+    uiBus.on("variables:open-modal", (payload) => {
+      variables.onVariablesOpen(this.state, this.services.file, payload);
+    });
+    uiBus.on("file-data:edit", (payload) => {
+      variables.onVariablesOpen(this.state, this.services.file, payload);
+    });
+
+    // Caixa "Dados do arquivo" do editor
+    uiBus.on("variables:inline-save", (payload) => {
+      variables.onVariablesInlineSave(payload, this.state, this.services.file);
+    });
+
+    //==========================================//
+    //   Histórico, changelog e log de erros    //
+    //==========================================//
+
+    //==========================================//
+    //     Exclusão de arquivos e capítulos     //
+    //==========================================//
+
+    // Botões de excluir do explorer (aparecem ao passar o mouse): pedem confirmação antes de apagar
+    uiBus.on("file:delete", (payload) => {
+      del.onFileDeleteRequest(
+        payload,
+        this.state,
+        this.services.deletion,
+        this.services,
+      );
+    });
+    // Pastas do usuário e arrastar e soltar de arquivos
+    uiBus.on("folder:create", (payload) => {
+      folderHandler.onFolderCreate(
+        payload,
+        this.state,
+        this.services.folders,
+        this.services,
+      );
+    });
+    uiBus.on("folder:rename", (payload) => {
+      folderHandler.onFolderRename(
+        payload,
+        this.state,
+        this.services.folders,
+        this.services,
+      );
+    });
+    uiBus.on("folder:delete", (payload) => {
+      folderHandler.onFolderDelete(
+        payload,
+        this.state,
+        this.services.folders,
+        this.services,
+      );
+    });
+    uiBus.on("file:move", (payload) => {
+      folderHandler.onFileMove(
+        payload,
+        this.state,
+        this.services.folders,
+        this.services,
+      );
+    });
+    // Alterações de estrutura feitas pela IA (criar/mover/excluir pasta ou arquivo, restaurar versão)
+    uiBus.on("book:structure-changed", (payload) => {
+      del.onStructureChanged(payload, this.state, this.services);
+    });
+    uiBus.on("folder:move", (payload) => {
+      folderHandler.onFolderMove(
+        payload,
+        this.state,
+        this.services.folders,
+        this.services,
+      );
+    });
+    uiBus.on("chapter:delete", (payload) => {
+      del.onChapterDeleteRequest(
+        payload,
+        this.state,
+        this.services.deletion,
+        this.services,
+      );
+    });
+
+    // Botão da toolbar: cria links internos automáticos para nomes/apelidos de fichas do livro
+    uiBus.on("autolink:run", () => {
+      links.onAutoLink(this.state);
+    });
+
+    // Botão da toolbar: histórico de versões do arquivo aberto (com restauração)
+    uiBus.on("history:open-modal", () => {
+      history.onHistoryOpen(this.state, this.services.changelog, this.services);
+    });
+
+    // Botão da toolbar: exportar o arquivo aberto (Markdown, Word ou PDF)
+    uiBus.on("export:file", (payload) => {
+      exporter.onExportFile(payload, this.state);
+    });
+
+    // Configurações: changelog completo do livro (rolagem infinita)
+    uiBus.on("changelog:open-viewer", () => {
+      logViewer.onChangelogViewerOpen(this.state, this.services.changelog);
+    });
+
+    // Configurações: log de erros retornados pela IA
+    uiBus.on("ai-errors:open-modal", () => {
+      logViewer.onAiErrorLogOpen();
+    });
+
+    // Botão de resposta pronta no chat
+    uiBus.on("chat:quick-reply", (payload) => {
+      chat.onQuickReply(payload, this.services.ai);
+    });
+
     //
     uiBus.on("book:ai-locked", () => {
       book.onAiLock(true);
@@ -172,5 +381,20 @@ export class UiController {
     uiBus.on("book:ai-unlocked", () => {
       book.onAiLock(false);
     });
+  }
+
+  /**
+   * Pede ao handler de criação que abra o wizard do tipo informado.
+   * @param {"book"|"chapter"|"entity"|"note"} kind - Tipo de criação.
+   * @param {string} [folder] - Pasta da ficha, relativa ao livro (apenas `entity`).
+   * @returns {void}
+   * @private
+   */
+  openCreationWizard(kind, folder) {
+    creation.onCreateRequested(
+      { kind, folder },
+      this.state,
+      this.services.creation,
+    );
   }
 }

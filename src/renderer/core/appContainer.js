@@ -140,6 +140,8 @@ export class AppContainer {
     document.addEventListener(
       "dragstart",
       (e) => {
+        // Só o explorer permite arrastar (arquivos entre pastas)
+        if (e.target.closest?.("[data-draggable='true']")) return;
         e.preventDefault();
       },
       true,

@@ -6,6 +6,11 @@
 import { FileService } from "./fileService.js";
 import { BookService } from "./bookService.js";
 import { AiService } from "./aiService.js";
+import { CreationService } from "./creationService.js";
+import { SearchService } from "./searchService.js";
+import { ChangelogService } from "./changelogService.js";
+import { DeletionService } from "./deletionService.js";
+import { FolderService } from "./folderService.js";
 
 /**
  * Gerencia todas as classes de serviços.
@@ -21,9 +26,24 @@ export class ServiceManager {
     this.state = state;
 
     // Instancia os serviços injetando as dependências necessárias
-    this.file = new FileService(this.state);
+    this.changelog = new ChangelogService(this.state);
+    this.file = new FileService(this.state, this.changelog);
     this.book = new BookService(this.state, this.file);
-    this.ai = new AiService(this.state, this.file);
+    this.creation = new CreationService(this.state, this.changelog);
+    this.deletion = new DeletionService(this.state, this.changelog);
+    this.folders = new FolderService(this.state, this.changelog);
+    this.search = new SearchService();
+    this.ai = new AiService(
+      this.state,
+      this.file,
+      this.creation,
+      this.changelog,
+      {
+        folders: this.folders,
+        deletion: this.deletion,
+        bookService: this.book,
+      },
+    );
   }
 }
 

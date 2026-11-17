@@ -39,8 +39,16 @@ export class DomainController {
 
     // A IA terminou: libera o projeto e pede a revisão dos arquivos alterados
     domainBus.on("ai:edit-finished", async ({ bookPath, files }) => {
+      this.services.changelog.endAiSessions();
       await this.services.book.setAiLock(bookPath, false);
       if (files.length > 0) uiBus.emit("ai-review:open", { files });
+    });
+
+    // Variáveis de um arquivo foram alteradas (ex.: nome de um personagem)
+    domainBus.on("file:variables-changed", (payload) => {
+      // TODO: tratar a alteração de variáveis. Mudar uma variável como o nome de um personagem deve disparar
+      // os fluxos de correção (ex.: renomear referências em outros arquivos do livro, revisar consistência com
+      // a IA, atualizar índices). `payload.changes` traz `{ id, previous, value }` de cada variável alterada.
     });
 
     // Evento disparado quando um livro é selecionado
