@@ -15,13 +15,32 @@ export async function fetchBooks(state, bookService) {
     const booksArray = Array.isArray(books) ? books : books?.books || [];
 
     state.bookList = booksArray;
-    if (!state.currentBookPath) state.currentBookPath = booksArray[0].fullPath;
+    // Livro salvo que não existe mais: o app começa vazio, aguardando a seleção de um livro
+    if (
+      state.currentBookPath &&
+      !booksArray.some((b) => b.fullPath === state.currentBookPath)
+    ) {
+      state.currentBookPath = null;
+      localStorage.removeItem("last_selected_book");
+    }
 
     return booksArray;
   } catch (error) {
     console.error("[BookHandler] Erro ao buscar livros:", error);
     return false;
   }
+}
+
+/**
+ * Recarrega a lista de livros do disco e avisa a interface (`books:updated`).
+ * @param {Object} state - Instância do estado global.
+ * @param {Object} bookService - Instância do serviço de livros.
+ * @returns {Promise<Array<Object>>} Lista de livros atualizada.
+ */
+export async function refreshBookList(state, bookService) {
+  const books = await fetchBooks(state, bookService);
+  if (books) uiBus.emit("books:updated", books);
+  return books || [];
 }
 
 /**
@@ -107,6 +126,11 @@ export function onAdvancedModeToggle(state, bookService, payload) {
  * @param {string} bookPath - Caminho completo do livro selecionado.
  */
 export async function onBookSelect(state, bookPath, bookService) {
+  if (!bookPath) {
+    clearBook(state);
+    return;
+  }
+
   localStorage.setItem("last_selected_book", bookPath);
 
   // Limpa state do livro anterior para evitar problemas
@@ -186,4 +210,18 @@ export function onAiLock(locked) {
     uiBus.emit("editor-overlay:close", "ai-lock");
     uiBus.emit("editor:unlock");
   }
+}
+
+/**
+ * Deixa o app vazio, aguardando a seleção de um livro (explorer, editor e chat limpos).
+ * @param {State} state - Estado global da aplicação.
+ * @returns {void}
+ */
+export function clearBook(state) {
+  state.currentBookPath = null;
+  state.currentBookMetadata = {};
+  state.currentBookMap = {};
+  state.currentFilePath = null;
+  state.currentFileMetadata = {};
+  uiBus.emit("book:cleared");
 }

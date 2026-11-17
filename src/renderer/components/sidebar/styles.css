@@ -3,9 +3,24 @@
    ========================================================================== */
 
 #sidebar-container {
-  background-color: var(--bg-header);
+  background-color: var(--bg-sidebar);
   color: var(--text-sidebar);
-  border-right: 1px solid var(--border-app);
+  /* border-right: 1px solid var(--border-app); */
+}
+
+/* O corpo da sidebar ocupa a altura visível: o explorer rola por dentro (a árvore não passa por baixo do assistente) */
+#sidebar-container > .sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#explorer-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .sidebar-header {
@@ -15,56 +30,13 @@
   border-bottom: 1px solid var(--sidebar-separator);
 }
 
-#select-book {
-  height: 100%;
-  margin-bottom: 10px;
-  padding: 5px 10px;
-  font-size: 25px;
-  font-weight: bold;
-  background-color: transparent;
-  color: var(--text-sidebar);
-  border: none;
-  outline: none;
-  cursor: pointer;
-  text-align: left;
-  /* Mudado de center para left para dar espaço ao botão */
+/* Âncora do dropdown de livros (ocupa o espaço disponível ao lado do botão de menu) */
+.book-dropdown-container {
   flex-grow: 1;
-  /* Faz o select ocupar o espaço disponível sem empurrar o botão */
   min-width: 0;
-  /* Evita estouro de largura no flexbox */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  appearance: none;
-  -webkit-appearance: none;
-  /* Impede quebras de linha e ativa reticências com desvanecimento */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* Remove a seta padrão do sistema para visual mais limpo */
-  appearance: none;
-  -webkit-appearance: none;
 }
 
-select#select-book:hover {
-  background-color: #ffffff14;
-}
-
-/* Estilização da caixa de opções abertas (Dropdown) */
-#select-book option {
-  background-color: var(--bg-header);
-  /* Fundo escuro igual à sidebar */
-  color: var(--bg-editor) fff;
-  /* Texto branco visível */
-  padding: 10px;
-  font-size: 0.8rem;
-  outline: none;
-  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  text-align: left;
-}
-
-/* Container que coloca o Select e o Botão na mesma linha */
+/* Container que coloca o Dropdown e o Botão na mesma linha */
 .book-title-container {
   height: 50px;
   display: flex;
@@ -85,7 +57,7 @@ select#select-book:hover {
   align-items: center;
   justify-content: center;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   opacity: 0.7;
   transition:
     opacity 0.2s ease,

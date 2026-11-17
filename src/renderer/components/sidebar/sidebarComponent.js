@@ -5,6 +5,7 @@
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
+import { DropdownComponent } from "../Dropdown/DropdownComponent.js";
 
 /**
  * Representa o painel lateral esquerdo da aplicação.
@@ -20,6 +21,25 @@ export class SidebarComponent extends Component {
    */
   constructor(selector, context, params, parent = null) {
     super(selector, context, templateHtml, params, parent);
+
+    // Seletor de livros: dropdown personalizado com o botão "+ Criar novo livro"
+    this.bookDropdown = this.newChild(
+      DropdownComponent,
+      "#book-dropdown-container",
+      context,
+      {
+        placeholder: "Clique para selecionar um livro",
+        emptyLabel: "Nenhum livro encontrado",
+        selectEvent: "book:selected",
+        actions: [
+          {
+            label: "Criar novo livro",
+            icon: "fa-solid fa-plus",
+            event: "book:create",
+          },
+        ],
+      },
+    );
   }
 
   /**
@@ -28,16 +48,14 @@ export class SidebarComponent extends Component {
    * @returns {void}
    */
   setupListeners() {
-    // Sincroniza o <select> com o livro atualmente selecionado
+    // Sincroniza o dropdown com o livro atualmente selecionado
     this.uiBus.on("book:changed", (bookPath) => {
-      // 1. Encontra o elemento <select> dentro do DOM do componente
-      const selectEl = this.element.querySelector("#select-book");
-      if (!selectEl) return;
+      this.bookDropdown.setValue(bookPath);
+    });
 
-      // 2. Se o valor atual do select for diferente do bookPath recebido, atualiza
-      if (selectEl.value !== bookPath) {
-        selectEl.value = bookPath;
-      }
+    // Sem livro selecionado o dropdown volta ao texto padrão
+    this.uiBus.on("book:cleared", () => {
+      this.bookDropdown.setValue(null);
     });
 
     // Solicita atualização da lista de livros quando o backend notifica mudança
@@ -47,29 +65,19 @@ export class SidebarComponent extends Component {
   }
 
   /**
-   * Atualiza select de livros
-   * @param {Array[Object]} books
+   * Atualiza as opções do dropdown de livros.
+   * @param {Array[Object]} books - Livros disponíveis (`fullPath`, `book_title`, `folderName`).
    * @returns {void}
    * @private
    */
-  async updateBookList(books) {
-    const selectBookEl = this.element.querySelector("#select-book");
-    if (!selectBookEl) return;
-
-    selectBookEl.innerHTML = "";
-
-    if (books.length === 0) {
-      selectBookEl.innerHTML =
-        '<option value="">Nenhum livro encontrado</option>';
-      return;
-    }
-
-    books.forEach((book) => {
-      const option = document.createElement("option");
-      option.value = book.fullPath;
-      option.innerText = book.book_title;
-      selectBookEl.appendChild(option);
-    });
+  updateBookList(books) {
+    this.bookDropdown.setItems(
+      (books || []).map((book) => ({
+        value: book.fullPath,
+        label: book.book_title || book.folderName,
+      })),
+    );
+    this.bookDropdown.setValue(this.state.currentBookPath);
   }
 
   selectLastBook() {

@@ -1,0 +1,30 @@
+<div class="dropdown {{#if isOpen}}open{{/if}}">
+  <button type="button" class="dropdown-trigger" aria-haspopup="listbox" aria-expanded="{{#if isOpen}}true{{else}}false{{/if}}" title="{{label}}">
+    <span class="dropdown-label">{{label}}</span>
+    <i class="fa-solid fa-chevron-down dropdown-caret"></i>
+  </button>
+
+  <div class="dropdown-menu" role="listbox" {{#unless isOpen}}hidden{{/unless}}>
+    <ul class="dropdown-list">
+      {{#each items}}
+      <li class="dropdown-item {{#if selected}}selected{{/if}}" role="option" aria-selected="{{#if selected}}true{{else}}false{{/if}}" data-value="{{value}}" title="{{label}}" {{#unless selected}}event-click="{{../selectEvent}}"{{/unless}}>
+        <span class="dropdown-item-label">{{label}}</span>
+        {{#if selected}}<i class="fa-solid fa-check dropdown-item-check"></i>{{/if}}
+      </li>
+      {{else}}
+      <li class="dropdown-empty">{{emptyLabel}}</li>
+      {{/each}}
+    </ul>
+
+    {{#if actions.length}}
+    <ul class="dropdown-actions">
+      {{#each actions}}
+      <li class="dropdown-action" role="button" event-click="{{event}}"{{#each data}} data-{{@key}}="{{this}}"{{/each}}>
+        {{#if icon}}<i class="{{icon}}"></i>{{/if}}
+        <span>{{label}}</span>
+      </li>
+      {{/each}}
+    </ul>
+    {{/if}}
+  </div>
+</div>

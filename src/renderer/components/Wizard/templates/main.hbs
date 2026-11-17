@@ -1,0 +1,44 @@
+<div class="wizard">
+  {{#if isMulti}}
+  <ol class="wizard-progress">
+    {{#each progress}}
+    <li class="wizard-progress-item {{#if active}}active{{/if}} {{#if done}}done{{/if}}" title="{{title}}">
+      <span class="wizard-progress-dot">{{#if done}}<i class="fa-solid fa-check"></i>{{else}}{{number}}{{/if}}</span>
+    </li>
+    {{/each}}
+  </ol>
+  <p class="wizard-step-counter">Passo {{current}} de {{total}}</p>
+  {{/if}}
+
+  <h4 class="wizard-step-title">{{step.title}}</h4>
+  {{#if step.description}}<p class="wizard-step-description">{{step.description}}</p>{{/if}}
+
+  <div class="wizard-fields">
+    {{#each step.fields}}
+    <div class="wizard-field {{#if required}}required{{/if}}" data-field="{{id}}">
+      <label class="wizard-label" for="{{id}}">{{label}}{{#if required}}<span class="wizard-required">*</span>{{/if}}</label>
+      {{#if isTextarea}}
+      <textarea id="{{id}}" name="{{id}}" class="wizard-input wizard-textarea" data-field-id="{{id}}" rows="{{rows}}" placeholder="{{placeholder}}" {{#if ../readOnly}}disabled{{/if}}>{{value}}</textarea>
+      {{else}}
+      <input id="{{id}}" name="{{id}}" type="text" class="wizard-input" data-field-id="{{id}}" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" spellcheck="false" {{#if ../readOnly}}disabled{{/if}} />
+      {{/if}}
+      {{#if hint}}<small class="wizard-hint">{{hint}}</small>{{/if}}
+      <span class="wizard-field-error" hidden>Campo obrigatório</span>
+    </div>
+    {{/each}}
+  </div>
+
+  <p class="wizard-error" hidden></p>
+
+  <div class="wizard-footer">
+    <button type="button" class="btn-modal btn-secondary" data-action="cancel">Cancelar</button>
+    <span class="wizard-footer-spacer"></span>
+    {{#if canSkip}}<button type="button" class="btn-modal btn-secondary" data-action="skip">Pular e criar</button>{{/if}}
+    {{#unless isFirst}}<button type="button" class="btn-modal btn-secondary" data-action="back">Voltar</button>{{/unless}}
+    {{#if isLast}}
+    {{#unless readOnly}}<button type="button" class="btn-modal btn-primary" data-action="submit">{{submitLabel}}</button>{{/unless}}
+    {{else}}
+    <button type="button" class="btn-modal btn-primary" data-action="next">Próximo</button>
+    {{/if}}
+  </div>
+</div>
