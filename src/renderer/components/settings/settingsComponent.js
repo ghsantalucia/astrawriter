@@ -6,6 +6,12 @@ import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
 import { AI_PROVIDERS, getProviderInfo } from "../../ai/providers/index.js";
+import {
+  getChatBackground,
+  modeUsesColor,
+  setChatBackgroundColor,
+  setChatBackgroundMode,
+} from "../../utils/chatBackground.js";
 
 /**
  * Representa a drawer de configurações.
@@ -44,6 +50,23 @@ export class SettingsComponent extends Component {
    */
   onInit() {
     this.syncAiForm(this.state.aiProvider);
+    this.syncChatBackgroundForm();
+  }
+
+  /**
+   * Preenche os seletores de plano de fundo do chat com a preferência salva (e mostra a cor quando o tipo usa cor).
+   * @returns {void}
+   */
+  syncChatBackgroundForm() {
+    ["dark", "light"].forEach((theme) => {
+      const select = this.element?.querySelector(`#chat-bg-mode-${theme}`);
+      const color = this.element?.querySelector(`#chat-bg-color-${theme}`);
+      if (!select || !color) return;
+      const { mode, color: saved } = getChatBackground(theme);
+      select.value = mode;
+      color.hidden = !modeUsesColor(mode);
+      if (saved) color.value = saved;
+    });
   }
 
   /**
@@ -53,6 +76,7 @@ export class SettingsComponent extends Component {
     // Abre a drawer
     this.uiBus.on("settings:open", () => {
       this.syncAiForm(this.state.aiProvider);
+      this.syncChatBackgroundForm();
       this.open();
       this.uiBus.emit("ai-settings:models-requested", {
         provider: this.state.aiProvider,
@@ -89,6 +113,18 @@ export class SettingsComponent extends Component {
       ) {
         this.syncAiForm(provider);
       }
+    });
+
+    // Plano de fundo do chat (tipo e cor, um para cada tema): salva e pede ao chat para aplicar
+    this.uiBus.on("chat-bg:changed", ({ data, value }) => {
+      const { theme, field } = data;
+      if (field === "mode") {
+        setChatBackgroundMode(theme, value);
+      } else {
+        setChatBackgroundColor(theme, getChatBackground(theme).mode, value);
+      }
+      this.syncChatBackgroundForm();
+      this.uiBus.emit("chat-bg:apply");
     });
 
     // Fecha a drawer
@@ -143,6 +179,9 @@ export class SettingsComponent extends Component {
    * @param {string} providerId
    */
   syncAiForm(providerId) {
+    this.element
+      .querySelector("#spell-language-select")
+      ?.setAttribute("data-ready", "1");
     if (!this.element) return;
 
     const info = getProviderInfo(providerId);
@@ -161,6 +200,8 @@ export class SettingsComponent extends Component {
     }
 
     providerSelect.value = providerId;
+    // Resumo do bloco recolhido: provedor · modelo
+    setTimeout(() => this.updateAiSummary(), 0);
     modelSelect.replaceChildren(
       ...models.map((m) => {
         const option = document.createElement("option");
@@ -185,5 +226,17 @@ export class SettingsComponent extends Component {
     if (themeToggle) {
       themeToggle.checked = theme === "dark";
     }
+  }
+
+  /**
+   * Atualiza o resumo (provedor · modelo) mostrado quando o formulário de IA está recolhido.
+   * @returns {void}
+   */
+  updateAiSummary() {
+    const provider = this.element.querySelector("#ai-provider-select");
+    const model = this.element.querySelector("#ai-model-select");
+    const summary = this.element.querySelector("#ai-summary-value");
+    if (!provider || !model || !summary) return;
+    summary.textContent = `${provider.selectedOptions[0]?.textContent || "—"} · ${model.value || "—"}`;
   }
 }

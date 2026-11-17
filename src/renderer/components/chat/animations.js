@@ -5,7 +5,7 @@
 import { gsap } from "gsap";
 
 /**
- * Inicializa o canvas e o loop de renderização do fundo estrelado interativo.
+ * Inicializa o canvas e o loop de renderização do fundo estrelado (estrelas em viagem diagonal contínua).
  */
 export function initStarryBackground() {
   const canvas = document.getElementById("ai-bg-canvas");
@@ -16,10 +16,6 @@ export function initStarryBackground() {
   let width = 0;
   let height = 0;
 
-  let mouseX = 0;
-  let mouseY = 0;
-  let targetX = 0;
-  let targetY = 0;
   let shootingStar = null;
 
   // 1. Inicia o array de estrelas vazio
@@ -53,12 +49,6 @@ export function initStarryBackground() {
   // O ResizeObserver agora vai recalcular as posições assim que a drawer abrir!
   new ResizeObserver(updateDimensions).observe(bodyContainer);
 
-  bodyContainer.addEventListener("mousemove", (e) => {
-    const rect = bodyContainer.getBoundingClientRect();
-    targetX = (e.clientX - rect.left) / (width || 1) - 0.5;
-    targetY = (e.clientY - rect.top) / (height || 1) - 0.5;
-  });
-
   window.resetStarsPosition = function () {
     updateDimensions();
     if (height <= 0) return;
@@ -68,13 +58,14 @@ export function initStarryBackground() {
   function spawnShootingStar() {
     if (height <= 0) return;
 
+    // Cai para baixo, no mesmo sentido horizontal da viagem das estrelas (da direita para a esquerda)
     shootingStar = {
-      x: Math.random() * (width * 0.8),
+      x: width * (0.4 + Math.random() * 0.6),
       y: Math.random() * (height * 0.4),
       length: Math.random() * 40 + 20,
       speed: Math.random() * 8 + 6,
       alpha: 1,
-      dx: Math.cos(Math.PI / 4),
+      dx: -Math.cos(Math.PI / 4),
       dy: Math.sin(Math.PI / 4),
     };
 
@@ -91,13 +82,17 @@ export function initStarryBackground() {
 
   gsap.delayedCall(3, spawnShootingStar);
 
-  function render() {
+  function render(_time, deltaMs) {
+    // Gaveta recolhida ou tema claro (canvas oculto): nada a desenhar
+    if (height <= 0 || canvas.style.display === "none") return;
+    const dt = Math.min(deltaMs, 100) / 1000;
+
     ctx.clearRect(0, 0, width, height);
 
-    mouseX += (targetX - mouseX) * 0.05;
-    mouseY += (targetY - mouseY) * 0.05;
-
-    stars.forEach((star) => drawStar(ctx, star, mouseX, mouseY));
+    stars.forEach((star) => {
+      advanceStar(star, dt, width, height);
+      drawStar(ctx, star);
+    });
 
     if (shootingStar) {
       drawShootingStar(ctx, shootingStar);
@@ -150,17 +145,36 @@ function createStars(count, width, height) {
   return stars;
 }
 
+/** Velocidade da "viagem espacial" (px/s para uma estrela de profundidade 1), rumo à esquerda (baixa gravidade). */
+const TRAVEL_SPEED = 3.5;
+/** Inclinação do deslocamento: quase horizontal, subindo levemente (fração da velocidade horizontal). */
+const TRAVEL_RISE = 0.16;
+
 /**
- * Desenha uma estrela individual no canvas considerando o efeito de paralaxe do mouse.
+ * Desloca a estrela devagar, da direita para a esquerda e levemente para cima; estrelas mais "próximas" (zFactor maior)
+ * andam mais rápido, dando profundidade. Ao sair por uma borda, reaparece na oposta.
+ * @param {Object} star - Estrela.
+ * @param {number} dt - Segundos desde o último quadro.
+ * @param {number} width - Largura da área.
+ * @param {number} height - Altura da área.
+ * @returns {void}
+ */
+function advanceStar(star, dt, width, height) {
+  const step = TRAVEL_SPEED * star.zFactor * dt;
+  star.baseX -= step;
+  star.baseY -= step * TRAVEL_RISE;
+  if (star.baseX < -2) star.baseX += width + 4;
+  if (star.baseY < -2) star.baseY += height + 4;
+  star.x = star.baseX;
+  star.y = star.baseY;
+}
+
+/**
+ * Desenha uma estrela individual no canvas.
  * @param {CanvasRenderingContext2D} ctx - Contexto de renderização 2D do canvas.
  * @param {Object} star - Objeto contendo as propriedades da estrela.
- * @param {number} mouseX - Posição horizontal suavizada do mouse.
- * @param {number} mouseY - Posição vertical suavizada do mouse.
  */
-function drawStar(ctx, star, mouseX, mouseY) {
-  star.x = star.baseX + mouseX * 35 * star.zFactor;
-  star.y = star.baseY + mouseY * 35 * star.zFactor;
-
+function drawStar(ctx, star) {
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
   ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;

@@ -47,6 +47,8 @@ export function normalizeHistory(prompt, history) {
  * @property {number} inputTokens - Total de tokens de entrada consumidos (soma de todas as rodadas).
  * @property {number} outputTokens - Total de tokens de saída gerados.
  * @property {number} contextTokens - Tamanho do contexto na última chamada (ocupação da janela).
+ * @property {number} requests - Quantidade de chamadas feitas ao modelo.
+ * @property {Object|null} [rateLimits] - Limites de uso informados pela API (quando ela informa).
  */
 
 /**
@@ -65,11 +67,19 @@ export async function runToolLoop({
   appendToolResults,
   toolContext,
 }) {
-  const usage = { inputTokens: 0, outputTokens: 0, contextTokens: 0 };
+  const usage = {
+    inputTokens: 0,
+    outputTokens: 0,
+    contextTokens: 0,
+    requests: 0,
+    rateLimits: null,
+  };
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const turn = await callModel(conversation);
 
+    usage.requests += 1;
+    usage.rateLimits = turn.rateLimits || usage.rateLimits;
     usage.inputTokens += turn.usage?.input || 0;
     usage.outputTokens += turn.usage?.output || 0;
     usage.contextTokens = turn.usage?.input || usage.contextTokens;

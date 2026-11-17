@@ -4,7 +4,7 @@
  */
 
 import { uiBus } from "../../events/uiBus.js";
-import { normalizePath } from "../../utils/helpers.js";
+import { normalizePath, TEMPLATE_FILE_KEY } from "../../utils/helpers.js";
 import { splitFrontmatter } from "../../utils/markdown.js";
 import { assertPermission, hasPermission, locateFile } from "./permissions.js";
 
@@ -13,7 +13,7 @@ const MAX_READ_CHARS = 60000;
 const PATH_PARAM = {
   type: "string",
   description:
-    "Caminho do arquivo relativo à raiz do livro, ex: content/cap_001/1_script.md",
+    "Caminho do arquivo relativo à raiz do livro, ex: content/chapter_001/1_script.md",
 };
 
 /**
@@ -21,7 +21,7 @@ const PATH_PARAM = {
  * @param {Object} located
  * @param {Object} ctx
  */
-async function readCurrent(located, ctx) {
+export async function readCurrent(located, ctx) {
   const { content } = await ctx.fileService.readFile(located.originalPath);
   if (content === null) throw new Error("Não foi possível ler o arquivo.");
   return splitFrontmatter(content);
@@ -30,10 +30,11 @@ async function readCurrent(located, ctx) {
 /**
  * Grava o corpo como rascunho preservando o frontmatter e avisa a interface.
  */
-async function saveDraft(located, frontmatter, body, ctx) {
+export async function saveDraft(located, frontmatter, body, ctx) {
   const result = await ctx.fileService.saveTempFile(
     located.originalPath,
     frontmatter + body,
+    { actor: ctx.changelog?.aiActor() },
   );
   if (!result?.success) {
     throw new Error(`Falha ao salvar o rascunho: ${result?.error}`);
@@ -42,6 +43,13 @@ async function saveDraft(located, frontmatter, body, ctx) {
   const original = normalizePath(located.originalPath);
   ctx.recordEdit?.(original);
   uiBus.emit("temp-file:saved", original);
+
+  // Aviso "system" no chat (uma vez por arquivo em cada resposta da IA)
+  ctx.noticed ??= new Set();
+  if (!ctx.noticed.has(original)) {
+    ctx.noticed.add(original);
+    ctx.notice?.(`"${located.title}" - Alterado pela IA (aguardando revisão)`);
+  }
 
   // Se o arquivo está aberto no editor, recarrega para mostrar o rascunho da IA.
   const open = normalizePath(ctx.state.currentFilePath).replace(/\.temp$/, "");
@@ -57,6 +65,7 @@ async function saveDraft(located, frontmatter, body, ctx) {
 function collectFiles(node, prefix, out) {
   for (const [key, file] of Object.entries(node.files || {})) {
     if (!/\.md(\.temp)?$/i.test(file.originalPath || "")) continue;
+    if (key === TEMPLATE_FILE_KEY) continue; // modelos de criação não são conteúdo do livro
     const located = { metadata: file.metadata || {} };
     if (!hasPermission(located, "aiRead")) continue;
     out.push({
@@ -76,7 +85,7 @@ function collectFiles(node, prefix, out) {
  * Prepara uma edição: exige que não haja rascunhos pendentes no projeto e trava a tela.
  * Deve ser chamada antes de qualquer leitura-para-escrita, já com a permissão validada.
  */
-async function beginEdit(ctx) {
+export async function beginEdit(ctx) {
   if (typeof ctx.beginEdit === "function") await ctx.beginEdit();
 }
 
@@ -93,12 +102,15 @@ export function registerBookTools(registry) {
     async execute(_args, ctx) {
       if (!ctx.state.currentBookPath)
         throw new Error("Nenhum livro selecionado.");
-      const tree = await window.electronAPI.getTree(
-        normalizePath(ctx.state.currentBookPath),
-      );
+      const bookPath = normalizePath(ctx.state.currentBookPath);
+      const tree = await window.electronAPI.getTree(bookPath);
       if (!tree) throw new Error("Não foi possível ler a estrutura do livro.");
       const files = [];
       collectFiles(tree, "", files);
+      // Changelog: a listagem é uma leitura da IA sobre o livro inteiro
+      await ctx.changelog?.recordBookRead("list_files", {
+        count: files.length,
+      });
       return files;
     },
   });
@@ -116,6 +128,7 @@ export function registerBookTools(registry) {
       const located = await locateFile(ctx.state, path);
       assertPermission(located, "aiRead");
       const { body } = await readCurrent(located, ctx);
+      await ctx.changelog?.recordAiRead(located.originalPath, "read_file");
       if (body.length <= MAX_READ_CHARS) return body;
       return `${body.slice(0, MAX_READ_CHARS)}\n\n[... arquivo truncado em ${MAX_READ_CHARS} caracteres]`;
     },

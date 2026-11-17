@@ -8,6 +8,17 @@ import { initStarryBackground } from "./animations.js";
 import { Component } from "../Component.js";
 import { gsap } from "gsap";
 import { renderChatMarkdown } from "../../utils/chatMarkdown.js";
+import { formatDuration } from "../../ai/apiError.js";
+import { mountNebula } from "./nebula.js";
+import { mountOrbits, ORBIT_PRESETS } from "./orbits.js";
+import {
+  getChatBackground,
+  hasSavedColor,
+} from "../../utils/chatBackground.js";
+import {
+  QUICK_REPLY_EVENT,
+  isAllowedChatEvent,
+} from "../../utils/chatActions.js";
 
 import messageTpl from "./templates/message.hbs?raw";
 import dateDividerTpl from "./templates/dateDivider.hbs?raw";
@@ -36,6 +47,7 @@ export class ChatComponent extends Component {
 
   onInit() {
     initStarryBackground();
+    this.applyChatBackground(document.body.classList.contains("dark-theme"));
     this.setupAutoResizeAndInputListeners();
     this.setupScrollListener();
   }
@@ -45,6 +57,15 @@ export class ChatComponent extends Component {
    * @returns {void}
    */
   setupListeners() {
+    // Fundo do chat: estrelas no tema escuro, nebulosa animada no claro
+    this.uiBus.on("theme:changed", ({ theme }) => {
+      this.applyChatBackground(theme === "dark");
+    });
+    // Preferência de fundo alterada nas configurações
+    this.uiBus.on("chat-bg:apply", () => {
+      this.applyChatBackground(document.body.classList.contains("dark-theme"));
+    });
+
     // Alterna visibilidade da gaveta
     this.uiBus.on("ai-chat:toggle", () => {
       this.toggleAiDrawer();
@@ -84,19 +105,33 @@ export class ChatComponent extends Component {
 
     // Atualiza a faixa de consumo de tokens
     this.domainBus.on("ai:usage-updated", (usage) => {
+      this.lastUsage = usage;
       this.updateUsageBar(usage);
     });
+
+    // A contagem regressiva de um limite atingido é atualizada a cada 30 s
+    setInterval(() => {
+      if (this.lastUsage?.limit?.kind === "blocked") {
+        this.updateUsageBar(this.lastUsage);
+      }
+    }, 30_000);
 
     // A IA começou a editar arquivos: ajusta o texto do indicador
     this.domainBus.on("ai:edit-started", () => {
       this.setWorkingLabel("A IA está editando arquivos…");
     });
 
-    // Links no chat nunca navegam a janela do app
+    // Links no chat nunca navegam a janela do app; respostas prontas só podem ser usadas uma vez
     document
       .getElementById("ai-chat-messages")
       ?.addEventListener("click", (e) => {
         if (e.target.closest("a")) e.preventDefault();
+
+        const replyBtn = e.target.closest(".chat-button.reply");
+        if (replyBtn) {
+          replyBtn.closest(".chat-buttons")?.classList.add("answered");
+          replyBtn.classList.add("chosen");
+        }
       });
 
     // Limpa a caixa de mensagens
@@ -106,6 +141,64 @@ export class ChatComponent extends Component {
       this.isLoadingHistory = false;
       this.hasMoreHistory = true;
     });
+  }
+
+  /**
+   * Define o fundo do chat conforme o tema e a preferência do usuário (estrelas, nebulosa, órbitas ou cor sólida).
+   * @param {boolean} isDark - Se o tema atual é o escuro.
+   * @returns {void}
+   */
+  applyChatBackground(isDark) {
+    const body = document.getElementById("ai-body-container");
+    const stars = document.getElementById("ai-bg-canvas");
+    if (!body || !stars) return;
+
+    const theme = isDark ? "dark" : "light";
+    const { mode, color } = getChatBackground(theme);
+
+    // Mesmo tipo e tema: só a cor mudou (não reconstrói a animação)
+    if (this.bgKey === `${theme}:${mode}` && this.bg) {
+      this.bg.setColor?.(color);
+      return;
+    }
+    this.bg?.destroy();
+    this.bg = null;
+    this.bgKey = `${theme}:${mode}`;
+
+    stars.style.display = mode === "stars" ? "" : "none";
+    // Estrelas sem cor escolhida: vale o degradê padrão do tema
+    if (mode === "stars" && !hasSavedColor(theme, "stars")) return;
+
+    const expanded = document
+      .getElementById("chat-container")
+      ?.classList.contains("expanded");
+    try {
+      if (mode === "solid" || mode === "stars") {
+        body.style.backgroundImage = "none";
+        body.style.backgroundColor = color;
+        this.bg = {
+          setColor: (c) => (body.style.backgroundColor = c),
+          pause() {},
+          resume() {},
+          destroy() {
+            body.style.backgroundColor = "";
+            body.style.backgroundImage = "";
+          },
+        };
+      } else if (mode === "orbits") {
+        const orbits = mountOrbits(body, {
+          ...ORBIT_PRESETS[theme],
+          background: color,
+        });
+        this.bg = { ...orbits, setColor: (c) => orbits.setBackground(c) };
+      } else {
+        this.bg = mountNebula(body);
+      }
+      // Gaveta recolhida: a animação fica pausada
+      if (!expanded) this.bg.pause();
+    } catch (error) {
+      console.error("[ChatComponent] Fundo indisponível:", error);
+    }
   }
 
   /**
@@ -119,6 +212,8 @@ export class ChatComponent extends Component {
 
     const isOpening = !aiDrawer.classList.contains("expanded");
     aiDrawer.classList.toggle("expanded");
+    if (isOpening) this.bg?.resume();
+    else this.bg?.pause();
 
     if (isOpening) {
       if (canvas) gsap.set(canvas, { opacity: 0 });
@@ -305,6 +400,16 @@ export class ChatComponent extends Component {
       btnSend.style.pointerEvents = isLoading ? "none" : "auto";
     }
 
+    // Gaveta recolhida + IA trabalhando: a estrela do cabeçalho vira os três pontinhos animados
+    document
+      .getElementById("chat-container")
+      ?.classList.toggle("ai-busy", Boolean(isLoading));
+
+    // Brilho animado na borda do campo de entrada enquanto a IA trabalha
+    document
+      .querySelector(".ai-input-wrapper")
+      ?.classList.toggle("working", Boolean(isLoading));
+
     this.toggleWorkingIndicator(isLoading);
   }
 
@@ -343,11 +448,20 @@ export class ChatComponent extends Component {
   }
 
   /**
-   * Atualiza a faixa de consumo de tokens da sessão.
-   * @param {{inputTokens: number, outputTokens: number, contextTokens: number, contextWindow: number|null}} usage
+   * Atualiza a faixa de consumo de tokens da sessão, o uso de contexto e o limite de uso da IA.
+   * @param {Object} usage - Dados publicados por `AiService#publishUsage`.
+   * @param {number} usage.inputTokens - Tokens de entrada da sessão.
+   * @param {number} usage.outputTokens - Tokens de saída da sessão.
+   * @param {number} usage.contextTokens - Tokens do contexto na última chamada.
+   * @param {number|null} usage.contextWindow - Janela de contexto do modelo.
+   * @param {string} [usage.provider] - Provedor ativo.
+   * @param {string} [usage.model] - Modelo ativo.
+   * @param {Object|null} [usage.limit] - Limite conhecido (restante informado pela API ou bloqueio por cota).
+   * @param {{requests: number, input: number, output: number}} [usage.daily] - Uso local de hoje no modelo.
    * @returns {void}
    */
-  updateUsageBar({ inputTokens, outputTokens, contextTokens, contextWindow }) {
+  updateUsageBar(usage) {
+    const { inputTokens, outputTokens, contextTokens, contextWindow } = usage;
     const text = document.getElementById("ai-usage-text");
     const meter = document.getElementById("ai-usage-meter");
     const fill = document.getElementById("ai-usage-meter-fill");
@@ -362,6 +476,7 @@ export class ChatComponent extends Component {
           : String(n);
 
     text.textContent = `Sessão: ${fmt(inputTokens + outputTokens)} tokens (↑${fmt(inputTokens)} ↓${fmt(outputTokens)})`;
+    this.updateLimitLine(usage, fmt);
 
     if (!contextWindow) {
       meter.hidden = true;
@@ -378,6 +493,70 @@ export class ChatComponent extends Component {
   }
 
   /**
+   * Preenche a linha de limite de uso abaixo da faixa de tokens:
+   *  - limite atingido (cota estourada, com contagem regressiva);
+   *  - restante informado pela API (ex.: Claude);
+   *  - uso de hoje contado pelo app (a API do Gemini não informa a cota restante).
+   * @param {Object} usage - Dados de uso publicados.
+   * @param {(n: number) => string} fmt - Formatador de números.
+   * @returns {void}
+   * @private
+   */
+  updateLimitLine(usage, fmt) {
+    const line = document.getElementById("ai-usage-limit");
+    const bar = document.getElementById("ai-usage-bar");
+    if (!line || !bar) return;
+
+    const { limit, daily, dailyQuota, model, provider } = usage;
+    const active = limit && !(limit.until && limit.until < Date.now());
+    let message = "";
+    let level = "";
+    let tooltip =
+      "A barra mostra a ocupação da janela de contexto do modelo. A cota restante da conta só é informada por algumas APIs.";
+
+    if (active && limit.kind === "blocked") {
+      message = `⛔ Limite atingido${limit.period === "day" ? " (diário)" : limit.period === "minute" ? " (por minuto)" : ""} — volta em ~${formatDuration(limit.until - Date.now())}`;
+      level = "blocked";
+      tooltip = limit.message || tooltip;
+    } else if (active && limit.kind === "remaining") {
+      const parts = [];
+      if (limit.tokensRemaining !== undefined) {
+        parts.push(
+          `${fmt(limit.tokensRemaining)}${limit.tokensLimit ? ` de ${fmt(limit.tokensLimit)}` : ""} tokens restantes`,
+        );
+      }
+      if (limit.requestsRemaining !== undefined) {
+        parts.push(
+          `${limit.requestsRemaining}${limit.requestsLimit ? `/${limit.requestsLimit}` : ""} requisições`,
+        );
+      }
+      message = `Limite da API: ${parts.join(" · ")}`;
+      const ratio = limit.tokensLimit
+        ? limit.tokensRemaining / limit.tokensLimit
+        : 1;
+      if (ratio < 0.2) level = "low";
+      tooltip = `Valores informados pela API do ${provider} na última resposta${limit.resetAt ? ` (renovam em ${formatDuration(limit.resetAt - Date.now())})` : ""}.`;
+    } else if (dailyQuota) {
+      const used = daily?.requests || 0;
+      const left = Math.max(0, dailyQuota - used);
+      message = `Hoje (${model}): ${used} de ${dailyQuota} requisições · restam ~${left}`;
+      if (left / dailyQuota <= 0.2) level = "low";
+      tooltip =
+        "O limite diário de requisições foi informado pela API na última vez que a cota estourou. O uso é contado pelo app neste computador; outros programas que usam a mesma chave também consomem a cota.";
+    } else if (daily?.requests > 0) {
+      message = `Hoje (${model}): ${daily.requests} requisições · ${fmt(daily.input + daily.output)} tokens · limite ainda desconhecido`;
+      tooltip =
+        "A API do Gemini não informa a cota restante. O app conta o que enviou hoje e passa a mostrar quanto falta assim que descobrir o limite real (a API o informa quando a cota estoura).";
+    }
+
+    line.hidden = !message;
+    line.textContent = message;
+    line.classList.toggle("blocked", level === "blocked");
+    line.classList.toggle("low", level === "low");
+    bar.title = tooltip;
+  }
+
+  /**
    * Captura o texto do input e dispara o evento de envio de mensagem via uiBus.
    * @returns {void}
    */
@@ -388,12 +567,76 @@ export class ChatComponent extends Component {
     const promptText = textarea.value.trim();
     if (!promptText) return;
 
+    // Enviou: o rascunho guardado pela navegação do histórico (setas) deixa de valer
+    this.inputNav = null;
+
     // Reseta o valor e a altura dinâmica do textarea
     textarea.value = "";
     textarea.style.height = "auto";
 
     // Emite o evento para a camada de controle tratar
     this.uiBus.emit("chat:send-message", { promptText });
+  }
+
+  /**
+   * Navega pelas mensagens já enviadas com as setas do teclado (como o histórico de um terminal).
+   * Seta para cima na primeira linha do campo traz a última mensagem do usuário (guardando o que estava escrito);
+   * seta para baixo na última linha avança e, ao passar da mais recente, devolve o rascunho guardado.
+   * @param {KeyboardEvent} e - Evento de teclado.
+   * @param {HTMLTextAreaElement} textarea - Campo de texto do chat.
+   * @returns {void}
+   * @private
+   */
+  navigateInputHistory(e, textarea) {
+    if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    const { selectionStart, selectionEnd, value } = textarea;
+    if (selectionStart !== selectionEnd) return;
+
+    const sent = [
+      ...document.querySelectorAll("#ai-chat-messages .ai-message.user"),
+    ]
+      .map((el) => el.textContent.trim())
+      .filter(Boolean);
+
+    if (e.key === "ArrowUp") {
+      const onFirstLine = !value.slice(0, selectionStart).includes("\n");
+      if (!onFirstLine || sent.length === 0) return;
+      const index = this.inputNav ? this.inputNav.index - 1 : sent.length - 1;
+      if (index < 0) return;
+      e.preventDefault();
+      this.inputNav ??= { draft: value, index };
+      this.inputNav.index = index;
+      this.fillInput(textarea, sent[index]);
+    } else if (this.inputNav) {
+      const onLastLine = !value.slice(selectionEnd).includes("\n");
+      if (!onLastLine) return;
+      e.preventDefault();
+      const index = this.inputNav.index + 1;
+      if (index >= sent.length) {
+        const { draft } = this.inputNav;
+        this.inputNav = null;
+        this.fillInput(textarea, draft);
+      } else {
+        this.inputNav.index = index;
+        this.fillInput(textarea, sent[index]);
+      }
+    }
+  }
+
+  /**
+   * Preenche o campo de texto do chat, ajusta a altura e posiciona o cursor (no início enquanto navega pelo
+   * histórico, para que a seta continue navegando).
+   * @param {HTMLTextAreaElement} textarea - Campo de texto do chat.
+   * @param {string} text - Texto a exibir.
+   * @returns {void}
+   * @private
+   */
+  fillInput(textarea, text) {
+    textarea.value = text;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+    const pos = this.inputNav ? 0 : text.length;
+    textarea.setSelectionRange(pos, pos);
   }
 
   /**
@@ -414,6 +657,10 @@ export class ChatComponent extends Component {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           this.triggerSendMessage();
+          return;
+        }
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          this.navigateInputHistory(e, textarea);
         }
       });
     }
@@ -490,16 +737,38 @@ export class ChatComponent extends Component {
    * @param {Object} msgData - Objeto contendo os dados da mensagem.
    * @param {string} msgData.role - Papel do emissor da mensagem ('user' | 'assistant' | 'system').
    * @param {string} msgData.content - Conteúdo em texto da mensagem.
+   * @param {Array<{label: string, event: string, data?: Object}>} [msgData.buttons] - Botões exibidos abaixo da mensagem.
    * @returns {HTMLElement} Elemento DOM do nó da mensagem pronto para injeção.
    */
-  createMessageElement({ role, content }) {
+  createMessageElement({ role, content, buttons }) {
     // Respostas da IA vêm em Markdown; mensagens do usuário continuam texto puro
     const html = this.compile(messageTpl, {
       role,
       content,
       html: role === "assistant" ? renderChatMarkdown(content) : null,
+      buttons: this.prepareButtons(buttons),
     });
     return this.createDOMElement(html);
+  }
+
+  /**
+   * Prepara os botões de uma mensagem para o template, descartando qualquer evento fora da lista permitida
+   * (as mensagens vêm de um log em disco e de uma IA, então nunca emitimos eventos arbitrários).
+   * @param {Array<{label: string, event: string, data?: Object}>} [buttons] - Botões da mensagem.
+   * @returns {Array<{label: string, event: string, data: Object, isReply: boolean}>}
+   * @private
+   */
+  prepareButtons(buttons) {
+    if (!Array.isArray(buttons)) return [];
+
+    return buttons
+      .filter((btn) => btn?.label && isAllowedChatEvent(btn.event))
+      .map((btn) => ({
+        label: btn.label,
+        event: btn.event,
+        data: btn.data || {},
+        isReply: btn.event === QUICK_REPLY_EVENT,
+      }));
   }
 
   /**

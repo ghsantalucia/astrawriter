@@ -5,6 +5,7 @@
 import { uiBus } from "../../events/uiBus.js";
 import { domainBus } from "../../events/domainBus.js";
 import { normalizePath } from "../../utils/helpers.js";
+import { spellService } from "../../services/spellService.js";
 import * as bookHandler from "./bookHandler.js";
 
 export async function onConfigChanged(payload, state, bookService) {
@@ -101,4 +102,57 @@ export async function onCurrentConfigChanged(state, config) {
       err,
     );
   }
+}
+
+/** Chave do idioma da correção ortográfica no armazenamento local. */
+const SPELL_LANGUAGE_KEY = "app_spell_language";
+
+/**
+ * Aplica o idioma de correção ortográfica salvo (usado ao iniciar o app) e sincroniza o seletor.
+ * @returns {Promise<void>}
+ */
+export async function applySavedSpellLanguage() {
+  const language = localStorage.getItem(SPELL_LANGUAGE_KEY) || "pt-BR";
+  const select = document.getElementById("spell-language-select");
+  if (select) select.value = language;
+
+  const enabled = isSpellcheckEnabled();
+  const toggle = document.getElementById("spellcheck-toggle");
+  if (toggle) toggle.checked = enabled;
+}
+
+/** Chave (armazenamento local) que liga/desliga a correção ortográfica e gramatical. */
+const SPELL_ENABLED_KEY = "app_spellcheck_enabled";
+
+/**
+ * Se a correção ortográfica e gramatical está ligada (padrão: ligada).
+ * @returns {boolean}
+ */
+export function isSpellcheckEnabled() {
+  return localStorage.getItem(SPELL_ENABLED_KEY) !== "false";
+}
+
+/**
+ * Liga/desliga a correção ortográfica e gramatical e avisa o editor para atualizar o rodapé.
+ * @param {{value: boolean}} payload - Evento do switch.
+ * @returns {Promise<void>}
+ */
+export async function onSpellcheckToggled({ value }) {
+  localStorage.setItem(SPELL_ENABLED_KEY, String(Boolean(value)));
+  uiBus.emit("spellcheck:changed", { enabled: Boolean(value) });
+}
+
+/**
+ * Troca o idioma da correção ortográfica e o persiste.
+ * @param {{value: string}} payload - Evento do seletor (idioma escolhido).
+ * @returns {Promise<void>}
+ */
+export async function onSpellLanguageChanged({ value }) {
+  localStorage.setItem(SPELL_LANGUAGE_KEY, value);
+  spellService.reset();
+  uiBus.emit("spellcheck:changed", { enabled: isSpellcheckEnabled() });
+  uiBus.emit("toast:show", {
+    message: "Idioma da correção ortográfica alterado.",
+    type: "success",
+  });
 }

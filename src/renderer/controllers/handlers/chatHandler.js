@@ -5,6 +5,62 @@
 import { uiBus } from "../../events/uiBus.js";
 import { domainBus } from "../../events/domainBus.js";
 
+/** Indica se uma mensagem está sendo processada (evita respostas prontas simultâneas). */
+let isBusy = false;
+
+/** Rótulo de cada tipo de item criado, usado nos avisos do sistema no chat. */
+const CREATION_LABELS = {
+  book: "Livro",
+  chapter: "Capítulo",
+  entity: "Ficha",
+  note: "Anotação",
+};
+
+/**
+ * Mostra (e grava no histórico) uma mensagem "system" no chat, usada para eventos importantes realizados pela IA.
+ * @param {{text: string}} payload - Texto do aviso.
+ * @param {Object} aiService - Instância do AiService.
+ * @returns {Promise<void>}
+ */
+export async function onSystemNotice({ text }, aiService) {
+  if (!text) return;
+
+  const message = {
+    role: "system",
+    content: text,
+    timestamp: new Date().toISOString(),
+  };
+  uiBus.emit("chat:render-message", message);
+  await aiService?.saveMessage(message);
+}
+
+/**
+ * Avisa no chat quando um item (livro, capítulo, ficha ou anotação) foi criado pela IA. Criações feitas pelo
+ * usuário não geram aviso.
+ * @param {{kind: string, title: string, source: "ui"|"ai"}} payload - Dados do item criado.
+ * @param {Object} aiService - Instância do AiService.
+ * @returns {Promise<void>}
+ */
+export async function onCreationNotice(payload, aiService) {
+  if (payload?.source !== "ai") return;
+  const label = CREATION_LABELS[payload.kind] || "Item";
+  await onSystemNotice(
+    { text: `${label} "${payload.title}" - Criado` },
+    aiService,
+  );
+}
+
+/**
+ * Trata o clique em um botão de resposta pronta: envia o texto do botão como se o usuário o tivesse digitado.
+ * @param {{data: {message: string}}} payload - Contexto do evento declarativo (`data-message` do botão).
+ * @param {Object} aiService - Instância do AiService.
+ * @returns {Promise<void>}
+ */
+export async function onQuickReply({ data }, aiService) {
+  if (isBusy || !data?.message) return;
+  await onSendMessage({ promptText: data.message }, aiService);
+}
+
 /**
  * Trata o envio de uma mensagem digitada pelo usuário no chat.
  * @param {Object} data
@@ -14,6 +70,7 @@ import { domainBus } from "../../events/domainBus.js";
 export async function onSendMessage({ promptText }, aiService) {
   if (!promptText || !promptText.trim()) return;
 
+  isBusy = true;
   try {
     // 1. Cria a estrutura da mensagem do usuário
     const userMessage = {
@@ -43,17 +100,18 @@ export async function onSendMessage({ promptText }, aiService) {
     }
 
     // 6. Envia o texto limpo para o AiService e aguarda a resposta da IA
-    const responseText = await aiService.sendMessage({
+    const { text: responseText, buttons } = await aiService.sendMessage({
       prompt: promptText,
       history,
     });
 
-    // 7. Cria a estrutura da mensagem do assistente
+    // 7. Cria a estrutura da mensagem do assistente (com os botões que a IA pediu, se houver)
     const assistantMessage = {
       role: "assistant",
       content: responseText,
       timestamp: new Date().toISOString(),
     };
+    if (buttons?.length > 0) assistantMessage.buttons = buttons;
 
     // 8. Salva a resposta da IA no disco
     if (aiService) {
@@ -67,14 +125,14 @@ export async function onSendMessage({ promptText }, aiService) {
 
     uiBus.emit("toast:show", { message: error.message, type: "error" });
 
-    // Renderiza uma mensagem de erro na interface para feedback visual
+    // Renderiza o motivo do erro na conversa (o detalhe técnico fica no log de erros das configurações)
     uiBus.emit("chat:render-message", {
       role: "assistant",
-      content:
-        "Desculpe, ocorreu um erro ao processar sua solicitação. Tente novamente.",
+      content: `**Não consegui responder.** ${error.message || "Ocorreu um erro ao processar sua solicitação."}`,
     });
   } finally {
     // 10. Libera o carregamento da UI independente do resultado
+    isBusy = false;
     uiBus.emit("chat:set-loading", false);
   }
 }

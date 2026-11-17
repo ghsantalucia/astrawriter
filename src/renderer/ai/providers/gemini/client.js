@@ -3,20 +3,22 @@
  */
 
 import { GEMINI_API_BASE, GEMINI_MAX_OUTPUT_TOKENS } from "./config.js";
+import { buildGeminiError } from "../../apiError.js";
 
 /** Modelos que não servem para chat de texto. */
 const EXCLUDED_MODELS =
   /(image|tts|embedding|live|audio|robotics|computer-use|aqa)/i;
 
 /**
- * Lê o JSON da resposta e lança um erro legível se a API falhou.
+ * Lê o JSON da resposta e lança um erro legível (com status e detalhes de cota) se a API falhou.
  * @param {Response} response
+ * @param {string} [model] - Modelo chamado (aparece na mensagem de erro).
+ * @throws {import("../../apiError.js").AiApiError}
  */
-async function parseResponse(response) {
+async function parseResponse(response, model = "") {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    const detail = data?.error?.message || response.statusText;
-    throw new Error(`Gemini API (${response.status}): ${detail}`);
+    throw buildGeminiError(response.status, data, response.statusText, model);
   }
   return data;
 }
@@ -65,7 +67,7 @@ export async function generateContent({
       body: JSON.stringify(body),
     },
   );
-  return parseResponse(response);
+  return parseResponse(response, model);
 }
 
 /**

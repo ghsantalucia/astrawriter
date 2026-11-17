@@ -7,6 +7,12 @@ import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
 import * as ai from "../ai/aiGateway.js";
 import { DEFAULT_AI_PROVIDER, getProviderInfo } from "../ai/providers/index.js";
+import {
+  addDailyUsage,
+  getDailyUsage,
+  getDailyQuota,
+  learnDailyQuota,
+} from "../ai/usageTracker.js";
 
 const MAX_MESSAGES_PER_FILE = 50;
 
@@ -33,10 +39,32 @@ export class AiService {
   /**
    * Cria uma instância do AiService.
    * @param {Object} state - Instância do gerenciador de estado global da aplicação.
+   * @param {import('./fileService.js').FileService} fileService - Serviço de arquivos.
+   * @param {import('./creationService.js').CreationService} creationService - Serviço de criação de livros, capítulos e fichas.
+   * @param {import('./changelogService.js').ChangelogService} changelogService - Serviço do changelog (autoria e registros).
+   * @param {Object} [extra] - Serviços extras usados pelas tools de estrutura e de projeto.
+   * @param {import('./folderService.js').FolderService} [extra.folders] - Pastas e movimentação.
+   * @param {import('./deletionService.js').DeletionService} [extra.deletion] - Exclusão de arquivos e capítulos.
+   * @param {import('./bookService.js').BookService} [extra.bookService] - Livros e config.json.
    */
-  constructor(state, fileService) {
+  constructor(
+    state,
+    fileService,
+    creationService,
+    changelogService,
+    extra = {},
+  ) {
     this.state = state;
     this.fileService = fileService;
+    this.creationService = creationService;
+    this.changelogService = changelogService;
+    this.folders = extra.folders;
+    this.deletion = extra.deletion;
+    this.bookService = extra.bookService;
+    /** Fila que serializa a gravação do log do chat (evita duas gravações simultâneas no mesmo arquivo). */
+    this.saveQueue = Promise.resolve();
+    /** Contador de mensagens enviadas (identifica em qual mensagem uma criação foi iniciada). */
+    this.messageSeq = 0;
   }
 
   /**
@@ -61,9 +89,15 @@ export class AiService {
    * @param {string} params.provider - ID do provider selecionado.
    * @param {string} [params.apiKey] - Chave de API do provider.
    * @param {string} [params.model] - Modelo escolhido para o provider.
+   * @param {Object} [params.actor] - Quem alterou (padrão: usuário; o futuro fallback automático usa o Sistema).
    * @returns {Promise<boolean>} Verdadeiro se salvou com sucesso.
    */
-  async saveSettings({ provider, apiKey, model }) {
+  async saveSettings({ provider, apiKey, model, actor }) {
+    const previous = {
+      provider: this.state.aiProvider,
+      model: this.getActiveModel(),
+    };
+
     const providers = { ...this.state.aiSettings.providers };
     const current = { ...providers[provider] };
     if (apiKey !== undefined) current.apiKey = apiKey.trim();
@@ -77,6 +111,19 @@ export class AiService {
     this.state.aiSettings = settings;
     this.state.aiProvider = provider;
     this.publishUsage();
+
+    // Troca de provedor ou de modelo vai para o changelog (nunca a chave de API)
+    const next = { provider, model: this.getActiveModel() };
+    if (next.provider !== previous.provider || next.model !== previous.model) {
+      this.changelogService?.recordSetting(
+        {
+          setting: "ai.model",
+          from: `${previous.provider} · ${previous.model}`,
+          to: `${next.provider} · ${next.model}`,
+        },
+        actor,
+      );
+    }
     return true;
   }
 
@@ -114,14 +161,26 @@ export class AiService {
   }
 
   /**
+   * Modelo ativo do provedor selecionado (o salvo nas configurações ou o padrão).
+   * @returns {string}
+   */
+  getActiveModel() {
+    const provider = this.state.aiProvider;
+    return (
+      this.state.aiSettings.providers?.[provider]?.model ||
+      getProviderInfo(provider)?.defaultModel ||
+      ""
+    );
+  }
+
+  /**
    * Janela de contexto do modelo ativo (da lista da API ou do catálogo padrão), se conhecida.
    * @returns {number|null}
    */
   getContextWindow() {
     const provider = this.state.aiProvider;
     const info = getProviderInfo(provider);
-    const model =
-      this.state.aiSettings.providers?.[provider]?.model || info?.defaultModel;
+    const model = this.getActiveModel();
     const known = [
       ...(this.state.aiModels[provider] || []),
       ...(info?.models || []),
@@ -133,10 +192,82 @@ export class AiService {
    * Publica o consumo de tokens atual (e a janela de contexto) para a interface.
    */
   publishUsage() {
+    const provider = this.state.aiProvider;
+    const model = this.getActiveModel();
+    const limit = this.state.aiLimits?.[`${provider}|${model}`] || null;
+
     domainBus.emit("ai:usage-updated", {
       ...this.state.aiUsage,
       contextWindow: this.getContextWindow(),
+      provider,
+      model,
+      // Limite informado pela API (Claude: restante; qualquer provedor: bloqueio por cota estourada)
+      limit: limit && limit.until && limit.until < Date.now() ? null : limit,
+      // Contagem local do dia (a API do Gemini não informa a cota restante)
+      daily: getDailyUsage(provider, model),
+      // Cota diária de requisições já descoberta (informada pela API ao estourar o limite)
+      dailyQuota: getDailyQuota(provider, model),
     });
+  }
+
+  /**
+   * Guarda (ou limpa) o limite de uso conhecido do provedor/modelo ativo.
+   * @param {string} provider - Provedor.
+   * @param {string} model - Modelo.
+   * @param {Object|null} limit - Dados do limite ou null para limpar.
+   * @returns {void}
+   * @private
+   */
+  setLimit(provider, model, limit) {
+    this.state.aiLimits ??= {};
+    if (limit) this.state.aiLimits[`${provider}|${model}`] = limit;
+    else delete this.state.aiLimits[`${provider}|${model}`];
+  }
+
+  /**
+   * Trata um erro da IA: grava no log de erros e, se for limite de cota, memoriza o bloqueio para a barra de uso.
+   * @param {Error & {provider?: string, model?: string, status?: number, details?: *, retryAfterMs?: number, isRateLimit?: boolean}} error - Erro ocorrido.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async handleError(error) {
+    const provider = error.provider || this.state.aiProvider;
+    const model = error.model || this.getActiveModel();
+
+    if (
+      error.isRateLimit &&
+      error.quotaPeriod === "day" &&
+      error.quotaValue &&
+      /request/i.test(error.quotaMetric || "request")
+    ) {
+      learnDailyQuota(provider, model, error.quotaValue);
+    }
+
+    if (error.isRateLimit) {
+      this.setLimit(provider, model, {
+        kind: "blocked",
+        until: Date.now() + (error.retryAfterMs || 60_000),
+        period: error.quotaPeriod,
+        message: error.message,
+      });
+      this.publishUsage();
+    }
+
+    try {
+      const book = this.state.currentBookPath
+        ? this.state.currentBookPath.replace(/\\/g, "/").split("/").pop()
+        : undefined;
+      await window.electronAPI.logAiError({
+        provider,
+        model,
+        status: error.status,
+        message: error.message,
+        details: error.details ?? error.stack,
+        book,
+      });
+    } catch (logError) {
+      console.error("[AiService] Falha ao gravar o log de erros:", logError);
+    }
   }
 
   /**
@@ -172,7 +303,8 @@ export class AiService {
    * @param {Object} params
    * @param {string} params.prompt - Texto simples enviado pelo usuário.
    * @param {Array} [params.history=[]] - Histórico de mensagens anteriores (se houver).
-   * @returns {Promise<string>} Texto da resposta do provedor ativo.
+   * @returns {Promise<{text: string, buttons: Array<{label: string, event: string, data: Object}>}>}
+   * Texto da resposta do provedor ativo e os botões (ferramenta `show_buttons`) a exibir junto dela.
    */
   async sendMessage({ prompt, history = [] }) {
     const bookPath = this.state.currentBookPath;
@@ -181,6 +313,18 @@ export class AiService {
     const toolContext = {
       state: this.state,
       fileService: this.fileService,
+      creation: this.creationService,
+      folders: this.folders,
+      deletion: this.deletion,
+      bookService: this.bookService,
+      /** Registra leituras e identifica o autor das alterações no changelog. */
+      changelog: this.changelogService,
+      /** Identifica esta mensagem do usuário. */
+      messageId: ++this.messageSeq,
+      /** Conversa atual: a criação guiada confere se os dados obrigatórios vieram mesmo do autor. */
+      conversation: { prompt, history },
+      /** Botões registrados pela IA para esta resposta. */
+      buttons: [],
 
       beginEdit: async () => {
         if (session.locked) return;
@@ -195,7 +339,14 @@ export class AiService {
         domainBus.emit("ai:edit-started", { bookPath });
       },
 
-      recordEdit: (filePath) => session.files.add(filePath),
+      recordEdit: (filePath) => {
+        session.files.add(filePath);
+        // O rascunho é da IA: ao ser aprovado pelo usuário, o changelog atribui a alteração a ela
+        this.changelogService?.markAiDraft(filePath);
+      },
+
+      /** Mostra no chat uma mensagem "system" sobre um evento importante feito pela IA. */
+      notice: (text) => uiBus.emit("chat:system-notice", { text }),
     };
 
     try {
@@ -210,14 +361,29 @@ export class AiService {
         outputTokens: this.state.aiUsage.outputTokens + usage.outputTokens,
         contextTokens: usage.contextTokens,
       };
+
+      const provider = this.state.aiProvider;
+      const model = this.getActiveModel();
+      addDailyUsage(provider, model, {
+        requests: usage.requests,
+        input: usage.inputTokens,
+        output: usage.outputTokens,
+      });
+      // Se a API informou o limite restante (ex.: Claude), mostra; senão, qualquer bloqueio anterior acabou
+      this.setLimit(
+        provider,
+        model,
+        usage.rateLimits ? { kind: "remaining", ...usage.rateLimits } : null,
+      );
       this.publishUsage();
 
-      return text;
+      return { text, buttons: toolContext.buttons };
     } catch (error) {
       console.error(
         "[AiService] Erro ao enviar mensagem para o gateway:",
         error,
       );
+      await this.handleError(error);
       throw error;
     } finally {
       if (session.locked) {
@@ -235,9 +401,22 @@ export class AiService {
    * @param {string} message.role - Papel do emissor ('user' | 'assistant' | 'system').
    * @param {string} message.content - Conteúdo em texto da mensagem.
    * @param {string} [message.timestamp] - Data/hora da mensagem.
+   * @param {Array<{label: string, event: string, data: Object}>} [message.buttons] - Botões exibidos junto da mensagem.
    * @returns {Promise<boolean>} Retorna verdadeiro se a gravação foi bem-sucedida.
    */
-  async saveMessage(message) {
+  saveMessage(message) {
+    const run = this.saveQueue.then(() => this.writeMessage(message));
+    this.saveQueue = run.catch(() => {});
+    return run;
+  }
+
+  /**
+   * Grava de fato a mensagem no arquivo de log (chamado em série por {@link AiService#saveMessage}).
+   * @param {Object} message - Mensagem a gravar.
+   * @returns {Promise<boolean>} Verdadeiro se a gravação foi bem-sucedida.
+   * @private
+   */
+  async writeMessage(message) {
     if (!message || !message.content) return false;
 
     const filePath = await this.resolveTargetLogFile();
@@ -253,6 +432,9 @@ export class AiService {
       content: message.content,
       timestamp: message.timestamp || new Date().toISOString(),
     };
+    if (Array.isArray(message.buttons) && message.buttons.length > 0) {
+      logEntry.buttons = message.buttons;
+    }
 
     let messages = [];
     const rawData = await window.electronAPI.readFile(filePath);

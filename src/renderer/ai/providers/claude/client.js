@@ -8,6 +8,7 @@ import {
   CLAUDE_MAX_TOKENS,
   CLAUDE_MODELS_URL,
 } from "./config.js";
+import { buildClaudeError, parseClaudeRateLimits } from "../../apiError.js";
 
 /**
  * Cabeçalhos comuns às chamadas.
@@ -24,15 +25,18 @@ function buildHeaders(apiKey) {
 }
 
 /**
- * Lê o JSON da resposta e lança um erro legível se a API falhou.
+ * Lê o JSON da resposta e lança um erro legível (com status e detalhes) se a API falhou.
+ * Em caso de sucesso, anexa em `_rateLimits` os limites de uso informados nos cabeçalhos.
  * @param {Response} response
+ * @param {string} [model] - Modelo chamado (aparece na mensagem de erro).
+ * @throws {import("../../apiError.js").AiApiError}
  */
-async function parseResponse(response) {
+async function parseResponse(response, model = "") {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    const detail = data?.error?.message || response.statusText;
-    throw new Error(`Claude API (${response.status}): ${detail}`);
+    throw buildClaudeError(response, data, model);
   }
+  if (data) data._rateLimits = parseClaudeRateLimits(response.headers);
   return data;
 }
 
@@ -67,7 +71,7 @@ export async function createMessage({
     headers: buildHeaders(apiKey),
     body: JSON.stringify(body),
   });
-  return parseResponse(response);
+  return parseResponse(response, model);
 }
 
 /**

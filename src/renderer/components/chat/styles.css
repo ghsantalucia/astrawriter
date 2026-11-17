@@ -8,8 +8,8 @@
   left: 0;
   width: 100%;
   height: 45.5px;
-  background-color: var(--bg-header);
-  border-top: 1px solid rgba(137, 180, 250, 0.2);
+  background-color: var(--bg-sidebar);
+  border-top: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   display: flex;
   flex-direction: column;
   transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -38,6 +38,10 @@
   z-index: 2;
 }
 
+body:not(.dark-mode) #btn-toggle-ai {
+  color: #0000004f;
+}
+
 .ai-title-container {
   display: flex;
   align-items: center;
@@ -46,7 +50,7 @@
 }
 
 .ai-sparkles-icon {
-  color: #89b4fa;
+  color: var(--accent);
   font-size: 1.1rem;
   animation: pulse-sparkle 2s infinite ease-in-out;
 }
@@ -140,11 +144,11 @@
 
 /* Estado Normal do Thumb (~3px visíveis) */
 .ai-chat-messages::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--line);
   background-clip: padding-box;
   /* Borda de 2px em cada lado reduz os 7px para 3px úteis */
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   /* A transição precisa estar declarada no estado base para funcionar na volta */
   transition: border-width 0.4s ease;
 }
@@ -176,29 +180,47 @@
   padding: 12px 16px;
   font-size: 0.9rem;
   line-height: 1.5;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px var(--shade);
   word-break: break-word;
   white-space: pre-wrap;
   animation: messageAppear 0.25s ease-out forwards;
+  /* O texto dos balões pode ser selecionado e copiado (o restante do app não) */
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* O reset global bloqueia a seleção em `.sidebar *` (inclusive nos filhos do balão): libera com mais força */
+#chat-container .ai-message,
+#chat-container .ai-message *:not(button) {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#chat-container .ai-message.ai-working,
+#chat-container .ai-message.ai-working * {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
 /* Mensagens da IA (Esquerda - vidro fosco translúcido) */
 .ai-message.assistant {
   align-self: flex-start;
   border-bottom-left-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.02);
-  color: #e0e0e0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--hover);
+  color: var(--text);
+  border: 1px solid var(--line);
   backdrop-filter: blur(3px);
 }
 
 /* Mensagens do Usuário (Direita - tom de destaque com mais opacidade) */
 .ai-message.user {
   align-self: flex-end;
-  background: rgba(137, 180, 250, 0.18);
-  border: 1px solid rgba(137, 180, 250, 0.35);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--text);
   border-bottom-right-radius: 4px;
   backdrop-filter: blur(4px);
 }
@@ -217,7 +239,7 @@
   max-width: 85%;
 
   /* Tipografia sutil de notificação */
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-dim);
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -230,21 +252,22 @@
   display: none;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(137, 180, 250, 0.85);
+  color: color-mix(in srgb, var(--accent) 85%, transparent);
   margin-bottom: 4px;
 }
 
 .chat-date-divider {
   text-align: center;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-subtle);
   margin: 12px 0;
   user-select: none;
   font-weight: 500;
 }
 
 .chat-date-divider.start-of-chat {
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-subtle);
+  opacity: 0.8;
   font-style: italic;
   margin: 16px 0;
 }
@@ -257,14 +280,14 @@
   gap: 6px;
   position: relative;
   z-index: 1;
-  box-shadow: 0px -20px 15px rgb(11 11 18);
+  box-shadow: 0 -20px 15px var(--bg-sidebar);
 }
 
 .ai-chat-input-container input {
   flex-grow: 1;
-  background-color: rgba(24, 25, 38, 0.7);
+  background-color: color-mix(in srgb, var(--surface-raised) 70%, transparent);
   border: 1px solid var(--slider-bg);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px 10px;
   color: var(--text-sidebar);
   font-size: 0.8rem;
@@ -278,9 +301,9 @@
   display: flex;
   flex-direction: column;
   /* Empilha a textarea e a linha do botão */
-  background: rgba(18, 19, 28, 0.75);
-  border: 1px solid rgba(137, 180, 250, 0.25);
-  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface-sunken) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition:
@@ -291,8 +314,8 @@
 }
 
 .ai-input-wrapper:focus-within {
-  border-color: rgba(137, 180, 250, 0.5);
-  box-shadow: 0 0 12px rgba(137, 180, 250, 0.15);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .ai-input-wrapper textarea {
@@ -300,7 +323,7 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #cdd6f4;
+  color: var(--text);
   font-size: 0.85rem;
   line-height: 1.4;
   resize: none;
@@ -312,7 +335,7 @@
 }
 
 .ai-input-wrapper textarea::placeholder {
-  color: #6c7086;
+  color: var(--text-subtle);
 }
 
 /* Container de Ações Inferior */
@@ -367,8 +390,8 @@
 }
 
 .ai-input-wrapper textarea::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  background: var(--line);
+  border-radius: var(--radius-sm);
 }
 
 /* ==========================================================================
@@ -424,16 +447,16 @@
 
 .ai-message.markdown code {
   padding: 1px 5px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  background: var(--line);
   font-family: Consolas, "Courier New", monospace;
   font-size: 0.85em;
 }
 
 .ai-message.markdown pre {
   padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  background: var(--shade);
   overflow-x: auto;
 }
 
@@ -444,18 +467,18 @@
 
 .ai-message.markdown blockquote {
   padding-left: 12px;
-  border-left: 3px solid rgba(137, 180, 250, 0.5);
-  color: #b4bcd0;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--text-dim);
 }
 
 .ai-message.markdown hr {
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--line);
   margin: 0.8em 0;
 }
 
 .ai-message.markdown a {
-  color: #89b4fa;
+  color: var(--accent);
   text-decoration: underline;
   cursor: default;
 }
@@ -467,7 +490,7 @@
 .ai-message.markdown th,
 .ai-message.markdown td {
   padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--line);
 }
 
 /* ==========================================================================
@@ -491,7 +514,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #89b4fa;
+  background: var(--accent);
   animation: aiWorkingBounce 1.2s infinite ease-in-out;
 }
 
@@ -519,16 +542,41 @@
 
 .ai-usage-bar {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
   padding: 5px 14px;
   font-size: 0.72rem;
-  color: var(--text-muted, #a6adc8);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgb(11, 11, 18);
-  border-radius: 8px 8px 0 0;
+  color: var(--text-muted, var(--text-dim));
+  border-top: 1px solid var(--line-soft);
+  background: color-mix(in srgb, var(--surface-sunken) 88%, transparent);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   position: relative;
   z-index: 2; /* acima da sombra do campo de entrada */
+}
+
+.ai-usage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Linha de limite de uso: restante informado pela API, bloqueio por cota ou uso do dia */
+.ai-usage-limit {
+  font-size: 0.7rem;
+  color: var(--text-muted, var(--text-subtle));
+}
+
+.ai-usage-limit[hidden] {
+  display: none;
+}
+
+.ai-usage-limit.blocked {
+  color: var(--danger);
+}
+
+.ai-usage-limit.low {
+  color: var(--warning);
 }
 
 .ai-usage-meter {
@@ -536,7 +584,7 @@
   height: 5px;
   min-width: 40px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--line);
   overflow: hidden;
 }
 
@@ -547,14 +595,370 @@
 .ai-usage-meter-fill {
   height: 100%;
   width: 0;
-  background: #89b4fa;
+  background: var(--accent);
   transition: width 0.4s ease;
 }
 
 .ai-usage-meter-fill.warn {
-  background: #f9e2af;
+  background: var(--warning);
 }
 
 .ai-usage-meter-fill.danger {
-  background: #f38ba8;
+  background: var(--danger);
+}
+
+/* ==========================================================================
+   BOTÕES NA CONVERSA (respostas prontas e ações do sistema)
+   ========================================================================== */
+
+/* Grade centralizada: 2 botões por linha (o último, se ímpar, fica centralizado) */
+.chat-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  white-space: normal;
+}
+
+.chat-button {
+  flex: 0 1 calc(50% - 4px);
+  min-width: 0;
+  padding: 7px 10px;
+  background: var(--hover);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.chat-button:hover {
+  background: var(--line-soft);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.chat-button:active {
+  background: var(--line);
+}
+
+/* Respostas prontas já usadas: o grupo fica desativado e destaca a escolha */
+.chat-buttons.answered .chat-button {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.chat-buttons.answered .chat-button.chosen {
+  opacity: 1;
+  background: var(--line);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+/* --- Scrollbar sutil dos blocos de código --- */
+.ai-message.markdown pre::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.ai-message.markdown pre::-webkit-scrollbar-track,
+.ai-message.markdown pre::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.ai-message.markdown pre::-webkit-scrollbar-thumb {
+  background-color: var(--line);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.ai-message.markdown pre::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* ==========================================================================
+   INPUT BLOQUEADO (IA TRABALHANDO): brilho suave percorrendo a borda no sentido horário
+   ========================================================================== */
+
+@property --ai-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes aiBorderOrbit {
+  to {
+    --ai-border-angle: 360deg;
+  }
+}
+
+.ai-input-wrapper.working::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  /* Trecho mais claro da própria linha, que gira ao redor do contorno */
+  background: conic-gradient(
+    from var(--ai-border-angle),
+    transparent 0%,
+    transparent 62%,
+    color-mix(in srgb, var(--accent) 55%, transparent) 80%,
+    rgba(205, 225, 255, 0.95) 92%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: aiBorderOrbit 3.2s linear infinite;
+}
+
+.ai-input-wrapper.working textarea:disabled {
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-input-wrapper.working::before {
+    animation-duration: 8s;
+  }
+}
+
+/* Fundo nebulosa (tema claro): atrás de todo o conteúdo do chat */
+.nebula-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Cabeçalho da gaveta: com a gaveta recolhida e a IA trabalhando, os pontinhos substituem a estrela */
+.ai-header-dots {
+  display: none;
+  margin-right: 2px;
+}
+
+#chat-container:not(.expanded).ai-busy .ai-sparkles-icon {
+  display: none;
+}
+
+#chat-container:not(.expanded).ai-busy .ai-header-dots {
+  display: inline-flex;
+}
+
+/* ==========================================================================
+   TEMA CLARO DO CHAT: gaveta lilás, fundo rosa claro com a nebulosa suave por cima, balões opacos e legíveis
+   ========================================================================== */
+
+body:not(.dark-theme) #chat-container {
+  background: linear-gradient(180deg, #efeaf9 0%, #f3e3f1 100%);
+  border-top-color: var(--line-strong);
+}
+
+body:not(.dark-theme) #chat-container.expanded {
+  box-shadow: 0 -8px 25px var(--shade-strong);
+}
+
+body:not(.dark-theme) .ai-assistant-header {
+  background: linear-gradient(90deg, #e6def8 0%, #f1ddee 100%);
+}
+
+/* Div do corpo: rosa claro; a nebulosa (canvas) fica a 80% por cima */
+body:not(.dark-theme) .ai-assistant-body {
+  background: linear-gradient(180deg, #f8e1ef 0%, #efdcf6 100%);
+}
+
+/* Nebulosa detalhada, porém sutil: opacidade reduzida deixa o rosa da div aparecer por baixo */
+body:not(.dark-theme) .nebula-bg-canvas {
+  opacity: 0.9;
+}
+
+body:not(.dark-theme) .ai-input-wrapper {
+  border-radius: 0px 0px 5px 5px;
+  border: 1px;
+}
+
+/* Balões opacos: o fundo não interfere na leitura */
+body:not(.dark-theme) .ai-message {
+  backdrop-filter: none;
+  box-shadow: 0 2px 8px var(--shade-strong);
+}
+
+body:not(.dark-theme) .ai-message.assistant {
+  background-color: #ffffffd6;
+  color: #2b2542;
+  border-color: rgba(60, 40, 120, 0.2);
+}
+
+body:not(.dark-theme) .ai-message.user {
+  background-color: #8387de;
+  color: #fff;
+  border-color: rgb(73 80 141 / 50%);
+  /* border: none; */
+}
+
+/* Avisos do sistema e divisores de data (sem balão): ganham uma pílula opaca para não se perder na nebulosa */
+body:not(.dark-theme) .ai-message.system,
+body:not(.dark-theme) .chat-date-divider {
+  background-color: rgb(18 18 18 / 6%);
+  color: #ffffff;
+  border-radius: 0px;
+  padding: 6px 14px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: none;
+}
+
+body:not(.dark-theme) .ai-message.system {
+  padding: 6px 14px;
+}
+
+body:not(.dark-theme) .chat-date-divider.start-of-chat {
+  color: #fff;
+}
+
+body:not(.dark-theme) .ai-input-wrapper {
+  background: #ffffff;
+  border-color: var(--line-strong);
+  backdrop-filter: none;
+}
+
+body:not(.dark-theme) .ai-input-wrapper textarea {
+  color: #2b2542;
+}
+
+body:not(.dark-theme) .ai-input-wrapper textarea::placeholder {
+  color: #7a7498;
+}
+
+body:not(.dark-theme) .btn-send-round {
+  background-color: var(--accent);
+}
+
+body:not(.dark-theme) .btn-send-round svg {
+  stroke: #ffffff;
+}
+
+/* Botões de resposta do chat (tema claro): contraste forte sobre o balão branco */
+body:not(.dark-theme) .chat-button {
+  background: #efe9ff;
+  color: #3f2f94;
+  border-color: rgba(109, 79, 216, 0.45);
+  font-weight: 600;
+}
+
+body:not(.dark-theme) .chat-button:hover {
+  background: #e0d5fb;
+  border-color: var(--accent);
+  color: #2c1f75;
+}
+
+body:not(.dark-theme) .chat-buttons.answered .chat-button {
+  opacity: 0.6;
+}
+
+body:not(.dark-theme) .chat-buttons.answered .chat-button.chosen {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+/* Gaveta recolhida (tema claro): faixa de destaque que parece um botão clicável, não um rodapé */
+body:not(.dark-theme) #chat-container:not(.expanded) {
+  /* border-top: none; 2px solid var(--accent); */
+  box-shadow: 0 -6px 18px rgba(109, 79, 216, 0.22);
+}
+
+body:not(.dark-theme) #chat-container:not(.expanded) .ai-assistant-header {
+  background: linear-gradient(90deg, #bc84cda6 0%, #8e6ac3c7 100%);
+  border-bottom: none;
+  transition: filter 0.15s ease;
+}
+
+body:not(.dark-theme) #chat-container:not(.expanded) .ai-assistant-header:hover,
+body:not(.dark-theme)
+  #chat-container:not(.expanded)
+  .ai-assistant-header.kb-focus {
+  filter: brightness(1.15) saturate(1.1);
+}
+
+body:not(.dark-theme) #chat-container:not(.expanded) .ai-title {
+  color: #2c1f75;
+}
+
+body:not(.dark-theme) #chat-container:not(.expanded) .ai-sparkles-icon,
+body:not(.dark-theme) #chat-container:not(.expanded) .ai-toggle-btn {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Tema escuro: com a gaveta fechada, o cabeçalho "acende" em azul ao passar o mouse (ou ao ser escolhido pelo teclado) */
+body.dark-theme #chat-container:not(.expanded) .ai-assistant-header {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 6%, transparent) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition:
+    background-size 0.4s ease,
+    color 0.25s ease;
+}
+
+body.dark-theme #chat-container:not(.expanded) .ai-assistant-header:hover,
+body.dark-theme #chat-container:not(.expanded) .ai-assistant-header.kb-focus {
+  background-size: 100% 100%;
+}
+
+body.dark-theme #chat-container:not(.expanded) .ai-assistant-header .ai-title,
+body.dark-theme
+  #chat-container:not(.expanded)
+  .ai-assistant-header
+  .ai-sparkles-icon {
+  transition: color 0.25s ease;
+}
+
+body.dark-theme
+  #chat-container:not(.expanded)
+  .ai-assistant-header:hover
+  .ai-title,
+body.dark-theme
+  #chat-container:not(.expanded)
+  .ai-assistant-header.kb-focus
+  .ai-title,
+body.dark-theme
+  #chat-container:not(.expanded)
+  .ai-assistant-header:hover
+  .ai-sparkles-icon,
+body.dark-theme
+  #chat-container:not(.expanded)
+  .ai-assistant-header.kb-focus
+  .ai-sparkles-icon {
+  color: var(--accent);
+}
+
+/* Cabeçalho escolhido por teclado no explorer */
+.ai-assistant-header.kb-focus {
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: -2px;
 }

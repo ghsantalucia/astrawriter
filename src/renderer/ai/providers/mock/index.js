@@ -9,6 +9,10 @@
  *   /anexar <caminho> | <texto>            chama append_to_file
  *   /substituir <caminho> | <de> | <para>  chama replace_in_file
  *   /escrever <caminho> | <conteúdo>       chama write_file
+ *   /botoes                                chama show_buttons (respostas prontas e ações do app)
+ *   /iniciar <tipo> [| <pasta>]            chama start_creation (book, chapter, entity, note)
+ *   /criar <tipo> | <pasta> | campo=valor;… chama complete_creation (pasta vazia fora de fichas)
+ *   /tool <nome> | <json>                  chama QUALQUER tool com os argumentos em JSON (ex.: /tool move_file | {"path":"notes/note_001.md","destination":"notes/ideias"})
  *   /lento                                 demora 6s (testa o indicador de carregamento)
  *   /erro                                  lança um erro (testa o tratamento de falhas)
  * Qualquer outro texto recebe uma resposta em Markdown.
@@ -25,6 +29,10 @@ const HELP = `**Provedor Mock** — comandos disponíveis:
 - \`/anexar <caminho> | <texto>\`
 - \`/substituir <caminho> | <de> | <para>\`
 - \`/escrever <caminho> | <conteúdo>\`
+- \`/botoes\`
+- \`/iniciar <tipo> [| <pasta>]\` (book, chapter, entity, note)
+- \`/criar <tipo> | <pasta> | campo=valor;campo=valor\`
+- \`/tool <nome> | <json>\` (chama qualquer tool; args em JSON)
 - \`/lento\` e \`/erro\``;
 
 /** Estima tokens (~4 caracteres por token). */
@@ -68,6 +76,56 @@ function parseCommand(prompt) {
           args: { path: parts[0], content: parts[1] },
         },
       };
+    case "/botoes":
+      return {
+        tool: {
+          name: "show_buttons",
+          args: {
+            buttons: [
+              { label: "Sim, continue", reply: "Sim, pode continuar." },
+              { label: "Não, obrigado" },
+              { label: "Sincronizar", action: "open-sync" },
+              { label: "Novo capítulo", action: "new-chapter" },
+              { label: "Variáveis", action: "edit-variables" },
+            ],
+          },
+        },
+        reply: "Escolha uma opção (botões de teste do provedor Mock):",
+      };
+    case "/iniciar":
+      return {
+        tool: {
+          name: "start_creation",
+          args: { kind: parts[0], folder: parts[1] || undefined },
+        },
+      };
+    case "/criar": {
+      const answers = (parts[2] || "")
+        .split(";")
+        .map((pair) => pair.split("="))
+        .filter(([field]) => field?.trim())
+        .map(([field, ...value]) => ({
+          field: field.trim(),
+          value: value.join("=").trim(),
+        }));
+      return {
+        tool: {
+          name: "complete_creation",
+          args: { kind: parts[0], folder: parts[1] || undefined, answers },
+        },
+      };
+    }
+    case "/tool": {
+      let toolArgs = {};
+      try {
+        toolArgs = parts[1]
+          ? JSON.parse(args.slice(args.indexOf("|") + 1))
+          : {};
+      } catch {
+        return { reply: "JSON inválido nos argumentos de `/tool`." };
+      }
+      return { tool: { name: parts[0], args: toolArgs } };
+    }
     case "/lento":
       return {
         delay: 6000,
@@ -139,7 +197,11 @@ export async function sendRequest({ prompt, systemPrompt = "", toolContext }) {
           toolCalls: [{ id: "mock-call", ...plan.tool }],
         };
       }
-      const text = plan.tool ? formatResults(conversation.results) : plan.reply;
+      // Com `reply` definido, ele é o texto final mesmo após a ferramenta (ex.: /botoes)
+      const text =
+        plan.tool && !plan.reply
+          ? formatResults(conversation.results)
+          : plan.reply;
       return {
         text,
         raw: null,

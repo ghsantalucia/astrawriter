@@ -46,6 +46,7 @@ export async function sendRequest({
       const blocks = data.content || [];
       const u = data.usage || {};
       return {
+        rateLimits: data._rateLimits || null,
         usage: {
           input:
             (u.input_tokens || 0) +

@@ -103,3 +103,98 @@ export function assertPermission(located, flag) {
     );
   }
 }
+
+// ========== Pastas ========== //
+
+/**
+ * Valida o caminho de uma pasta relativo à raiz do livro e o divide em segmentos.
+ * @param {string} relPath - Caminho informado pela IA (ex.: `notes/ideias`).
+ * @param {string} [bookPath] - Caminho absoluto do livro (para aceitar caminhos absolutos).
+ * @returns {string[]}
+ * @throws {Error} Se o caminho é inválido, oculto ou aponta para um arquivo.
+ */
+export function parseFolderPath(relPath, bookPath = "") {
+  let normalized = normalizePath(String(relPath || "")).trim();
+  const book = normalizePath(bookPath).replace(/\/+$/, "");
+  if (book && normalized.toLowerCase().startsWith(`${book.toLowerCase()}/`)) {
+    normalized = normalized.slice(book.length + 1);
+  }
+
+  const segments = normalized
+    .split("/")
+    .filter((segment) => segment && segment !== ".");
+  if (
+    segments.length === 0 ||
+    segments.some((s) => s === ".." || s.startsWith(".")) ||
+    /^[a-z]:$/i.test(segments[0]) ||
+    /\.[a-z0-9]+$/i.test(segments[segments.length - 1])
+  ) {
+    throw new Error(
+      `Caminho de pasta inválido: "${relPath}". Use caminhos relativos à raiz do livro (ex.: notes/ideias).`,
+    );
+  }
+  return segments;
+}
+
+/**
+ * Localiza o nó de uma pasta na árvore do livro atual.
+ * @param {Object} state - Estado global.
+ * @param {string[]} segments - Segmentos do caminho da pasta.
+ * @returns {Promise<{node: Object, metadata: Object, tree: Object}>}
+ * @throws {Error} Se a pasta não existe.
+ */
+export async function locateFolder(state, segments) {
+  if (!state.currentBookPath) throw new Error("Nenhum livro selecionado.");
+  const tree = await window.electronAPI.getTree(
+    normalizePath(state.currentBookPath),
+  );
+  if (!tree) throw new Error("Não foi possível ler a estrutura do livro.");
+
+  let node = tree;
+  for (const name of segments) {
+    node = node.folders?.[name];
+    if (!node) throw new Error(`Pasta não encontrada: ${segments.join("/")}`);
+  }
+  return { node, metadata: node.metadata || {}, tree };
+}
+
+/**
+ * Lista todos os arquivos `.md` (com o frontmatter) dentro de uma pasta, incluindo subpastas.
+ * @param {Object} node - Nó da pasta na árvore.
+ * @param {string} prefix - Caminho relativo ao livro da pasta (sem barra final).
+ * @returns {Array<{relPath: string, title: string, metadata: Object}>}
+ */
+export function collectFolderFiles(node, prefix) {
+  const out = [];
+  for (const [key, file] of Object.entries(node.files || {})) {
+    if (!/\.md(\.temp)?$/i.test(file.originalPath || "")) continue;
+    out.push({
+      relPath: `${prefix}/${key}.md`,
+      title: file.metadata?.title || key,
+      metadata: file.metadata || {},
+    });
+  }
+  for (const [name, sub] of Object.entries(node.folders || {})) {
+    if (name.startsWith(".")) continue;
+    out.push(...collectFolderFiles(sub, `${prefix}/${name}`));
+  }
+  return out;
+}
+
+/**
+ * Lança erro se a pasta não tiver a permissão da IA (`aiRead` / `aiWrite` / `aiDelete` no `folder.yml`).
+ * @param {Object} metadata - Metadados (folder.yml) da pasta.
+ * @param {"aiRead"|"aiWrite"|"aiDelete"} flag - Permissão exigida.
+ * @param {string} folderLabel - Nome da pasta para a mensagem.
+ * @returns {void}
+ */
+export function assertFolderPermission(metadata, flag, folderLabel) {
+  const value = metadata?.[flag];
+  if (value === true || value === "true") return;
+  const action =
+    { aiRead: "leitura", aiWrite: "escrita", aiDelete: "exclusão" }[flag] ||
+    flag;
+  throw new Error(
+    `Acesso negado: o autor não permitiu ${action} da IA na pasta "${folderLabel}" (${flag} não está ativo).`,
+  );
+}
