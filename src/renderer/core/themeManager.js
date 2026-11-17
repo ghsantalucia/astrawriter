@@ -79,9 +79,7 @@ export class ThemeManager {
     }
 
     // 3. Atualiza os botões nativos da janela do Windows via Electron API
-    // if (window.electronAPI && window.electronAPI.setNativeTheme) {
-    //   window.electronAPI.setNativeTheme(isDark);
-    // }
+    window.electronAPI?.setNativeTheme?.(isDark);
 
     uiBus.emit("theme:changed", { theme: this.theme });
   }

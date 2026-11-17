@@ -7,7 +7,7 @@
 .btn-success {
   padding: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: bold;
 }
@@ -37,14 +37,14 @@
 
 #btn-save {
   position: relative;
-  width: 146px;
+  width: 120px;
   height: 35px;
   background: linear-gradient(90deg, #1a3058, #264ea5, #1a3058);
   background-size: 300% 100%;
   /* Permite o GSAP mover o gradiente suavemente */
   color: #ffffff;
   border: 1px solid rgba(112, 161, 255, 0.25);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;

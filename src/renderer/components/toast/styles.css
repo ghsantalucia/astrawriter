@@ -1,37 +1,105 @@
-/* Notificação Toast */
+/* ==========================================================================
+   NOTIFICAÇÕES (TOASTS)
+   Cartões escuros e discretos, empilhados no canto inferior direito.
+   ========================================================================== */
+
 #toast-container {
   position: fixed;
-  bottom: 20px;
   right: 20px;
-  padding: 12px 20px;
-  border-radius: 8px;
-  color: var(--bg-editor);
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  bottom: 20px;
   z-index: 1000;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#toast-container.hidden {
-  opacity: 0;
-  transform: translateY(20px);
   pointer-events: none;
 }
 
-#toast-container.success {
-  background-color: #5d9f60e3;
-  border-left: 4px solid #4caf50;
+.toast-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
-#toast-container.error {
-  background-color: #b84545db;
-  border-left: 4px solid #ef5350;
+.toast {
+  --toast-accent: var(--accent);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  max-width: 380px;
+  padding: 11px 16px 13px 14px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  color: var(--text);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 1px 0 var(--hover) inset;
+  backdrop-filter: blur(8px);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  opacity: 0;
+  transform: translateX(16px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.leaving {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+.toast-success {
+  --toast-accent: var(--success);
+}
+
+.toast-error {
+  --toast-accent: var(--danger);
+}
+
+.toast-warning {
+  --toast-accent: var(--warning);
+}
+
+.toast-icon {
+  flex: none;
+  font-size: 1rem;
+  color: var(--toast-accent);
+}
+
+.toast-text {
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Barra fina que esvazia até o toast sumir */
+.toast-timer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--toast-accent);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: toast-timer var(--toast-duration, 3500ms) linear forwards;
+}
+
+.toast.paused .toast-timer {
+  animation-play-state: paused;
+}
+
+@keyframes toast-timer {
+  to {
+    transform: scaleX(0);
+  }
 }

@@ -1,7 +1,7 @@
 import Handlebars from "handlebars";
 
 /**
- * Classe base abstrata para todos os componentes do DraftWeaver.
+ * Classe base abstrata para todos os componentes do Astra Writter.
  * Gerencia ciclo de vida, herança pai-filho (Composite) e renderização via Handlebars.
  * @class
  * @abstract

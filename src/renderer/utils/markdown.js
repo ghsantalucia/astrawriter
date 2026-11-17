@@ -1,6 +1,62 @@
 /**
  * @file Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
+ * O YAML é interpretado por completo (js-yaml), então objetos aninhados como `data:` sobrevivem a leituras e gravações.
  */
+
+import yaml from "js-yaml";
+
+/** Opções de serialização YAML: sem quebra automática de linhas e ignorando valores não serializáveis. */
+const YAML_DUMP_OPTIONS = { lineWidth: -1, skipInvalid: true, noRefs: true };
+
+/**
+ * Interpreta um texto YAML simples (chave: valor, uma por linha). Usado como alternativa quando o YAML é inválido.
+ * @param {string} yamlText - Texto YAML.
+ * @returns {Object} Objeto plano com as chaves encontradas.
+ */
+function parseSimpleYaml(yamlText) {
+  const metadata = {};
+
+  yamlText.split("\n").forEach((line) => {
+    const [key, ...valueParts] = line.split(":");
+    if (key && valueParts.length > 0) {
+      const cleanKey = key.trim();
+      let val = valueParts
+        .join(":")
+        .trim()
+        .replace(/^["']|["']$/g, "");
+
+      if (val === "true") val = true;
+      else if (val === "false") val = false;
+
+      metadata[cleanKey] = val;
+    }
+  });
+
+  return metadata;
+}
+
+/**
+ * Converte um texto YAML em objeto JS, caindo no interpretador simples se o YAML for inválido.
+ * @param {string} yamlText - Texto YAML.
+ * @returns {Object} Objeto com os dados.
+ */
+export function parseYaml(yamlText) {
+  try {
+    const parsed = yaml.safeLoad(yamlText);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return parseSimpleYaml(yamlText);
+  }
+}
+
+/**
+ * Converte um objeto JS em texto YAML.
+ * @param {Object} data - Dados a serializar.
+ * @returns {string} Texto YAML (termina com quebra de linha).
+ */
+export function stringifyYaml(data) {
+  return yaml.safeDump(data, YAML_DUMP_OPTIONS);
+}
 
 /**
  * Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
@@ -27,23 +83,7 @@ export function parseMarkdown(fileContent, isYmlOnly = false) {
     }
   }
 
-  const metadata = {};
-
-  yamlText.split("\n").forEach((line) => {
-    const [key, ...valueParts] = line.split(":");
-    if (key && valueParts.length > 0) {
-      const cleanKey = key.trim();
-      let val = valueParts
-        .join(":")
-        .trim()
-        .replace(/^["']|["']$/g, "");
-
-      if (val === "true") val = true;
-      else if (val === "false") val = false;
-
-      metadata[cleanKey] = val;
-    }
-  });
+  const metadata = parseYaml(yamlText);
 
   return { metadata, body };
 }
@@ -64,18 +104,12 @@ export function splitFrontmatter(fileContent) {
 
 /**
  * Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
- * @param {Object} metadata Objeto de metadados
+ * @param {Object} metadata Objeto de metadados (pode conter objetos aninhados, como `data`)
  * @param {string} body Texto do Markdown
  * @returns {string} Conteúdo formatado pronto para gravação em disco
  */
 export function stringifyFrontmatter(metadata, body) {
   if (!metadata || Object.keys(metadata).length === 0) return body;
 
-  let yaml = "---\n";
-  for (const [key, value] of Object.entries(metadata)) {
-    yaml += `${key}: ${value}\n`;
-  }
-  yaml += "---\n\n";
-
-  return yaml + body.trimStart();
+  return `---\n${stringifyYaml(metadata)}---\n\n${body.trimStart()}`;
 }

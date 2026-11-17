@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DraftWeaver</title>
+  <title>Astra Writter</title>
 </head>
 
 <body>
@@ -12,6 +12,16 @@
   <header id="window-header">
     <!-- <div id="icon"><img src="public/icon.png"/></div> -->
   </header>
+
+  <!--========== [ TELA DE ABERTURA ] ==========-->
+  <div id="splash" aria-hidden="true">
+    <span class="splash-comet"></span>
+    <h1 class="splash-title">
+      <span class="splash-line splash-per">Per Aspera Ad</span>
+      <span class="splash-line splash-astra">Astra</span>
+    </h1>
+    <span class="splash-version" id="splash-version"></span>
+  </div>
 
   <!--========== [ APP CONTAINER ] ==========-->
   <div id="app-container">
@@ -32,7 +42,7 @@
     <div id="modal-container" class="hidden"></div>
 
     <!-- Notificações Toast -->
-    <div id="toast-container" class="hidden"></div>
+    <div id="toast-container"></div>
 
   </div>
   <!--========== [ FIM APP CONTAINER ] ==========-->

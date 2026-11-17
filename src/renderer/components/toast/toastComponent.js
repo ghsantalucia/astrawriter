@@ -6,6 +6,14 @@ import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
 
+/** Ícone (FontAwesome) de cada tipo de toast. */
+const ICONS = {
+  success: "fa-solid fa-circle-check",
+  error: "fa-solid fa-circle-exclamation",
+  info: "fa-solid fa-circle-info",
+  warning: "fa-solid fa-triangle-exclamation",
+};
+
 /**
  * Representa o toast da aplicação.
  * @class
@@ -32,33 +40,62 @@ export class ToastComponent extends Component {
   }
 
   /**
-   * Exibe uma mensagem de notificação toast temporária na tela.
+   * Exibe uma notificação (toast) empilhada no canto inferior direito. Cada toast tem ícone conforme o tipo, uma
+   * barra de tempo restante e some sozinho; passar o mouse por cima pausa a contagem e clicar o dispensa.
    * @param {string} message - Texto da mensagem.
-   * @param {string} [type='success'] - Tipo do toast ('success' ou 'error').
+   * @param {"success"|"error"|"info"|"warning"} [type="success"] - Tipo do toast.
+   * @returns {void}
    */
   show(message, type = "success") {
-    const container = document.getElementById("toast-container");
-    const messageEl = document.getElementById("toast-message");
+    const stack = document.getElementById("toast-stack");
+    if (!stack) return;
 
-    if (!container || !messageEl) return;
+    const kind = ICONS[type] ? type : "info";
+    const duration = kind === "error" ? 6000 : 3500;
 
-    // Define o texto e limpa classes anteriores de tipo
-    messageEl.textContent = message;
-    container.classList.remove("success", "error", "hidden");
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${kind}`;
+    toast.setAttribute("role", kind === "error" ? "alert" : "status");
+    toast.style.setProperty("--toast-duration", `${duration}ms`);
 
-    // Adiciona a classe correspondente ao tipo (success ou error)
-    if (type) {
-      container.classList.add(type);
-    }
+    const icon = document.createElement("i");
+    icon.className = `toast-icon ${ICONS[kind]}`;
+    const text = document.createElement("span");
+    text.className = "toast-text";
+    text.textContent = message;
+    const bar = document.createElement("span");
+    bar.className = "toast-timer";
 
-    // Limpa timer anterior caso já estivesse visível
-    if (this._toastTimer) {
-      clearTimeout(this._toastTimer);
-    }
+    toast.append(icon, text, bar);
+    stack.appendChild(toast);
+    // Limita a pilha: os mais antigos saem primeiro
+    while (stack.children.length > 4) this.dismiss(stack.firstElementChild);
 
-    // Oculta automaticamente após 3 segundos com animação suave
-    this._toastTimer = setTimeout(() => {
-      container.classList.add("hidden");
-    }, 3000);
+    requestAnimationFrame(() => toast.classList.add("visible"));
+
+    let timer = setTimeout(() => this.dismiss(toast), duration);
+    toast.addEventListener("mouseenter", () => {
+      clearTimeout(timer);
+      toast.classList.add("paused");
+    });
+    toast.addEventListener("mouseleave", () => {
+      toast.classList.remove("paused");
+      timer = setTimeout(() => this.dismiss(toast), 1500);
+    });
+    toast.addEventListener("click", () => this.dismiss(toast));
+  }
+
+  /**
+   * Remove um toast com animação de saída.
+   * @param {HTMLElement|null} toast - Elemento do toast.
+   * @returns {void}
+   * @private
+   */
+  dismiss(toast) {
+    if (!toast || toast.dataset.leaving) return;
+    toast.dataset.leaving = "1";
+    toast.classList.remove("visible");
+    toast.classList.add("leaving");
+    setTimeout(() => toast.remove(), 300);
   }
 }
