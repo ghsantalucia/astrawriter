@@ -3,6 +3,7 @@
  */
 
 import { ModalComponent } from "./ModalComponent.js";
+import { WizardComponent } from "../Wizard/WizardComponent.js";
 
 /**
  * Gerenciador responsável por controlar a pilha de modais, overlay escuro e âncoras globais da aplicação.
@@ -92,6 +93,33 @@ export class ModalManager {
   }
 
   /**
+   * Abre um modal contendo um wizard (formulário em passos) dinâmico.
+   * @param {Object} config - Configuração do wizard (ver {@link WizardComponent}): wizardId, kind, steps, context etc.
+   * @param {string} [config.title] - Título exibido no cabeçalho do modal.
+   * @returns {ModalComponent|undefined} A instância do modal criado.
+   */
+  openWizard(config) {
+    const modalId = `wizard-modal-${config.wizardId}`;
+    const hostId = `${modalId}-host`;
+    let wizard = null;
+
+    return this.open({
+      id: modalId,
+      title: config.title,
+      content: `<div id="${hostId}" class="wizard-host"></div>`,
+      windowClass: "modal-wizard",
+      onClose: () => wizard?.destroy(),
+      onMounted: (modal) => {
+        wizard = new WizardComponent(`#${hostId}`, this.context, {
+          ...config,
+          modal,
+        });
+        wizard.init();
+      },
+    });
+  }
+
+  /**
    * Gerencia o comportamento visual da pilha ao fechar um modal (restaura o anterior ou esconde o overlay).
    * @private
    */
@@ -141,6 +169,11 @@ export class ModalManager {
       } else {
         this.open(context);
       }
+    });
+
+    // Abre um wizard (formulário em passos) dentro de um modal
+    this.context.uiBus.on("wizard:open", (config) => {
+      this.openWizard(config);
     });
   }
 }

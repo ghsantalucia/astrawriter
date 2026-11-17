@@ -1,0 +1,31 @@
+<div class="compare">
+  <div class="compare-panes">
+    <section class="compare-pane">
+      <header class="compare-pane-title">Versão atual</header>
+      <div class="compare-body toastui-editor-contents">{{{currentHtml}}}</div>
+    </section>
+    <section class="compare-pane">
+      <header class="compare-pane-title">
+        {{versionTitle}}
+        {{#if actorLabel}}<span class="log-actor {{actorClass}}">{{actorLabel}}</span>{{/if}}
+      </header>
+      <div class="compare-body toastui-editor-contents">{{{versionHtml}}}</div>
+    </section>
+  </div>
+
+  {{#if metadataOnly}}
+    <p class="compare-note">O texto é o mesmo; só os metadados do arquivo (frontmatter) são diferentes.</p>
+  {{/if}}
+  {{#if identical}}
+    <p class="compare-note">Esta versão é idêntica ao conteúdo atual do arquivo.</p>
+  {{/if}}
+
+  <p class="compare-warning">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span>
+      Restaurar esta versão <strong>apaga o conteúdo guardado das versões posteriores</strong>: elas deixam de poder
+      ser restauradas (o registro de que existiram continua no changelog). Isso não pode ser desfeito.
+      {{#if hasDraft}}O rascunho não sincronizado deste arquivo também será descartado.{{/if}}
+    </span>
+  </p>
+</div>

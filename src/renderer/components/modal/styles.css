@@ -5,11 +5,12 @@
 /* 2. Overlay Global Tela Cheia (Drawer e Modais) */
 #modal-container {
   position: fixed;
-  top: 0;
+  /* Começa abaixo da barra de título (#window-header, 30px): o overlay nunca a cobre */
+  top: 30px;
   left: 0;
   width: 100vw;
-  height: 100vh;
-  background: rgba(19, 19, 19, 0.6);
+  height: calc(100vh - 30px);
+  background: var(--overlay-backdrop);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 200;
@@ -40,8 +41,8 @@
   height: auto;
   max-height: calc(100vh - 40px);
   background: var(--bg-sidebar, #1e1e2e);
-  border: 1px solid var(--border-app, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
@@ -61,8 +62,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-app, rgba(255, 255, 255, 0.08));
-  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border-app, var(--line-soft));
+  background: var(--shade);
   flex-shrink: 0;
 }
 
@@ -70,13 +71,13 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--text-editor, #cdd6f4);
+  color: var(--text-sidebar, var(--text));
 }
 
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted, #a6adc8);
+  color: var(--text-muted, var(--text-dim));
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
@@ -85,7 +86,7 @@
 }
 
 .modal-close-btn:hover {
-  color: #f38ba8;
+  color: var(--danger);
 }
 
 /* Body com Rolagem Sutil */
@@ -93,11 +94,11 @@
   padding: 20px;
   overflow-y: auto;
   flex-grow: 1;
-  color: var(--text-editor, #cdd6f4);
+  color: var(--text-sidebar, var(--text));
   font-size: 0.95rem;
   /* Compatibilidade com Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: var(--line) transparent;
 }
 
 /* Estilização Sutil da Scrollbar (WebKit / Chrome / Edge / Electron) */
@@ -110,12 +111,12 @@
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: var(--line);
+  border-radius: var(--radius-md);
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--line);
 }
 
 /* Footer com Alinhamento à Direita */
@@ -125,15 +126,15 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 14px 20px;
-  border-top: 1px solid var(--border-app, rgba(255, 255, 255, 0.08));
-  background: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--border-app, var(--line-soft));
+  background: var(--shade);
   flex-shrink: 0;
 }
 
 /* Botões Padrão de Modal sem Esticamento */
 .btn-modal {
   padding: 8px 18px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
@@ -153,17 +154,17 @@
 }
 
 .btn-modal.btn-primary {
-  background-color: var(--accent-color, #89b4fa);
+  background-color: var(--accent-color, var(--accent));
   color: #11111b;
 }
 
 .btn-modal.btn-secondary {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-editor, #cdd6f4);
+  background-color: var(--line);
+  color: var(--text-sidebar, var(--text));
 }
 
 .btn-modal.btn-danger {
-  background-color: #f38ba8;
+  background-color: var(--danger);
   color: #11111b;
 }
 
@@ -180,13 +181,13 @@
 .sync-modal-desc {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--text-muted, #a6adc8);
+  color: var(--text-muted, var(--text-dim));
   line-height: 1.4;
 }
 
 .sync-select-all-wrapper {
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-app, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--border-app, var(--line-soft));
 }
 
 .sync-file-list {
@@ -206,14 +207,14 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
+  background: var(--shade);
+  border: 1px solid var(--hover);
+  border-radius: var(--radius-sm);
   transition: background-color 0.15s ease;
 }
 
 .sync-file-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover);
 }
 
 /* Container do título isolado (Impede que a linha inteira fique clicável) */
@@ -225,7 +226,7 @@
 }
 
 .sync-file-link {
-  color: var(--text-editor, #cdd6f4);
+  color: var(--text-sidebar, var(--text));
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 500;
@@ -237,7 +238,7 @@
 }
 
 .sync-file-link:hover {
-  color: var(--accent-color, #89b4fa);
+  color: var(--accent-color, var(--accent));
   text-decoration: underline;
 }
 
@@ -245,9 +246,9 @@
 .btn-discard-temp {
   background: transparent;
   border: none;
-  color: var(--text-muted, #a6adc8);
+  color: var(--text-muted, var(--text-dim));
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -257,8 +258,8 @@
 }
 
 .btn-discard-temp:hover {
-  color: #f38ba8;
-  background: rgba(243, 139, 168, 0.15);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
 }
 
 /* Fix do "Pulo/Pulo de 4px" do Checkbox */
@@ -282,9 +283,9 @@
 .checkbox-mark {
   height: 18px;
   width: 18px;
-  background-color: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-app, rgba(255, 255, 255, 0.2));
-  border-radius: 4px;
+  background-color: var(--line-soft);
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -296,12 +297,12 @@
 }
 
 .custom-checkbox-label:hover input ~ .checkbox-mark {
-  border-color: var(--accent-color, #89b4fa);
+  border-color: var(--accent-color, var(--accent));
 }
 
 .custom-checkbox-label input:checked ~ .checkbox-mark {
-  background-color: var(--accent-color, #89b4fa);
-  border-color: var(--accent-color, #89b4fa);
+  background-color: var(--accent-color, var(--accent));
+  border-color: var(--accent-color, var(--accent));
 }
 
 /* Pseudo-elemento do Check mantido fixo no layout sem causar despencamentos */
@@ -324,11 +325,11 @@
 
 .checkbox-text {
   font-size: 0.88rem;
-  color: var(--text-editor, #cdd6f4);
+  color: var(--text-sidebar, var(--text));
 }
 
 .text-danger-subtle {
-  color: #f38ba8;
+  color: var(--danger);
   margin-top: 8px;
   margin-bottom: 0;
 }
@@ -351,7 +352,7 @@
 }
 
 .ai-review {
-  color: #cdd6f4;
+  color: var(--text);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -362,7 +363,30 @@
 .ai-review-hint {
   margin: 0;
   font-size: 0.85rem;
-  color: var(--text-muted, #a6adc8);
+  color: var(--text-muted, var(--text-dim));
+}
+
+.ai-review-data {
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--shade-strong, rgba(127, 127, 127, 0.1));
+  border: 1px solid var(--line-strong, var(--border-app));
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.ai-review-data ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.ai-review-data-old {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.ai-review-data-new {
+  font-weight: 600;
 }
 
 .ai-review-panes {
@@ -377,8 +401,8 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border: 1px solid var(--border-app, rgba(255, 255, 255, 0.1));
-  border-radius: 8px;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -386,8 +410,8 @@
   padding: 8px 12px;
   font-size: 0.8rem;
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.15);
-  color: var(--text-muted, #a6adc8);
+  background: var(--shade);
+  color: var(--text-muted, var(--text-dim));
 }
 
 .ai-review-old,
@@ -421,4 +445,510 @@
 .ai-review-new .diff-added {
   background: rgba(46, 213, 115, 0.14);
   box-shadow: inset 3px 0 0 rgba(46, 213, 115, 0.6);
+}
+
+/* ==========================================================================
+   HISTÓRICO DE ARQUIVO, CHANGELOG E LOG DE ERROS DA IA
+   ========================================================================== */
+
+.app-modal-window.modal-log {
+  width: min(900px, 94vw);
+  max-width: 94vw;
+  height: 80vh;
+}
+
+.app-modal-window.modal-log .modal-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-modal,
+.changelog-viewer,
+.ai-error-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
+}
+
+.history-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-muted, var(--text-dim));
+}
+
+.history-empty {
+  margin: 24px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted, var(--text-dim));
+}
+
+.history-list,
+.error-list,
+.log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-list,
+.error-list {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.history-item,
+.error-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-app, var(--line-soft));
+  border-radius: var(--radius-md);
+  background: var(--hover);
+}
+
+.history-item.current {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-row-sub {
+  justify-content: space-between;
+}
+
+.history-current-label {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.btn-history-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--text-sidebar, var(--text));
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.btn-history-restore:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* Etiquetas (tags) das ações registradas */
+.log-tag {
+  display: inline-block;
+  min-width: 56px;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: center;
+  text-transform: uppercase;
+  background: var(--line-soft);
+  color: var(--text-muted, var(--text-dim));
+}
+
+.log-tag-create {
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+}
+
+.log-tag-update {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+.log-tag-delete,
+.log-tag-error {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+
+.log-tag-read {
+  background: rgba(148, 156, 187, 0.16);
+  color: #9399b2;
+}
+
+.log-tag-autosave {
+  background: rgba(148, 226, 213, 0.12);
+  color: #94e2d5;
+}
+body:not(.dark-theme) .log-tag-autosave {
+  background: rgba(66, 157, 94, 0.12);
+  color: #54aaba;
+}
+
+.log-tag-move {
+  background: rgba(250, 179, 135, 0.16);
+  color: #fab387;
+}
+
+.log-tag-setting {
+  background: rgba(203, 166, 247, 0.16);
+  color: var(--accent-alt);
+}
+
+.log-purged {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  opacity: 0.75;
+}
+
+.log-tag-restore {
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
+  color: var(--warning);
+}
+
+/* Cores de quem realizou a ação */
+.log-actor {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.actor-user {
+  color: #94e2d5;
+}
+body:not(.dark-theme) .actor-user {
+  color: #429d5e;
+}
+
+.actor-ai {
+  color: var(--accent-alt);
+}
+
+.actor-system {
+  color: #fab387;
+}
+
+.log-actor-detail,
+.log-time,
+.log-summary {
+  font-size: 0.75rem;
+  color: var(--text-muted, var(--text-dim));
+}
+
+.log-time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lista corrida do changelog */
+.changelog-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--border-app, var(--line-soft));
+}
+
+.log-path {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+  color: var(--text-sidebar, var(--text));
+}
+
+.log-content-ref {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-muted, var(--text-subtle));
+  opacity: 0.7;
+}
+
+.log-status {
+  padding: 14px 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted, var(--text-subtle));
+}
+
+/* Log de erros da IA */
+.error-message {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.error-details summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-muted, var(--text-dim));
+}
+
+.error-details pre {
+  margin: 6px 0 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--shade);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.72rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.history-list::-webkit-scrollbar,
+.error-list::-webkit-scrollbar,
+.changelog-scroll::-webkit-scrollbar,
+.error-details pre::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.history-list::-webkit-scrollbar-thumb,
+.error-list::-webkit-scrollbar-thumb,
+.changelog-scroll::-webkit-scrollbar-thumb,
+.error-details pre::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   HISTÓRICO: aviso de versão restaurada e comparação lado a lado
+   ========================================================================== */
+
+.history-restored {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 22%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  color: var(--text);
+}
+
+.compare-panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.compare-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.compare-pane-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--shade);
+  color: var(--text-muted, var(--text-dim));
+}
+
+.compare-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 16px;
+  user-select: text;
+  -webkit-user-select: text;
+  color: var(--text);
+  background: transparent !important;
+}
+
+.compare-body *:not(a):not(code):not(pre) {
+  color: var(--text) !important;
+}
+
+.compare-body blockquote,
+.compare-body blockquote * {
+  color: var(--text-dim) !important;
+}
+
+.compare-body a {
+  pointer-events: none;
+}
+
+.diff-seg {
+  margin: 2px 0;
+  padding: 0 10px;
+  border-radius: 3px;
+}
+
+.diff-seg > :first-child {
+  margin-top: 4px;
+}
+
+.diff-seg > :last-child {
+  margin-bottom: 4px;
+}
+
+/* Trechos que só existem na versão atual (seriam removidos ao restaurar) */
+.diff-seg-removed {
+  background: color-mix(in srgb, var(--danger) 9%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+/* Trechos que só existem na versão escolhida (voltariam ao restaurar) */
+.diff-seg-added {
+  background: color-mix(in srgb, var(--success) 9%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--success) 50%, transparent);
+}
+
+.compare-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, var(--text-dim));
+}
+
+.compare-warning {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 22%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.compare-warning i {
+  margin-top: 2px;
+}
+
+.compare-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.compare-body::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   REVISÃO DAS ALTERAÇÕES DA IA — dois painéis iguais (fundo do editor)
+   ========================================================================== */
+
+.ai-review-pane {
+  background: var(--bg-editor);
+}
+
+.ai-review-old {
+  padding: 14px 18px;
+  font-family: inherit;
+  font-size: inherit;
+  overflow: auto;
+  background: var(--bg-editor) !important;
+  color: var(--text);
+  user-select: text;
+}
+
+.ai-review-old *:not(a):not(code):not(pre) {
+  color: var(--text) !important;
+}
+
+.ai-review-new-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-editor);
+}
+
+.ai-review-new-host .ai-review-new {
+  flex: 1;
+  min-height: 0;
+}
+
+.ai-review-new-host .toastui-editor-defaultUI,
+.ai-review-new-host .toastui-editor-main,
+.ai-review-new-host .toastui-editor-ww-container,
+.ai-review-new-host .toastui-editor-contents {
+  background-color: var(--bg-editor) !important;
+  color: var(--text) !important;
+}
+
+.ai-review-old .diff-removed {
+  background: color-mix(in srgb, var(--danger) 11%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--danger) 55%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.ai-review-new-host .diff-added {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--success) 60%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.modal-input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: var(--surface-sunken);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.modal-field {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
 }

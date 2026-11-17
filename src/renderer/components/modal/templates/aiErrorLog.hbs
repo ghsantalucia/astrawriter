@@ -1,0 +1,31 @@
+<div class="ai-error-log">
+  <p class="history-desc">
+    Erros retornados pela IA, do mais recente para o mais antigo. O arquivo é
+    limitado em tamanho: os registros mais antigos são descartados
+    automaticamente.
+  </p>
+
+  {{#if entries.length}}
+    <ul class="error-list">
+      {{#each entries}}
+        <li class="error-item">
+          <div class="history-row">
+            <span class="log-tag log-tag-error">{{#if status}}{{status}}{{else}}erro{{/if}}</span>
+            {{#if provider}}<span class="log-actor actor-ai">{{provider}}</span>{{/if}}
+            {{#if model}}<span class="log-actor-detail">{{model}}</span>{{/if}}
+            <span class="log-time">{{time}}</span>
+          </div>
+          <div class="error-message">{{message}}</div>
+          {{#if details}}
+            <details class="error-details">
+              <summary>Detalhes técnicos</summary>
+              <pre>{{details}}</pre>
+            </details>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="history-empty">Nenhum erro registrado. 🎉</p>
+  {{/if}}
+</div>

@@ -1,18 +1,28 @@
 <div class="ai-review">
     <p class="ai-review-hint">
-        Verde: linhas novas da IA. Cinza riscado: linhas removidas. A versão nova é editável; o que estiver nela ao
+        Verde: trechos novos da IA. Vermelho: trechos que a IA removeu. A versão nova é editável; o que estiver nela ao
         clicar em <strong>Manter versão nova</strong> será salvo.
     </p>
+    {{#if dataChanges.length}}
+    <div class="ai-review-data">
+        <strong>Dados do arquivo alterados pela IA:</strong>
+        <ul>
+            {{#each dataChanges}}
+            <li>{{label}}: <span class="ai-review-data-old">{{#if previous}}{{previous}}{{else}}(vazio){{/if}}</span> → <span class="ai-review-data-new">{{value}}</span></li>
+            {{/each}}
+        </ul>
+    </div>
+    {{/if}}
     <div class="ai-review-panes">
         <section class="ai-review-pane">
-            <header class="ai-review-pane-title">Versão atual</header>
-            <div class="ai-review-old">
-                {{#each oldLines}}<div class="diff-line{{#if deleted}} diff-deleted{{/if}}">{{text}}</div>{{/each}}
-            </div>
+            <header class="ai-review-pane-title">Versão Antiga</header>
+            <div class="ai-review-old toastui-editor-contents" id="ai-review-old"></div>
         </section>
         <section class="ai-review-pane">
-            <header class="ai-review-pane-title">Versão da IA (editável)</header>
-            <div class="ai-review-new" id="ai-review-editor"></div>
+            <header class="ai-review-pane-title">Versão Nova (Editável)</header>
+            <div class="ai-review-new-host" id="ai-review-editor-host">
+                <div class="ai-review-new" id="ai-review-editor"></div>
+            </div>
         </section>
     </div>
 </div>
