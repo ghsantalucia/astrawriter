@@ -6,9 +6,24 @@ import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import folderNodeTpl from "./templates/folderNode.hbs?raw";
 import fileNodeTpl from "./templates/fileNode.hbs?raw";
+import { ExplorerKeyboard } from "./keyboardNav.js";
+import { tagColorIndex } from "../../../shared/tags.js";
 import { Component } from "../Component.js";
-import { normalizeItemMetadata, normalizePath } from "../../utils/helpers.js";
-import { parseMarkdown } from "../../utils/markdown.js";
+import { categoryOf } from "../../services/folderService.js";
+import { editableFields } from "../../utils/template.js";
+import {
+  canDeleteFile,
+  isChapterFolder,
+} from "../../utils/deletePermission.js";
+import {
+  normalizeItemMetadata,
+  normalizePath,
+  highlightMatch,
+  TEMPLATE_FILE_KEY,
+} from "../../utils/helpers.js";
+
+/** Pastas raiz do livro que correspondem às abas do explorer. */
+const TAB_FOLDERS = ["notes", "content", "assets"];
 
 /**
  * Representa o explorer de arquivos.
@@ -24,6 +39,12 @@ export class ExplorerComponent extends Component {
    */
   constructor(selector, context, params, parent = null) {
     super(selector, context, templateHtml, params, parent);
+
+    /**
+     * Estado do modo pesquisa (null quando inativo).
+     * @type {{term: string, matches: Map<string, Object>}|null}
+     */
+    this._search = null;
   }
 
   /**
@@ -31,6 +52,7 @@ export class ExplorerComponent extends Component {
    * @returns {void}
    */
   onInit() {
+    this.keyboard = new ExplorerKeyboard(this.element);
     this.toggleAdvancedExplorerView();
     this.tabSelectionEvents();
   }
@@ -40,10 +62,63 @@ export class ExplorerComponent extends Component {
    * @returns {void}
    */
   setupListeners() {
-    // Na seleção de livro antes de trocar definitivamente, limpa a árvore
+    this.setupDragAndDrop();
+
+    // Na seleção de livro antes de trocar definitivamente, limpa a árvore e encerra a pesquisa
     this.uiBus.on("book:selected", async () => {
       this._treeReady = false;
-      this.element.querySelector("#file-tree").innetHtml = "";
+      this.element.querySelector("#file-tree").innerHTML = "";
+      this.resetSearch();
+    });
+
+    // Nenhum livro selecionado: explorer vazio
+    this.uiBus.on("book:cleared", () => {
+      this._treeReady = false;
+      this.element.querySelector("#file-tree").innerHTML = "";
+      this.resetSearch();
+    });
+
+    // Árvore de arquivos atualizada (ex.: novo capítulo ou ficha): redesenha mantendo a pesquisa ativa
+    this.uiBus.on("tree:updated", async () => {
+      await this.renderTree();
+      this._treeReady = true;
+      this.markActiveFile();
+
+      const term = this.getSearchInput()?.value.trim();
+      if (term) this.uiBus.emit("search:changed", { value: term });
+    });
+
+    // Botão da mini toolbar: abre todas as pastas da aba (ou fecha todas, se já estiverem abertas)
+    this.uiBus.on("folders:toggle-all", () => this.toggleAllFolders());
+
+    // Digitação na barra de pesquisa: apenas ajusta o botão de limpar (a busca é feita pelo controller)
+    this.uiBus.on("search:changed", (payload) => {
+      this.toggleSearchClearButton(Boolean(payload?.value?.trim()));
+    });
+
+    // Botão X: limpa o campo (o controller encerra o modo pesquisa)
+    this.uiBus.on("search:clear", () => {
+      const input = this.getSearchInput();
+      if (input) input.value = "";
+      this.toggleSearchClearButton(false);
+      input?.focus();
+    });
+
+    // Resultados da pesquisa: filtra a árvore (ignora respostas de termos já substituídos)
+    this.uiBus.on("search:results", async ({ term, results }) => {
+      if (this.getSearchInput()?.value.trim() !== term) return;
+      await this.applySearch(term, results);
+    });
+
+    // A IA (ou outro fluxo) alterou o modo avançado: sincroniza o botão e a árvore
+    this.uiBus.on("explorer:advanced-changed", () => {
+      this.syncAdvancedModeView();
+      if (this._search) this.rerenderSearch();
+    });
+
+    // Pesquisa encerrada: volta ao estado padrão do explorer
+    this.uiBus.on("search:cleared", async () => {
+      await this.exitSearch();
     });
 
     // Ouve alterações no livro atual para re-renderizar a árvore
@@ -67,6 +142,7 @@ export class ExplorerComponent extends Component {
 
     // Ouve quando o arquivo atual muda para sincronizar a seleção visual na árvore
     this.uiBus.on("file:opened", (payload) => {
+      this._activePath = normalizePath(payload.fullPath || "");
       if (!this._treeReady) {
         this._autoOpenFile = payload.relativePath;
       } else {
@@ -115,6 +191,8 @@ export class ExplorerComponent extends Component {
         } else {
           container.classList.remove("show-advanced");
         }
+        // Na pesquisa, itens avançados só entram nos resultados com o modo avançado ligado
+        if (this._search) this.rerenderSearch();
       };
 
       modeToggle.checked = false;
@@ -128,38 +206,40 @@ export class ExplorerComponent extends Component {
    * @returns {void}
    */
   tabSelectionEvents() {
-    const fileTreeContainer = this.element.querySelector("#file-tree");
-
     this.element.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        this.element
-          .querySelectorAll(".tab-btn")
-          .forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        if (fileTreeContainer) {
-          fileTreeContainer.classList.remove(
-            "active-tab-notes",
-            "active-tab-content",
-            "active-tab-assets",
-          );
-
-          const folder = btn.getAttribute("folder");
-          if (folder === "content") {
-            fileTreeContainer.classList.add("active-tab-content");
-          } else if (folder === "assets") {
-            fileTreeContainer.classList.add("active-tab-assets");
-          } else if (folder === "notes") {
-            fileTreeContainer.classList.add("active-tab-notes");
-          }
-        }
+        this.activateTab(btn.getAttribute("folder"));
       });
     });
 
-    const defaultTab = this.element.querySelector('.tab-btn[folder="content"]');
-    if (defaultTab) {
-      defaultTab.click();
+    this.activateTab("content");
+  }
+
+  /**
+   * Ativa uma aba: marca o botão, mostra a pasta raiz correspondente na árvore e atualiza a barra de ações
+   * e a mensagem de "sem resultados" da pesquisa.
+   * @param {"notes"|"content"|"assets"} folder - Pasta raiz da aba.
+   * @returns {void}
+   */
+  activateTab(folder) {
+    if (!TAB_FOLDERS.includes(folder)) return;
+
+    this.element.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("folder") === folder);
+    });
+
+    const fileTreeContainer = this.element.querySelector("#file-tree");
+    if (fileTreeContainer) {
+      TAB_FOLDERS.forEach((name) =>
+        fileTreeContainer.classList.remove(`active-tab-${name}`),
+      );
+      fileTreeContainer.classList.add(`active-tab-${folder}`);
     }
+
+    // Permite ao CSS exibir apenas o botão de criar da aba atual
+    this.element.dataset.activeTab = folder;
+    this.keyboard?.reset();
+    this.refreshSearchUi();
   }
 
   /**
@@ -216,6 +296,153 @@ export class ExplorerComponent extends Component {
     const ul = this.buildTree(bookTree, folderName);
     ul.className = "main-ul";
     container.appendChild(ul);
+
+    this.markActiveFile();
+    this.refreshSearchUi();
+  }
+
+  // ========== Pesquisa ========== //
+
+  /**
+   * Retorna o campo de texto da pesquisa.
+   * @returns {HTMLInputElement|null}
+   */
+  getSearchInput() {
+    return this.element.querySelector("#explorer-search-input");
+  }
+
+  /**
+   * Indica se o modo "Arquivos Avançados" está ligado.
+   * @returns {boolean}
+   */
+  isAdvancedModeOn() {
+    return Boolean(this.element.querySelector("#mode-toggle")?.checked);
+  }
+
+  /**
+   * Exibe ou oculta o botão X da barra de pesquisa.
+   * @param {boolean} visible - Se o botão deve aparecer.
+   * @returns {void}
+   */
+  toggleSearchClearButton(visible) {
+    const button = this.element.querySelector("#explorer-search-clear");
+    if (button) button.hidden = !visible;
+  }
+
+  /**
+   * Entra (ou atualiza) o modo pesquisa: guarda os resultados e redesenha a árvore filtrada.
+   * @param {string} term - Termo pesquisado.
+   * @param {Array<{path: string, matchType: string, snippet: string}>} results - Resultados da busca.
+   * @returns {Promise<void>}
+   */
+  async applySearch(term, results) {
+    this._search = {
+      term,
+      results,
+      // `rank` = posição na lista ordenada pelo processo principal (mais termos > ordem dos termos > alfabética)
+      matches: new Map(
+        results.map((result, rank) => [
+          normalizePath(result.path).toLowerCase(),
+          { ...result, rank },
+        ]),
+      ),
+    };
+    await this.renderTree();
+  }
+
+  /**
+   * Abre todas as pastas da aba atual; se todas já estiverem abertas, fecha todas. Cada pasta é alternada pelo próprio
+   * clique (assim o estado também é salvo no `config.json` do livro).
+   * @returns {void}
+   */
+  toggleAllFolders() {
+    const tab = this.element.dataset.activeTab;
+    const folders = [
+      ...this.element.querySelectorAll(
+        `#file-tree li.folder-root.${tab}-folder li.folder`,
+      ),
+    ];
+    if (folders.length === 0) return;
+
+    const openAll = folders.some((li) => li.classList.contains("collapsed"));
+    folders
+      .filter((li) => li.classList.contains("collapsed") === openAll)
+      .forEach((li) => li.querySelector(":scope > .folder-name")?.click());
+  }
+
+  /**
+   * Redesenha a pesquisa atual (ex.: quando o modo avançado é alternado).
+   * @returns {void}
+   */
+  rerenderSearch() {
+    if (this._search) this.renderTree();
+  }
+
+  /**
+   * Sai do modo pesquisa e restaura a árvore no estado padrão (pastas abertas conforme o config.json).
+   * @returns {Promise<void>}
+   */
+  async exitSearch() {
+    if (!this._search) {
+      this.refreshSearchUi();
+      return;
+    }
+    this._search = null;
+    await this.renderTree();
+  }
+
+  /**
+   * Zera a pesquisa sem redesenhar (usado ao trocar de livro, quando a árvore será recriada).
+   * @returns {void}
+   */
+  resetSearch() {
+    this._search = null;
+    const input = this.getSearchInput();
+    if (input) input.value = "";
+    this.toggleSearchClearButton(false);
+    this.refreshSearchUi();
+  }
+
+  /**
+   * Atualiza os indicadores da pesquisa: bolinhas com a quantidade de matches em cada aba
+   * (removidas fora da pesquisa ou quando a aba não tem matches) e a mensagem de "sem resultados".
+   * @returns {void}
+   */
+  refreshSearchUi() {
+    const counts = { notes: 0, content: 0, assets: 0 };
+
+    if (this._search) {
+      TAB_FOLDERS.forEach((folder) => {
+        counts[folder] = this.element.querySelectorAll(
+          `#file-tree li.folder-root.${folder}-folder li:not(.folder) > .file-name`,
+        ).length;
+      });
+    }
+
+    this.element.querySelectorAll(".tab-badge").forEach((badge) => {
+      const count = counts[badge.dataset.badge] || 0;
+      badge.textContent = count > 99 ? "99+" : count > 0 ? String(count) : "";
+      badge.hidden = !this._search || count === 0;
+    });
+
+    const activeTab = this.element.dataset.activeTab;
+    const empty = this.element.querySelector("#search-empty");
+    if (empty) empty.hidden = !(this._search && counts[activeTab] === 0);
+  }
+
+  /**
+   * Marca como ativo, na árvore, o arquivo aberto no editor (sem abrir pastas nem trocar de aba).
+   * @returns {void}
+   */
+  markActiveFile() {
+    if (!this._activePath) return;
+
+    this.element.querySelectorAll(".file-name").forEach((span) => {
+      const isActive =
+        normalizePath(span.dataset.absolutePath || "").toLowerCase() ===
+        this._activePath.toLowerCase();
+      span.classList.toggle("active", isActive);
+    });
   }
 
   /**
@@ -255,6 +482,9 @@ export class ExplorerComponent extends Component {
         if (fileData.path && fileData.path.toLowerCase().endsWith(".json"))
           continue;
 
+        // O modelo (template.md) da pasta nunca aparece como arquivo
+        if (fileKey === TEMPLATE_FILE_KEY) continue;
+
         const relativePath = currentPath
           ? `${currentPath}/${fileKey}.md`
           : `${fileKey}.md`;
@@ -269,16 +499,40 @@ export class ExplorerComponent extends Component {
     }
 
     const compareByTitle = (a, b) => {
-      const titleA = a.querySelector("span")?.innerText || "";
-      const titleB = b.querySelector("span")?.innerText || "";
+      const titleA =
+        a.querySelector(".file-title, .folder-title")?.textContent || "";
+      const titleB =
+        b.querySelector(".file-title, .folder-title")?.textContent || "";
       return titleA.localeCompare(titleB, undefined, {
         numeric: true,
         sensitivity: "base",
       });
     };
 
-    folderNodes.sort(compareByTitle);
-    fileNodes.sort(compareByTitle);
+    // Na pesquisa: arquivos na ordem de relevância (mais termos > ordem dos termos > alfabética) e as pastas
+    // pela melhor posição entre seus arquivos
+    const rankOf = (el) =>
+      el.dataset.rank !== undefined
+        ? Number(el.dataset.rank)
+        : Math.min(
+            Infinity,
+            ...[...el.querySelectorAll("li[data-rank]")].map((f) =>
+              Number(f.dataset.rank),
+            ),
+          );
+    const byRank = (a, b) => {
+      const ra = rankOf(a);
+      const rb = rankOf(b);
+      return ra === rb ? compareByTitle(a, b) : ra - rb;
+    };
+
+    if (this._search) {
+      folderNodes.sort(byRank);
+      fileNodes.sort(byRank);
+    } else {
+      folderNodes.sort(compareByTitle);
+      fileNodes.sort(compareByTitle);
+    }
 
     [...folderNodes, ...fileNodes].forEach((nodeEl) => ul.appendChild(nodeEl));
 
@@ -308,6 +562,9 @@ export class ExplorerComponent extends Component {
       meta.advanced = true;
     }
 
+    // Na pesquisa, pastas avançadas só aparecem com o modo avançado ligado
+    if (this._search && meta.advanced && !this.isAdvancedModeOn()) return null;
+
     let rootClass = "";
     if (!parentMeta) {
       if (folderName.includes("content")) rootClass = "content-folder";
@@ -333,17 +590,85 @@ export class ExplorerComponent extends Component {
       }
     }
 
+    // Na pesquisa todas as pastas ficam abertas (e sem persistir o estado no config.json)
+    const searchMode = Boolean(this._search);
+    if (searchMode) isOpen = true;
+
+    // Pastas com template.md aceitam novas fichas: exibem o botão "+" (caminho relativo ao livro)
+    const bookRel = relativePath.split("/").slice(1).join("/");
+    const isUserFolderNode = meta.userRename === true;
+    const hasTemplate = Boolean(folderNode.files?.[TEMPLATE_FILE_KEY]);
+    const createFolder =
+      !searchMode &&
+      meta.humanWrite &&
+      (hasTemplate ||
+        (isUserFolderNode &&
+          /^assets\/(characters|places|elements)\//.test(bookRel)))
+        ? bookRel
+        : "";
+    // Pastas do usuário em Anotações: nova anotação direto na pasta
+    const createNoteFolder =
+      !searchMode &&
+      meta.humanWrite &&
+      isUserFolderNode &&
+      /^notes\//.test(bookRel)
+        ? bookRel
+        : "";
+
+    // Pastas de capítulo ganham o botão de excluir (apaga a pasta inteira e renumera os seguintes)
+    const bookRelative = relativePath.split("/").slice(1).join("/");
+    const chapterFolder =
+      !searchMode && isChapterFolder(bookRelative)
+        ? bookRelative.split("/").pop()
+        : "";
+
     const htmlString = this.compile(folderNodeTpl, {
       meta,
       relativePath,
       parentMeta,
       rootClass,
       isOpen,
+      searchMode,
+      createFolder,
+      createNoteFolder,
+      chapterFolder,
+      // Pastas do usuário: renomear, excluir e criar subpastas (ícone próprio de pasta do usuário)
+      isUserFolder: meta.userRename === true,
+      canRename: !searchMode && meta.userRename === true,
+      canDeleteFolder: !searchMode && meta.userDelete === true,
+      canCreateFolder:
+        !searchMode &&
+        (meta.userRename === true ||
+          /^assets\/(characters|places|elements)$/.test(bookRelative)) &&
+        categoryOf(bookRelative) !== null,
+      bookRelative,
+      title: meta.title,
     });
     const li = this.createDOMElement(htmlString);
+    li.dataset.dropFolder = bookRelative;
 
     const span = li.querySelector(".folder-name");
+
+    // Pastas do usuário também podem ser arrastadas para dentro de outras (mesma categoria)
+    if (!searchMode && meta.userRename === true) {
+      span.draggable = true;
+      span.dataset.draggable = "true";
+      span.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", bookRelative);
+        e.dataTransfer.effectAllowed = "move";
+        this._dragFolder = bookRelative;
+        li.classList.add("dragging");
+      });
+      span.addEventListener("dragend", () => {
+        this._dragFolder = null;
+        li.classList.remove("dragging");
+        this.clearDropTargets();
+      });
+    }
+
     span.onclick = (e) => {
+      // O botão "+" não deve abrir/fechar a pasta
+      if (e.target.closest(".folder-add-btn")) return;
       li.classList.toggle("collapsed");
 
       const folderIcon = span.querySelector(".icon-folder");
@@ -360,9 +685,73 @@ export class ExplorerComponent extends Component {
 
     // Constrói a sub-lista recursivamente passando o sub-nó correspondente
     const subUl = this.buildTree(folderNode, relativePath, meta);
+
+    // Na pesquisa, pastas sem nenhum arquivo com match são omitidas
+    if (searchMode && subUl.children.length === 0) return null;
+
     li.appendChild(subUl);
 
     return li;
+  }
+
+  /**
+   * Remove o realce das pastas-alvo do arrastar e soltar.
+   * @returns {void}
+   * @private
+   */
+  clearDropTargets() {
+    this.element
+      ?.querySelectorAll(".drop-target")
+      .forEach((el) => el.classList.remove("drop-target"));
+  }
+
+  /**
+   * Liga o soltar de arquivos sobre pastas (e sobre o fundo da árvore, que equivale à raiz de Anotações). A regra de
+   * quais movimentos valem é do FolderService; aqui só se identifica o alvo.
+   * @returns {void}
+   * @private
+   */
+  setupDragAndDrop() {
+    const tree = this.element.querySelector("#file-tree");
+    if (!tree) return;
+
+    const targetOf = (e) => {
+      const folder = e.target.closest("li.folder");
+      if (folder) return { el: folder, dest: folder.dataset.dropFolder };
+      return this.element.dataset.activeTab === "notes"
+        ? { el: tree, dest: "notes" }
+        : null;
+    };
+
+    // Pasta arrastada: não aceita soltar sobre si mesma nem sobre as suas subpastas
+    const invalidForFolder = (dest) =>
+      this._dragFolder &&
+      (dest === this._dragFolder || dest.startsWith(`${this._dragFolder}/`));
+
+    tree.addEventListener("dragover", (e) => {
+      if (!this._dragFile && !this._dragFolder) return;
+      const target = targetOf(e);
+      if (!target || invalidForFolder(target.dest)) return;
+      e.preventDefault();
+      this.clearDropTargets();
+      target.el.classList.add("drop-target");
+    });
+    tree.addEventListener("dragleave", (e) => {
+      if (!tree.contains(e.relatedTarget)) this.clearDropTargets();
+    });
+    tree.addEventListener("drop", (e) => {
+      if (!this._dragFile && !this._dragFolder) return;
+      e.preventDefault();
+      const file = this._dragFile;
+      const folder = this._dragFolder;
+      const target = targetOf(e);
+      this.clearDropTargets();
+      this._dragFile = null;
+      this._dragFolder = null;
+      if (!target || (folder && invalidForFolder(target.dest))) return;
+      if (folder) this.uiBus.emit("folder:move", { folder, dest: target.dest });
+      else this.uiBus.emit("file:move", { file, dest: target.dest });
+    });
   }
 
   /**
@@ -393,15 +782,73 @@ export class ExplorerComponent extends Component {
     let absolutePath = normalizePath(fileData.originalPath);
     relativePath = normalizePath(relativePath);
 
+    // Na pesquisa, só entram arquivos com match (itens avançados apenas com o modo avançado ligado)
+    let match = null;
+    if (this._search) {
+      match = this._search.matches.get(absolutePath.toLowerCase());
+      if (!match || (isAdvanced && !this.isAdvancedModeOn())) return null;
+    }
+
+    const fileRel = relativePath.split("/").slice(1).join("/");
     const htmlString = this.compile(fileNodeTpl, {
+      canEditData:
+        !this._search &&
+        meta.humanWrite === true &&
+        editableFields(meta, { title: fileRel.startsWith("notes/") }).length >
+          0,
       absolutePath,
       relativePath,
       meta,
       isAdvanced,
       isReadonly,
       isTemp,
+      // Botão de excluir (só aparece ao passar o mouse) para arquivos que o usuário pode excluir
+      canDelete:
+        !this._search &&
+        canDeleteFile(meta, relativePath.split("/").slice(1).join("/"), "user"),
+      titleHtml:
+        match?.matchType === "title"
+          ? highlightMatch(meta.title, this._search.term)
+          : "",
+      snippet:
+        match?.matchType === "content" && match.snippet
+          ? highlightMatch(match.snippet, this._search.term)
+          : "",
+      // Busca por "#tag": as tags encontradas aparecem onde ficaria o trecho do texto
+      tagChips:
+        match?.matchType === "tag"
+          ? (match.tags || []).map((tag) => ({
+              tag,
+              colorClass: `tag-c${tagColorIndex(tag)}`,
+            }))
+          : [],
     });
     const li = this.createDOMElement(htmlString);
+    if (match) {
+      li.dataset.matchType = match.matchType;
+      li.dataset.rank = String(match.rank);
+    }
+
+    // Arrastar e soltar: só arquivos de Anotações e das categorias do Mundo (nunca índices, modelos ou escrita)
+    if (
+      !this._search &&
+      categoryOf(fileRel) !== null &&
+      !/\/(index|template)\.md$/i.test(`/${fileRel}`)
+    ) {
+      li.draggable = true;
+      li.dataset.draggable = "true";
+      li.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", absolutePath);
+        e.dataTransfer.effectAllowed = "move";
+        this._dragFile = absolutePath;
+        li.classList.add("dragging");
+      });
+      li.addEventListener("dragend", () => {
+        this._dragFile = null;
+        li.classList.remove("dragging");
+        this.clearDropTargets();
+      });
+    }
 
     const span = li.querySelector(".file-name");
     span.onclick = (e) => {
@@ -473,20 +920,7 @@ export class ExplorerComponent extends Component {
       );
 
       if (tabBtn) {
-        this.element
-          .querySelectorAll(".tab-btn")
-          .forEach((b) => b.classList.remove("active"));
-        tabBtn.classList.add("active");
-
-        const fileTreeContainer = this.element.querySelector("#file-tree");
-        if (fileTreeContainer) {
-          fileTreeContainer.classList.remove(
-            "active-tab-notes",
-            "active-tab-content",
-            "active-tab-assets",
-          );
-          fileTreeContainer.classList.add(`active-tab-${rootFolder}`);
-        }
+        this.activateTab(rootFolder);
       } else {
         console.warn(
           "[ExplorerDebug] AVISO: Nenhuma tab-btn encontrada com folder=",

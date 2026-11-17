@@ -3,29 +3,109 @@
   <button class="tab-btn" folder="notes">
     <i class="fa-regular fa-bookmark"></i>
     <span>Anotações</span>
+    <span class="tab-badge" data-badge="notes" hidden></span>
   </button>
   <button class="tab-btn active" folder="content">
     <i class="fa-regular fa-pen-to-square"></i>
     <span>Escrita</span>
+    <span class="tab-badge" data-badge="content" hidden></span>
   </button>
   <button class="tab-btn" folder="assets">
     <i class="fa-regular fa-compass"></i>
     <span>Mundo</span>
+    <span class="tab-badge" data-badge="assets" hidden></span>
   </button>
 </nav>
 
-<!-- Switch de Arquivos Avançados -->
-<div class="sidebar-controls">
-  <span>Arquivos Avançados</span>
-  <label class="switch">
+<!-- Barra de pesquisa (título e conteúdo dos arquivos) -->
+<div class="explorer-search">
+  <i class="fa-solid fa-magnifying-glass explorer-search-icon"></i>
+  <input
+    type="text"
+    id="explorer-search-input"
+    class="explorer-search-input"
+    placeholder="Título, texto ou #tag (vírgula separa termos)"
+    autocomplete="off"
+    spellcheck="false"
+    event-input="search:changed"
+  />
+  <button
+    type="button"
+    id="explorer-search-clear"
+    class="explorer-search-clear"
+    title="Limpar pesquisa"
+    event-click="search:clear"
+    hidden
+  >
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+</div>
+
+<!-- Mini toolbar: criar (capítulo/anotação) e alternar arquivos avançados -->
+<div
+  class="explorer-toolbar"
+  role="toolbar"
+  aria-label="Ferramentas do explorer"
+>
+  <label
+    class="mini-btn mini-toggle"
+    data-tooltip="Arquivos avançados"
+    aria-label="Arquivos avançados"
+  >
     <input
       type="checkbox"
       id="mode-toggle"
-      checked="false"
       event-click="advanced-mode:toggle"
     />
-    <span class="slider"></span>
+    <i class="fa-regular fa-eye-slash mini-off"></i>
+    <i class="fa-regular fa-eye mini-on"></i>
   </label>
+  <button
+    type="button"
+    class="mini-btn"
+    data-tooltip="Abrir ou fechar todas as pastas"
+    aria-label="Abrir ou fechar todas as pastas"
+    event-click="folders:toggle-all"
+  >
+    <i class="fa-solid fa-folder-tree"></i>
+  </button>
+  <button
+    type="button"
+    class="mini-btn"
+    data-tab="content"
+    data-tooltip="Novo capítulo"
+    aria-label="Novo capítulo"
+    event-click="chapter:create"
+  >
+    <i class="fa-solid fa-file-circle-plus"></i>
+  </button>
+  <button
+    type="button"
+    class="mini-btn"
+    data-tab="notes"
+    data-tooltip="Nova pasta"
+    aria-label="Nova pasta"
+    event-click="folder:create"
+    data-parent="notes"
+  >
+    <i class="fa-solid fa-folder-plus"></i>
+  </button>
+  <button
+    type="button"
+    class="mini-btn"
+    data-tab="notes"
+    data-tooltip="Nova anotação"
+    aria-label="Nova anotação"
+    event-click="note:create"
+  >
+    <i class="fa-solid fa-file-circle-plus"></i>
+  </button>
+</div>
+
+<!-- Mensagem exibida quando a pesquisa não encontra nada na aba atual -->
+<div id="search-empty" class="search-empty" hidden>
+  <i class="fa-regular fa-face-frown"></i>
+  <span>Sem resultados para a pesquisa</span>
 </div>
 
 <!-- Conteúdo da Árvore de Arquivos -->

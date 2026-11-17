@@ -10,9 +10,38 @@
     event-click="editor:open-file"
   >
     <i class="fa-regular fa-file-lines notes-icon icon-file"></i>
-    <span class="file-title-wrapper">
-      <span class="file-title">{{meta.title}}</span>
-      {{#if isTemp}}<span class="dirty-asterisk">*</span>{{/if}}
+    <span class="file-text">
+      <span class="file-title-wrapper">
+        <span class="file-title">{{#if titleHtml}}{{{titleHtml}}}{{else}}{{meta.title}}{{/if}}</span>
+        {{#if isTemp}}<span class="dirty-asterisk">*</span>{{/if}}
+        {{#if isReadonly}}<i class="fa-solid fa-lock file-lock" title="Somente leitura: este arquivo não pode ser editado"></i>{{/if}}
+      </span>
+      {{#if snippet}}<span class="file-snippet">{{{snippet}}}</span>{{/if}}
+      {{#if tagChips.length}}<span class="file-tags">{{#each tagChips}}<span class="tag-chip {{colorClass}}">{{tag}}</span>{{/each}}</span>{{/if}}
     </span>
   </span>
+  {{#if canEditData}}
+  <button
+    type="button"
+    class="item-edit-btn{{#unless canDelete}} no-delete{{/unless}}"
+    title="Editar dados do arquivo (nome e variáveis)"
+    aria-label="Editar dados de {{meta.title}}"
+    event-click="file-data:edit"
+    data-path="{{absolutePath}}"
+  >
+    <i class="fa-solid fa-pen"></i>
+  </button>
+  {{/if}}
+  {{#if canDelete}}
+  <button
+    type="button"
+    class="item-delete-btn"
+    title="Excluir"
+    aria-label="Excluir {{meta.title}}"
+    event-click="file:delete"
+    data-path="{{absolutePath}}"
+  >
+    <i class="fa-regular fa-trash-can"></i>
+  </button>
+  {{/if}}
 </li>
