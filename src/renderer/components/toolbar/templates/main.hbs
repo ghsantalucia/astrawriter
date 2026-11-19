@@ -1,8 +1,19 @@
 <!-- Guias dos arquivos (hoje só há uma; preparada para várias no futuro) -->
 <div class="file-tabs" role="tablist" id="file-tabs">
-  <div class="file-tab hidden" id="file-tab" role="tab" aria-selected="true" tabindex="0" event-click="tab:activate">
+  <div
+    class="file-tab hidden"
+    id="file-tab"
+    role="tab"
+    aria-selected="true"
+    tabindex="0"
+    event-click="tab:activate"
+  >
     <span class="file-tab-name" id="file-tab-name"></span>
-    <span class="file-tab-dirty hidden" id="file-tab-dirty" title="Rascunho não sincronizado">*</span>
+    <span
+      class="file-tab-dirty hidden"
+      id="file-tab-dirty"
+      title="Rascunho não sincronizado"
+    >*</span>
     <button
       type="button"
       class="file-tab-edit"
@@ -14,73 +25,171 @@
       <i class="fa-solid fa-pen"></i>
     </button>
   </div>
-</div>
-<div class="toolbar-actions">
-<button
-  id="btn-autolink"
-  class="btn-toolbar-icon"
-  event-click="autolink:run"
-  title="Cria links automáticos para os nomes e apelidos de fichas do livro encontrados neste texto"
-  disabled
->
-  <span class="icon-link-stars" aria-hidden="true">
-    <i class="fa-solid fa-link"></i>
-    <svg class="icon-ai-star" viewBox="0 0 24 24" focusable="false">
-      <path d="M12 0C12.6 7.2 16.8 11.4 24 12 16.8 12.6 12.6 16.8 12 24 11.4 16.8 7.2 12.6 0 12 7.2 11.4 11.4 7.2 12 0Z" />
-    </svg>
-  </span>
-  <span>Auto-link</span>
-</button>
-<button
-  id="btn-history"
-  class="btn-toolbar-icon"
-  event-click="history:open-modal"
-  title="Histórico de versões do arquivo"
-  disabled
->
-  <i class="fa-solid fa-clock-rotate-left"></i>
-  <span>Histórico</span>
-</button>
-<div class="export-wrap">
-  <button
-    id="btn-export"
-    class="btn-toolbar-icon"
-    event-click="export:toggle-menu"
-    title="Exportar o arquivo aberto (Markdown, Word ou PDF)"
-    aria-haspopup="menu"
-    aria-expanded="false"
-    disabled
-  >
-    <i class="fa-solid fa-download"></i>
-    <span>Exportar</span>
-  </button>
-  <div class="export-menu hidden" id="export-menu" role="menu">
-    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="md">
-      <i class="fa-brands fa-markdown"></i>
-      <span>Markdown <small>.md</small></span>
-    </button>
-    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="docx">
-      <i class="fa-solid fa-file-word"></i>
-      <span>Word <small>.docx</small></span>
-    </button>
-    <button type="button" role="menuitem" class="export-item" event-click="export:file" data-format="pdf">
-      <i class="fa-solid fa-file-pdf"></i>
-      <span>PDF <small>.pdf</small></span>
-    </button>
+  <!-- Capítulo aberto: três guias (manuscrito, esboço e análise); a ativa mostra o nome, as outras só o ícone -->
+  <div class="chapter-tabs hidden" id="chapter-tabs" role="presentation">
+    <div
+      class="file-tab chapter-tab"
+      role="tab"
+      tabindex="0"
+      data-kind="draft"
+      data-file="2_draft.md"
+      data-name="Manuscrito"
+      title="Manuscrito — O texto do capítulo"
+      event-click="editor:open-file"
+      data-path=""
+      data-absolute-path=""
+    >
+      <i class="fa-solid fa-feather-pointed chapter-tab-icon"></i>
+      <span class="file-tab-name">Manuscrito</span>
+      <span class="file-tab-dirty hidden">*</span>
+      <button
+        type="button"
+        class="file-tab-edit chapter-tab-edit hidden"
+        event-click="file-data:toggle"
+        title="Editar os dados do arquivo (nome e variáveis)"
+        aria-label="Editar os dados do arquivo"
+      >
+        <i class="fa-solid fa-pen"></i>
+      </button>
+    </div>
+    <div
+      class="file-tab chapter-tab"
+      role="tab"
+      tabindex="0"
+      data-kind="outline"
+      data-file="1_outline.md"
+      data-name="Esboço"
+      title="Esboço — Plano do capítulo: o que escrever (serve de prompt para a IA)"
+      event-click="editor:open-file"
+      data-path=""
+      data-absolute-path=""
+    >
+      <i class="fa-solid fa-lightbulb chapter-tab-icon"></i>
+      <span class="file-tab-name">Esboço</span>
+      <span class="file-tab-dirty hidden">*</span>
+      <button
+        type="button"
+        class="file-tab-edit chapter-tab-edit hidden"
+        event-click="file-data:toggle"
+        title="Editar os dados do arquivo (nome e variáveis)"
+        aria-label="Editar os dados do arquivo"
+      >
+        <i class="fa-solid fa-pen"></i>
+      </button>
+    </div>
+    <div
+      class="file-tab chapter-tab"
+      role="tab"
+      tabindex="0"
+      data-kind="analysis"
+      data-file="3_analysis.md"
+      data-name="Análise"
+      title="Análise — Análise, planejamento e pistas, gerados depois da escrita"
+      event-click="editor:open-file"
+      data-path=""
+      data-absolute-path=""
+    >
+      <i class="fa-solid fa-magnifying-glass-chart chapter-tab-icon"></i>
+      <span class="file-tab-name">Análise</span>
+      <span class="file-tab-dirty hidden">*</span>
+      <button
+        type="button"
+        class="file-tab-edit chapter-tab-edit hidden"
+        event-click="file-data:toggle"
+        title="Editar os dados do arquivo (nome e variáveis)"
+        aria-label="Editar os dados do arquivo"
+      >
+        <i class="fa-solid fa-pen"></i>
+      </button>
+    </div>
   </div>
 </div>
-<button id="btn-save" class="btn-save-gsap" event-click="sync:open-modal">
-  <svg class="btn-border-svg">
-    <rect
-      class="btn-border-path"
-      x="1"
-      y="1"
-      width="98.5%"
-      height="93%"
-      rx="7"
-      vector-effect="non-scaling-stroke"
-    />
-  </svg>
-  <span class="btn-text">Sincronizar</span>
-</button>
+<div class="toolbar-actions">
+  <button
+    id="btn-autolink"
+    class="btn-toolbar-icon"
+    event-click="autolink:run"
+    title="Cria links automáticos para os nomes e apelidos de fichas do livro encontrados neste texto"
+    disabled
+  >
+    <span class="icon-link-stars" aria-hidden="true">
+      <i class="fa-solid fa-link"></i>
+      <svg class="icon-ai-star" viewBox="0 0 24 24" focusable="false">
+        <path
+          d="M12 0C12.6 7.2 16.8 11.4 24 12 16.8 12.6 12.6 16.8 12 24 11.4 16.8 7.2 12.6 0 12 7.2 11.4 11.4 7.2 12 0Z"
+        />
+      </svg>
+    </span>
+    <span>Auto-link</span>
+  </button>
+  <button
+    id="btn-history"
+    class="btn-toolbar-icon"
+    event-click="history:open-modal"
+    title="Histórico de versões do arquivo"
+    disabled
+  >
+    <i class="fa-solid fa-clock-rotate-left"></i>
+    <span>Histórico</span>
+  </button>
+  <div class="export-wrap">
+    <button
+      id="btn-export"
+      class="btn-toolbar-icon"
+      event-click="export:toggle-menu"
+      title="Exportar o arquivo aberto no editor"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      disabled
+    >
+      <i class="fa-solid fa-download"></i>
+      <span>Exportar</span>
+    </button>
+    <div class="export-menu hidden" id="export-menu" role="menu">
+      <button
+        type="button"
+        role="menuitem"
+        class="export-item"
+        event-click="export:file"
+        data-format="md"
+      >
+        <i class="fa-brands fa-markdown"></i>
+        <span>Markdown <small>.md</small></span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        class="export-item"
+        event-click="export:file"
+        data-format="docx"
+      >
+        <i class="fa-solid fa-file-word"></i>
+        <span>Word <small>.docx</small></span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        class="export-item"
+        event-click="export:file"
+        data-format="pdf"
+      >
+        <i class="fa-solid fa-file-pdf"></i>
+        <span>PDF <small>.pdf</small></span>
+      </button>
+    </div>
+  </div>
+  <button id="btn-save" class="btn-save-gsap" event-click="sync:open-modal">
+    <svg class="btn-border-svg">
+      <rect
+        class="btn-border-path"
+        x="1"
+        y="1"
+        width="98.5%"
+        height="93%"
+        rx="3"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
+    <span class="btn-text">Sincronizar</span>
+  </button>
 </div>

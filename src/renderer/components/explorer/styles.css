@@ -742,3 +742,25 @@ li:not(.folder).kb-focus > .item-edit-btn {
   background: color-mix(in srgb, var(--danger) 16%, transparent);
   outline-color: color-mix(in srgb, var(--danger) 50%, transparent);
 }
+
+/* Botão da IA nas anotações: cadeado fechado (bloqueado) ou aberto (a IA pode escrever) */
+.mini-ai-lock .mini-unlocked {
+  display: none;
+}
+
+.mini-ai-lock.is-allowed .mini-locked {
+  display: none;
+}
+
+.mini-ai-lock.is-allowed .mini-unlocked {
+  display: inline-block;
+  color: var(--accent);
+}
+
+/* Capítulo: item único (sem pasta) com ícone próprio; o clique abre o manuscrito */
+.file-tree .icon-chapter {
+  font-size: 0.85rem;
+  margin-right: 2px;
+  display: inline-block;
+  color: var(--warning, var(--accent));
+}

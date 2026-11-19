@@ -1,6 +1,6 @@
 /**
  * @file scripts/code-map.js
- * @description Gera um mapa estruturado da pasta /src focando em arquivos .js,
+ * @description Gera um mapa estruturado da pasta /src focando em arquivos .ts,
  * capturando apenas classes e métodos reais, ignorando chamadas internas como super().
  */
 
@@ -116,7 +116,7 @@ function hasJsFiles(dirPath) {
     const itemPath = path.join(dirPath, item);
     const stats = fs.statSync(itemPath);
     if (stats.isDirectory() && hasJsFiles(itemPath)) return true;
-    if (stats.isFile() && item.endsWith('.js')) return true;
+    if (stats.isFile() && item.endsWith('.ts')) return true;
   }
   return false;
 }
@@ -128,7 +128,7 @@ function scanSourceTree(dirPath, prefix = '') {
     const itemPath = path.join(dirPath, item);
     const stats = fs.statSync(itemPath);
     if (stats.isDirectory()) return hasJsFiles(itemPath);
-    return item.endsWith('.js');
+    return item.endsWith('.ts');
   });
 
   items.items = items; // contexto interno

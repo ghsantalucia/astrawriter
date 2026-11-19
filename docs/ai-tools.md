@@ -20,6 +20,7 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `complete_creation` | `creationTools.js` | Cria o item com as respostas do autor | **Sim** (arquivos oficiais) |
 | `show_buttons` | `chatTools.js` | Anexa botões clicáveis à resposta no chat | Não |
 | `load_skill` | `skillTools.js` | Carrega as instruções de uma skill sob demanda | Não |
+| `get_tool_specs` | `toolTiers.ts` | Entrega a especificação completa de tools do sumário e as libera (só nos modos Sumário e Mais usadas) | Não |
 | `create_folder` | `structureTools.js` | Cria uma pasta em Anotações ou numa categoria do Mundo | **Sim** (pasta + `folder.yml`) |
 | `move_file` | `structureTools.js` | Move um arquivo para outra pasta da mesma categoria | **Sim** (arquivo oficial) |
 | `move_folder` | `structureTools.js` | Move uma pasta do usuário (com o conteúdo) para outra da mesma categoria | **Sim** |
@@ -35,12 +36,22 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `read_ai_error_log` | `historyTools.js` | Consulta o log de erros da IA (sem chaves de API) | Não |
 | `toggle_advanced_files` | `projectTools.js` | Mostra/oculta os arquivos avançados no explorer | `config.json` (preferência de exibição) |
 | `get_book_config` | `projectTools.js` | Lê o `config.json` de um livro | Não |
-| `list_ai_models` | `projectTools.js` | Lista provedores/modelos de IA e quais estão configurados (sem chaves) | Não |
+| `list_ai_models` | `projectTools.js` | Lista as contas de IA do autor (apelido, provedor, modelo, ativa) e o catálogo de modelos (sem chaves) | Não |
+| `register_issues` | `issueTools.js` | Registra na Central de Revisões contradições, problemas temporais, gramática e dicas | Não (só `.system/review/`) |
+| `list_issues` | `issueTools.js` | Lista as pendências da Central de Revisões (inclui as do sistema) | Não |
+| `resolve_issues` | `issueTools.js` | Marca como resolvidas pendências que a IA registrou e corrigiu | Não (só `.system/review/`) |
+| `get_timeline_suggestion` | `eventTools.js` | Ordem de eventos calculada pelo sistema (sem IA) e os problemas encontrados | Não |
+| `update_timeline` | `eventTools.js` | Escreve a linha do tempo (`assets/events/timeline.md`) na ordem informada | Rascunho `.md.temp` |
+| `get_file_digest` | `digestTools.js` | Digest (resumo, fatos, eventos) de um arquivo; muito mais barato que `read_file` | Não |
+| `search_facts` | `digestTools.js` | Fatos dos digests por entidade e/ou atributo | Não |
 
 As tools de exclusão (`delete_file`, `delete_folder`) seguem `canDeleteFile(metadata, caminho, "ai")` de
 `src/renderer/utils/deletePermission.js` (ver [Permissões](#permissões)). Qualquer tool nova que remova algo deve usar a mesma regra.
 
 ## Permissões
+
+> **Herança:** o que o arquivo ou a pasta não define (`aiRead`, `aiWrite`, `humanRead`, `humanWrite`) é herdado da pasta-mãe, depois da avó, até a raiz do livro. Em `notes/`, só o
+> `folder.yml` de `notes` define `aiWrite` (botão de cadeado do explorer).
 
 As permissões vivem no **frontmatter de cada arquivo** `.md` (o disco é a fonte da verdade; a árvore é relida a cada
 chamada). A flag do próprio arquivo é a que vale; o `folder.yml` descreve a pasta, não restringe os arquivos dela.
@@ -107,7 +118,7 @@ A IA **não** deve editar índices à mão.
 
 ## Tools de arquivos do livro (`bookTools.js`)
 
-Todos os caminhos são **relativos à raiz do livro** (ex.: `content/chapter_001/1_script.md`). Só arquivos `.md`; caminhos
+Todos os caminhos são **relativos à raiz do livro** (ex.: `content/chapter_001/2_draft.md`). Só arquivos `.md`; caminhos
 com `..` ou pastas ocultas são recusados. A IA nunca deve mostrar caminhos ao autor: ao conversar, usa o **título**.
 
 ### `list_files`
@@ -210,6 +221,29 @@ resposta normalmente.
 | `new-book` | Abre o assistente de livro | — |
 | `new-entity` | Abre o assistente de ficha | `folder` |
 
+## Quantas tools vão à IA (perfil de uso, `toolTiers.ts`)
+
+As definições das tools pesam em todo pedido (e no limite de tokens por minuto dos provedores), então o perfil de uso (Central de IA → Perfil e análises) define `toolsMode`:
+
+| Modo | Perfil | O que vai ao modelo |
+| --- | --- | --- |
+| `minimal` | Mínimo | `show_buttons` e `read_file` (respeita a permissão de leitura de cada arquivo) |
+| `summary` | Econômico | Só `show_buttons` e `get_tool_specs`; o prompt traz 1 linha por tool |
+| `popular` | Equilibrado | As tools mais usadas completas, mais o sumário das outras |
+| `all` | Completo e Ultra | Todas as tools |
+
+O modo "Apenas conversa" envia só `show_buttons`. Uma tool fora do que foi oferecido é recusada na execução.
+
+### `get_tool_specs`
+
+Devolve a descrição e os parâmetros completos de tools do sumário e **as libera**: elas passam a ser declaradas nos pedidos seguintes até o livro aberto mudar.
+
+- **Parâmetros:** `names` (array de strings, obrigatório).
+- **Retorno:** `{ liberadas: [...definições], desconhecidas: [...nomes] }`.
+- Como as APIs não guardam estado entre pedidos, o sumário e as tools liberadas vão em **todo** pedido (não só no primeiro da sessão).
+
+---
+
 ## Tool de skills (`skillTools.js`)
 
 ### `load_skill`
@@ -304,6 +338,49 @@ Fazem o que o usuário faz no explorer, com os mesmos serviços (`FolderService`
 - Sem parâmetros. Para cada provedor: `configured` (tem chave ou não precisa), `active`, `selectedModel` e `models`. **A chave de API nunca é retornada.**
 
 ---
+
+## Tools da Central de Revisões (`issueTools.js`)
+
+A Central de Revisões guarda tudo dentro do livro, em `.system/review/` (`state.json` cache da varredura, `registered.json` issues da IA, `dismissed.json` dispensados e `dictionary.json`). Um **issue** tem categoria (`links`, `spelling`, `timeline`, `contradictions`, `tips`), **tipo** (a tag: `grammar`, `synonym`, `timeline-conflict`, `fact-conflict`, `possible-conflict`, `style-tip`, `clarity-tip` podem ser registrados pela IA), severidade (`error` vermelho confirmado; `warning` amarelo possível/sugestão; dicas são sempre amarelas), arquivo, trecho exato, mensagem e, se houver, `replacement` (habilita "Corrigir").
+
+### `register_issues`
+
+- **Parâmetros:** `issues` (até 30), cada um com `type`, `file`, `message` e opcionalmente `excerpt` (trecho EXATO do arquivo), `occurrence`, `severity`, `replacement` (`""` remove o trecho) e `related` (outros arquivos/trechos, ex.: o outro lado de uma contradição).
+- Exige `aiRead` nos arquivos citados; não altera o livro. Tipos que o autor **dispensou** são recusados (a resposta diz quais). Issues já registrados ou dispensados são ignorados. Entra um registro `review` (agrupado) no changelog com o autor IA.
+
+### `list_issues`
+
+- **Parâmetros (todos opcionais):** `category`, `type`, `file`, `severity`, `limit` (padrão 40, máx. 100).
+- Devolve totais, os tipos dispensados e itens compactos (`id`, tipo, arquivo, linha, trecho, mensagem, `fix`).
+
+### `resolve_issues`
+
+- **Parâmetros:** `ids` (de `list_issues`). Remove da central os issues **registrados pela IA**; os do sistema somem sozinhos quando o texto é corrigido e sincronizado.
+
+## Tools de eventos e linha do tempo (`eventTools.js`)
+
+Eventos são fichas em `assets/events/` (criadas pelas tools de criação com `folder: "assets/events"`) com as variáveis `when` (momento, texto livre), `after` e `before` (nomes de outros eventos) e `aliases`. O sistema ordena (topológico, desempate por ano) e detecta ordem circular, momento contraditório, referência inexistente e evento sem posição.
+
+### `get_timeline_suggestion`
+
+Devolve a ordem sugerida (`path`, `title`, `when`) e os problemas. Use antes de montar a linha do tempo.
+
+### `update_timeline`
+
+- **Parâmetros:** `order` (caminhos das fichas de eventos, do mais antigo ao mais recente).
+- Requer `aiWrite` em `assets/events/timeline.md` (somente leitura para o autor) e segue o fluxo de edição (tudo sincronizado antes, rascunho, revisão).
+
+## Tools de digests (`digestTools.js`)
+
+Cada arquivo analisado tem um **digest** (arquivo-sombra) em `.system/digests/<caminho>.json`: resumo, entidades, fatos (`entity`, `attribute`, `value`, `quote`) e eventos. É criado pela análise da IA depois de sincronizar (com estimativa de tokens) e só é refeito se o arquivo mudar.
+
+### `get_file_digest`
+
+- **Parâmetros:** `path`. Exige `aiRead`. Se não houver digest, diz que não foi analisado.
+
+### `search_facts`
+
+- **Parâmetros:** `entity` e/ou `attribute` (trechos). Devolve até 60 fatos com arquivo e citação.
 
 ## Como criar uma nova tool
 

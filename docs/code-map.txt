@@ -1,14 +1,14 @@
 === MAPA DETALHADO DE CÓDIGO DA PASTA /SRC ===
 .
 ├── [main]
-│   ├── ai-error-log.js — [Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).]
+│   ├── ai-error-log.ts — [Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).]
 │   │   ├── ⚙️ clip(value) — Limita o tamanho de um texto.
 │   │   ├── ⚙️ errorLogPath(userDataDir) — Caminho do arquivo de log.
 │   │   ├── ⚙️ trim(file) — Descarta os registros mais antigos quando o arquivo ultrapassa o limite.
 │   │   ├── ⚙️ appendAiError(userDataDir, error) — Acrescenta um erro ao log.
 │   │   ├── ⚙️ readAiErrors(userDataDir) — Lê os registros do log, do mais recente para o mais antigo.
 │   │   └── ⚙️ clearAiErrors(userDataDir) — Apaga todo o log de erros.
-│   ├── book-migrations.js — [Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.]
+│   ├── book-migrations.ts — [Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.]
 │   │   ├── ⚙️ insertFrontmatterFlag(text, key, value) — Insere uma chave booleana no frontmatter (após `advanced`, `aiWrite` ou ao final), se ela ainda não existir.
 │   │   ├── ⚙️ listMarkdown(dir) — Lista (recursivamente) os arquivos .md de uma pasta, ignorando pastas ocultas.
 │   │   ├── ⚙️ ensureDeleteFlags(bookPath, { log = true } = {}) — Garante a permissão de exclusão (`userDelete`) nos arquivos estruturais de um livro (ou do template): - índices, sinopse (`content/plot.md`), linha do tempo e arquivos dos capítulos: `userDelete: false`; - modelos de ficha (`template.md`): `userDelete: true`, herdado pelas fichas criadas a partir deles.
@@ -16,8 +16,20 @@
 │   │   ├── ⚙️ ensureAliasVariable(bookPath) — Garante a variável `aliases` nas fichas existentes do livro.
 │   │   ├── ⚙️ listFolderYml(dir) — Lista (recursivamente) os arquivos folder.yml de uma pasta, ignorando pastas ocultas.
 │   │   ├── ⚙️ ensureFolderFlags(bookPath, { log = true } = {}) — Garante `userDelete: false` e `userRename: false` nos folder.yml que ainda não definem essas permissões.
+│   │   ├── ⚙️ removeAiWriteFlag(text, isYaml = false) — Remove a linha `aiWrite` do frontmatter de um arquivo (ou de um folder.yml), se existir.
+│   │   ├── ⚙️ ensureNotesInheritAiWrite(bookPath) — Migração 5: em `notes/`, só o `notes/folder.yml` define `aiWrite`; os arquivos e as subpastas herdam dele (a permissão é resolvida subindo de pasta em pasta até a raiz do livro).
+│   │   ├── ⚙️ walk(dir)
+│   │   ├── ⚙️ ensureEventsCategory(bookPath) — Migração 6: categoria de eventos (`assets/events`) e linha do tempo dentro dela. Cria a pasta com os arquivos do modelo (se faltarem), move `assets/timeline.md` (e o rascunho) para `assets/events/timeline.md` e corrige os links para ele.
+│   │   ├── ⚙️ bodyOf(text) — Corpo de um arquivo Markdown sem o frontmatter e com quebras de linha normalizadas.
+│   │   ├── ⚙️ ensureChapterLayout(bookPath) — Migração 7: cada capítulo passa a ter só três arquivos — `1_outline.md` (Esboço, antigo `1_script.md`), `2_draft.md` (Manuscrito, inalterado) e `3_analysis.md` (Análise, que reúne a antiga pasta `backlog`: análise, planejamento e foreshadowing). O conteúdo escrito pelo autor nunca é perdido: os arquivos do backlog que ainda são os do modelo são descartados; os editados viram seções da análise. Tudo é registrado no changelog (com o conteúdo, para rollback) e os links antigos são atualizados.
 │   │   └── ⚙️ migrateBook(bookPath, { pause = (task) — Migra um livro para a estrutura atual (idempotente: um livro já migrado não é alterado). pausado (no Windows, pastas observadas não podem ser renomeadas).
-│   ├── book-search.js — [Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal]
+│   ├── book-scan.ts — [Varredura incremental de um livro para a Central de Revisões: lê os arquivos Markdown (o rascunho `.md.temp`]
+│   │   ├── ⚙️ sha1(text) — Calcula o hash SHA-1 de um texto.
+│   │   ├── ⚙️ walk(dir, root, found) — Lista os arquivos Markdown do livro (ignora pastas ocultas como `.system`).
+│   │   ├── ⚙️ scanBook(bookPath, known = {}, only = null) — Varre o livro e informa quais arquivos mudaram. como não alterados.
+│   │   ├── ⚙️ sumDir(dir) — Soma arquivos e espaço em disco de uma pasta (recursivo).
+│   │   └── ⚙️ bookDiskStats(bookPath) — Estatísticas de disco de um livro: arquivos e espaço do conteúdo (sem o changelog e o chat), e o espaço que o changelog (inclui o conteúdo guardado para rollback) e os registros do chat ocupam.
+│   ├── book-search.ts — [Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal]
 │   │   ├── ⚙️ stripMarkdown(markdown) — Remove as marcações Markdown (títulos, citações, listas, negrito, itálico, código, links etc.) deixando só o texto. Usado para que o trecho exibido na busca apareça limpo, sem formatação.
 │   │   ├── ⚙️ cleanSnippet(markdown, term) — Monta o trecho limpo (sem Markdown) ao redor da primeira ocorrência do termo (busca tolerante).
 │   │   ├── ⚙️ buildSnippet(text, index, length) — Extrai um trecho curto do texto ao redor do primeiro ponto onde o termo aparece.
@@ -27,7 +39,7 @@
 │   │   ├── ⚙️ parseQuery(query) — Separa a pesquisa em termos (separados por vírgula), na ordem digitada. Termos começados por "#" pesquisam tags (várias tags no mesmo termo, separadas por espaço, precisam existir todas); os demais pesquisam título, texto e variáveis.
 │   │   ├── ⚙️ searchBook(bookPath, term) — Procura os termos em todos os arquivos Markdown do livro (título, conteúdo, variáveis e tags). Com vários termos separados por vírgula, o arquivo entra no resultado se casar com **qualquer** um deles. Resultados ordenados (título primeiro, depois o resto, ambos alfabéticos).
 │   │   └── ⚙️ walk(dir) — Percorre o diretório recursivamente, ignorando pastas ocultas (ex.: .system).
-│   ├── changelog.js — [Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em]
+│   ├── changelog.ts — [Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em]
 │   │   ├── ⚙️ enqueue(bookPath, task) — Executa uma tarefa na fila do livro, serializando as gravações. @template T
 │   │   ├── ⚙️ hashText(text) — Calcula o hash SHA-1 de um texto.
 │   │   ├── ⚙️ computeHunks(oldText, newText) — Compara dois textos linha a linha e devolve os blocos de alteração (hunks). As linhas são separadas somente por "\n" (um "\r" fica dentro da linha), então juntar de volta com "\n" reproduz o texto byte a byte.
@@ -52,20 +64,27 @@
 │   │   ├── ⚙️ previewVersion(bookPath, filePath, entryId) — Conteúdo (texto) de um arquivo em uma versão do histórico, sem alterar nada (usado na tela de comparação).
 │   │   ├── ⚙️ restoreVersion(bookPath, filePath, entryId, actor) — Restaura um arquivo para a versão registrada em um ponto do histórico. Os registros posteriores NÃO são apagados (uma ação realizada nunca deixa de constar): eles são marcados com `purged: true` e apenas o seu conteúdo guardado é apagado, pois deixam de permitir rollback. Tudo é verificado (hashes) antes de qualquer gravação; se algo não confere, nada é alterado. @throws {Error} Se o registro não existe, não é restaurável ou o arquivo foi alterado fora do sistema.
 │   │   └── ⚙️ recordAutosave(bookPath, params) — Registra um salvamento automático (rascunho). Todos os salvamentos de uma mesma sessão de edição de um arquivo atualizam o MESMO registro (data/hora, diferenças e contagem); uma nova sessão cria um novo registro. (usado só quando a sessão ainda não existe).
-│   ├── export.js — [Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do]
+│   ├── export.ts — [Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do]
 │   │   ├── ⚙️ safeName(title) — Nome de arquivo seguro a partir do título.
 │   │   ├── ⚙️ escapeHtml(text) — Escapa texto para HTML.
 │   │   ├── ⚙️ buildHtml(title, body) — Documento HTML completo, com estilo de impressão (usado no PDF e no Word).
 │   │   └── ⚙️ renderPdf(html) — Gera o PDF imprimindo o HTML em uma janela invisível (sem JavaScript).
-│   ├── file-watcher.js — [Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.]
+│   ├── file-watcher.ts — [Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.]
 │   │   ├── ⚙️ setupFileWatcher(mainWindow) — Configura e inicia o observador do sistema de arquivos para a pasta de livros.
 │   │   ├── ⚙️ startWatching() — Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
 │   │   └── ⚙️ withFileWatcherPaused(task) — Executa uma operação que renomeia ou apaga PASTAS com o observador pausado. No Windows o Chokidar mantém as pastas observadas abertas, o que impede renomeá-las (EPERM); por isso o observador é fechado durante a operação e recriado depois. Eventos ocorridos nesse intervalo não são enviados (quem pediu a operação atualiza a interface). @template T
-│   ├── ipc-handlers.js — [Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).]
+│   ├── ipc-handlers.ts — [Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).]
 │   │   ├── ⚙️ setupIpcHandlers(mainWindow) — Configura todos os ouvintes de eventos IPC do processo principal.
-│   │   └── ⚙️ buildBookTree(dir)
-│   ├── main.js — [Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.]
-│   └── spellchecker.js — [Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os]
+│   │   ├── ⚙️ withInherited(meta, inherited) — Preenche, em `meta`, as permissões que ele não define com as herdadas.
+│   │   └── ⚙️ buildBookTree(dir, inheritedFlags = {})
+│   ├── main.ts — [Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.]
+│   ├── paths.ts — [Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta]
+│   │   ├── ⚙️ appRoot() — Pasta-base do app: a do executável quando instalado, ou a raiz do projeto em desenvolvimento.
+│   │   ├── ⚙️ booksDir() — Pasta onde ficam os livros do usuário (criada, vazia, se ainda não existir).
+│   │   ├── ⚙️ ensureBooksDir() — Garante que a pasta de livros exista (a primeira execução do app instalado começa com ela vazia).
+│   │   ├── ⚙️ templatesDir() — Pasta com o modelo (template) de livro.
+│   │   └── ⚙️ iconPath() — Ícone da janela.
+│   └── spellchecker.ts — [Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os]
 │        ├── ⚙️ packageFor(language) — Pacote de dicionário para um idioma (aceita variações como "pt" ou "pt-PT").
 │        ├── ⚙️ getSpeller(language) — Carrega (uma vez) o corretor do idioma.
 │        ├── ⚙️ customFilePath() — Caminho do arquivo do dicionário personalizado.
@@ -75,12 +94,19 @@
 │        ├── ⚙️ findMisspelled(language, words) — Quais das palavras o dicionário do idioma (mais o dicionário do usuário) não reconhece.
 │        └── ⚙️ suggestWord(language, word) — Sugestões de correção para uma palavra.
 ├── [preload]
-│   └── preload.js — [Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.]
+│   └── preload.ts — [Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.]
 ├── [renderer]
 │   ├── [ai]
-│   │   ├── aiGateway.js — [Roteador dinâmico de provedores de IA.]
-│   │   ├── aiTools.js — [Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.]
-│   │   ├── apiError.js — [Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para]
+│   │   ├── aiGateway.ts — [Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.]
+│   │   │   ├── ⚙️ worthFallback(error) — Indica se o erro justifica tentar outro modelo.
+│   │   │   ├── ⚙️ accountExtras(account) — Campos extras da conta repassados ao provedor (endereço do servidor, modo de tools, contexto).
+│   │   │   ├── ⚙️ buildModelChain(state) — Cadeia de modelos a tentar: a conta ativa primeiro e, com o fallback ligado, as contas configuradas na lista (só as que têm chave, ou que não precisam dela).
+│   │   │   ├── ⚙️ callProvider(target, args) — Executa uma chamada a um provedor/modelo.
+│   │   │   ├── ⚙️ processPrompt({ prompt, history = [] }, state, toolContext) — Processa a instrução enviada direcionando para o provedor ativo (e, se ele falhar por limite ou instabilidade, para o próximo da lista de fallback). O prompt de sistema e as ferramentas são os mesmos para todos os provedores.
+│   │   │   ├── ⚙️ announceFallback(from, to, toolContext) — Avisa que o modelo de fallback respondeu no lugar do principal (aviso na tela e registro no changelog como "Sistema").
+│   │   │   └── ⚙️ askModel({ system, prompt, kind = "task" }, state) — Chamada única à IA, sem ferramentas nem histórico (usada pelas análises em segundo plano: digests e verificação de contradições). Usa o mesmo modelo ativo e o mesmo fallback do chat, entra no registro de depuração e no contador de uso.
+│   │   ├── aiTools.ts — [Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.]
+│   │   ├── apiError.ts — [Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para]
 │   │   │   ├── 📦 class AiApiError — Erro retornado por uma API de IA.
 │   │   │   │   └── ⚙️ constructor(message, info) — Método Construtor
 │   │   │   ├── ⚙️ formatDuration(ms) — Formata uma duração em português (ex.: "2 h 5 min", "45 s").
@@ -90,62 +116,118 @@
 │   │   │   ├── ⚙️ describeStatus(name, status, detail) — Mensagem legível para os status HTTP mais comuns.
 │   │   │   ├── ⚙️ collectClaudeHeaders(headers) — Reúne os cabeçalhos de limite de uso da Anthropic.
 │   │   │   └── ⚙️ parseClaudeRateLimits(headers) — Extrai os limites de uso informados pela Anthropic nos cabeçalhos de uma resposta bem-sucedida.
+│   │   ├── debugLog.ts — [Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do]
+│   │   │   ├── ⚙️ clip(value, max) — Corta um texto muito longo para o registro.
+│   │   │   ├── ⚙️ notify() — Avisa quem acompanha o registro.
+│   │   │   ├── ⚙️ startExchange({ kind, provider, model, prompt, system = "", history = [], toolsOffered = 0 }) — Registra o início de uma chamada.
+│   │   │   ├── ⚙️ recordTool(name, args, output, isError) — Registra uma tool executada durante a chamada atual.
+│   │   │   ├── ⚙️ currentToolCount() — Quantas tools já foram executadas na chamada atual.
+│   │   │   ├── ⚙️ finishExchange(exchange, { text, usage, error } = {}) — Encerra uma chamada.
+│   │   │   ├── ⚙️ listExchanges() — Chamadas registradas (as mais recentes primeiro).
+│   │   │   ├── ⚙️ clearExchanges() — Apaga o registro.
+│   │   │   ├── ⚙️ subscribeExchanges(fn) — Acompanha mudanças no registro.
+│   │   │   ├── ⚙️ listPinned() — Turnos fixados do livro atual (mais recentes primeiro).
+│   │   │   ├── ⚙️ isPinned(uid) — Indica se um turno está fixado.
+│   │   │   ├── ⚙️ loadPinned(bookPath) — Carrega do disco os turnos fixados do livro.
+│   │   │   ├── ⚙️ savePinned(bookPath) — Grava os turnos fixados no livro.
+│   │   │   ├── ⚙️ pinExchange(uid, bookPath) — Fixa (salva) um turno, para que não se perca quando passarem os 10 mais recentes.
+│   │   │   └── ⚙️ unpinExchange(uid, bookPath) — Desafixa um turno (o registro salvo é apagado).
+│   │   ├── profiles.ts — [Perfis de uso da IA (como nas configurações de gráficos de um jogo): cada perfil define um conjunto de opções que]
+│   │   │   ├── ⚙️ detectProfile(values) — Identifica o perfil cujas opções são exatamente as informadas (ou `custom`).
+│   │   │   ├── ⚙️ resolveAnalysis(saved) — Opções efetivas a partir do que está salvo em `aiSettings.analysis`: o perfil escolhido define tudo, exceto no `custom`, em que valem as opções salvas (as que faltam vêm do perfil Equilibrado). Configurações antigas (só `autoAnalyze`, `verify` e `budgetTokens`) viram um perfil personalizado equivalente ao comportamento anterior.
+│   │   │   └── ⚙️ toSaved(profile, values) — Estrutura a gravar em `aiSettings.analysis` para um perfil ou um conjunto personalizado.
 │   │   ├── [prompts]
-│   │   │   └── index.js — [Monta o prompt de sistema único, reutilizado por todos os provedores de IA.]
+│   │   │   └── index.ts — [Monta o prompt de sistema único, reutilizado por todos os provedores de IA.]
 │   │   │        └── ⚙️ buildSystemPrompt(state) — Prompt base (arquivo único) + contexto atual do app (livro, arquivo aberto e skills).
 │   │   ├── [providers]
 │   │   │   ├── [claude]
-│   │   │   │   ├── client.js — [Cliente HTTP da API da Anthropic.]
+│   │   │   │   ├── client.ts — [Cliente HTTP da API da Anthropic.]
 │   │   │   │   │   ├── ⚙️ buildHeaders(apiKey) — Cabeçalhos comuns às chamadas.
 │   │   │   │   │   ├── ⚙️ parseResponse(response, model = "") — Lê o JSON da resposta e lança um erro legível (com status e detalhes) se a API falhou. Em caso de sucesso, anexa em `_rateLimits` os limites de uso informados nos cabeçalhos. @throws {import("../../apiError.js").AiApiError}
 │   │   │   │   │   └── ⚙️ fetchModels(apiKey) — Lista os modelos disponíveis para a chave informada.
-│   │   │   │   ├── config.js — [Constantes de conexão com a Messages API da Anthropic.]
-│   │   │   │   ├── index.js — [Módulo do Provedor Claude (Anthropic).]
+│   │   │   │   ├── config.ts — [Constantes de conexão com a Messages API da Anthropic.]
+│   │   │   │   ├── index.ts — [Módulo do Provedor Claude (Anthropic).]
 │   │   │   │   │   └── ⚙️ listModels(config) — Lista os modelos disponíveis na conta (usado para atualizar o select).
-│   │   │   │   └── models.js — [Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
+│   │   │   │   └── models.ts — [Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
+│   │   │   ├── [compat]
+│   │   │   │   └── index.ts — [Provedor Compatível com OpenAI (API compatível com a OpenAI).]
 │   │   │   ├── [gemini]
-│   │   │   │   ├── client.js — [Cliente HTTP da API Gemini (generateContent).]
+│   │   │   │   ├── client.ts — [Cliente HTTP da API Gemini (generateContent).]
 │   │   │   │   │   ├── ⚙️ parseResponse(response, model = "") — Lê o JSON da resposta e lança um erro legível (com status e detalhes de cota) se a API falhou. @throws {import("../../apiError.js").AiApiError}
 │   │   │   │   │   └── ⚙️ fetchModels(apiKey) — Lista os modelos Gemini que suportam generateContent.
-│   │   │   │   ├── config.js — [Constantes de conexão com a API Gemini (Google AI).]
-│   │   │   │   ├── index.js — [Módulo do Provedor Gemini (Google).]
+│   │   │   │   ├── config.ts — [Constantes de conexão com a API Gemini (Google AI).]
+│   │   │   │   ├── index.ts — [Módulo do Provedor Gemini (Google).]
 │   │   │   │   │   └── ⚙️ listModels(config) — Lista os modelos disponíveis na conta (usado para atualizar o select).
-│   │   │   │   └── models.js — [Modelos do Gemini oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
-│   │   │   ├── index.js — [Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).]
+│   │   │   │   └── models.ts — [Modelos do Gemini oferecidos por padrão no select (a lista é atualizada pela API quando há chave).]
+│   │   │   ├── [groq]
+│   │   │   │   └── index.ts — [Provedor Groq (API compatível com a OpenAI).]
+│   │   │   ├── index.ts — [Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).]
 │   │   │   │   └── ⚙️ getProviderInfo(id)
-│   │   │   └── [mock]
-│   │   │        ├── index.js — [Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma]
-│   │   │        │   ├── ⚙️ parseCommand(prompt) — Converte o prompt em um plano: uma chamada de ferramenta ou uma resposta direta.
-│   │   │        │   ├── ⚙️ formatResults(results) — Formata o resultado das ferramentas como resposta final em Markdown.
-│   │   │        │   └── ⚙️ sendRequest({ prompt, systemPrompt = "", toolContext }) — Simula uma requisição ao provedor, executando ferramentas reais quando o comando pedir.
-│   │   │        └── models.js — [Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).]
+│   │   │   ├── [mock]
+│   │   │   │   ├── index.ts — [Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma]
+│   │   │   │   │   ├── ⚙️ parseCommand(prompt) — Converte o prompt em um plano: uma chamada de ferramenta ou uma resposta direta.
+│   │   │   │   │   ├── ⚙️ formatResults(results) — Formata o resultado das ferramentas como resposta final em Markdown.
+│   │   │   │   │   └── ⚙️ sendRequest({ prompt, systemPrompt = "", toolContext }) — Simula uma requisição ao provedor, executando ferramentas reais quando o comando pedir.
+│   │   │   │   └── models.ts — [Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).]
+│   │   │   ├── [ollama]
+│   │   │   │   └── index.ts — [Provedor Ollama (modelos locais). Usa a API nativa (`/api/chat`), que permite definir o tamanho do contexto —]
+│   │   │   │        ├── ⚙️ run({ simulated, prompt, history, config, systemPrompt, tools, toolContext }) — Uma passada completa no modo nativo ou simulado.
+│   │   │   │        ├── ⚙️ sendRequest(args) — Envia o prompt ao modelo local, com tool calling nativo ou simulado.
+│   │   │   │        └── ⚙️ listModels(config) — Lista os modelos instalados no Ollama.
+│   │   │   ├── [openai]
+│   │   │   │   └── index.ts — [Provedor ChatGPT (OpenAI) (API compatível com a OpenAI).]
+│   │   │   ├── openaiCompat.ts — [Cliente e provedor genéricos para APIs compatíveis com a OpenAI (`/chat/completions`): ChatGPT, Groq, Puter, LM]
+│   │   │   │   ├── ⚙️ requestJson({ provider, label, url, body, apiKey, model = "" }) — Faz uma chamada HTTP e converte falhas (rede, status) em {@link AiApiError} legíveis.
+│   │   │   │   ├── ⚙️ createCompatProvider({ id, label, baseUrl: defaultUrl }) — Cria o provedor (`sendRequest` e `listModels`) para um serviço compatível com a OpenAI.
+│   │   │   │   ├── ⚙️ run({ simulated, prompt, history, config, systemPrompt, tools, toolContext }) — Uma passada completa (laço de tools) no modo nativo ou simulado.
+│   │   │   │   ├── ⚙️ sendRequest(args)
+│   │   │   │   ├── ⚙️ listModels(config)
+│   │   │   │   └── ⚙️ safeJson(value) — Lê JSON de forma tolerante (argumentos de tool vindos como texto).
+│   │   │   └── [puter]
+│   │   │        └── index.ts — [Provedor Puter (API compatível com a OpenAI).]
+│   │   ├── simulatedTools.ts — [Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o]
+│   │   │   ├── ⚙️ describeTool(tool) — Resumo de uma tool em uma linha (nome, parâmetros e descrição curta).
+│   │   │   ├── ⚙️ buildSimulatedToolsPrompt(definitions) — Trecho extra do prompt de sistema que ensina o modelo a pedir tools por texto.
+│   │   │   ├── ⚙️ parseSimulatedCalls(text) — Lê do texto da resposta os pedidos de tool e devolve o texto restante. Aceita `<tool_call>{...}</tool_call>` e blocos de código ```tool_call / ```json com `{"name": ...}`.
+│   │   │   ├── ⚙️ formatSimulatedResults(results) — Mensagem (papel "user") que devolve ao modelo o resultado de uma tool no modo simulado.
+│   │   │   ├── ⚙️ needsSimulation(key, mark = false) — Marca (ou consulta) se um modelo precisa do modo simulado.
+│   │   │   └── ⚙️ looksLikeNoToolSupport(error) — Indica se o erro parece ser a recusa do envio de `tools` (modelo sem suporte).
 │   │   ├── [skills]
-│   │   │   └── index.js — [Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.]
-│   │   │        ├── ⚙️ listSkills() — Lista as skills disponíveis (sem o corpo).
+│   │   │   └── index.ts — [Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.]
+│   │   │        ├── ⚙️ setCustomSkills(list) — Define as skills do livro atual (chamado pelo SkillService ao trocar de livro ou ao criar/editar/excluir uma skill).
+│   │   │        ├── ⚙️ builtinSkillNames() — Nomes das skills que já vêm com o app.
+│   │   │        ├── ⚙️ listSkills() — Lista as skills disponíveis (sem o corpo): as do app e as criadas pelo autor no livro.
 │   │   │        └── ⚙️ getSkill(name) — Obtém uma skill pelo nome.
-│   │   ├── toolLoop.js — [Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.]
+│   │   ├── toolLoop.ts — [Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.]
+│   │   │   ├── ⚙️ setHistoryLimit(n) — Define quantas mensagens anteriores vão junto a cada pedido.
 │   │   │   └── ⚙️ normalizeHistory(prompt, history) — Converte o histórico do chat em turnos alternados user/assistant, garantindo que o prompt atual seja o último (sem duplicá-lo caso já esteja no histórico).
 │   │   ├── [tools]
-│   │   │   ├── bookTools.js — [Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.]
+│   │   │   ├── bookTools.ts — [Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.]
 │   │   │   │   ├── ⚙️ readCurrent(located, ctx) — Lê o conteúdo atual (rascunho, se existir) e separa frontmatter e corpo.
 │   │   │   │   ├── ⚙️ saveDraft(located, frontmatter, body, ctx) — Grava o corpo como rascunho preservando o frontmatter e avisa a interface.
 │   │   │   │   ├── ⚙️ collectFiles(node, prefix, out) — Percorre a árvore listando os .md que a IA pode ler.
 │   │   │   │   ├── ⚙️ beginEdit(ctx) — Prepara uma edição: exige que não haja rascunhos pendentes no projeto e trava a tela. Deve ser chamada antes de qualquer leitura-para-escrita, já com a permissão validada.
 │   │   │   │   └── ⚙️ registerBookTools(registry) — Registra as ferramentas de arquivos do livro.
-│   │   │   ├── chatTools.js — [Ferramenta que permite à IA anexar botões à sua resposta no chat.]
+│   │   │   ├── chatTools.ts — [Ferramenta que permite à IA anexar botões à sua resposta no chat.]
 │   │   │   │   ├── ⚙️ buildButton(request, ctx) — Converte o pedido da IA em um botão `{label, event, data}`, validando a ação e os parâmetros. @throws {Error} Se a ação é desconhecida ou faltam parâmetros.
 │   │   │   │   └── ⚙️ registerChatTools(registry) — Registra a ferramenta de botões do chat.
-│   │   │   ├── creationTools.js — [Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.]
+│   │   │   ├── creationTools.ts — [Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.]
 │   │   │   │   ├── ⚙️ assertValuesFromAuthor(spec, values, conversation = {}) — Confere que cada campo obrigatório preenchido pela IA veio do autor: o valor precisa ser o padrão do campo ou aparecer (ignorando maiúsculas/acentos) nas mensagens recentes da conversa. Isso impede a IA de inventar respostas SEM obrigá-la a perguntar de novo o que o autor já disse — a causa do ciclo infinito de confirmações. @throws {Error} Se um campo obrigatório tem um valor que não consta na conversa.
 │   │   │   │   ├── ⚙️ assertAiCanCreate(kind, folder, ctx) — Garante que a IA pode criar o item no destino (a pasta precisa ter `aiWrite` ativo no folder.yml). @throws {Error} Se a IA não tem permissão de escrita na pasta de destino.
 │   │   │   │   ├── ⚙️ resolveEntityFolder(folder, ctx) — Resolve e valida a pasta de uma ficha, listando as opções quando ela é inválida ou omitida. @throws {Error} Se a pasta não aceita fichas.
 │   │   │   │   └── ⚙️ registerCreationTools(registry) — Registra as ferramentas de criação guiada.
-│   │   │   ├── historyTools.js — [Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de]
+│   │   │   ├── digestTools.ts — [Ferramentas da IA que consultam os digests (arquivos-sombra de metadados em `.system/digests/`). Servem para a IA]
+│   │   │   │   └── ⚙️ registerDigestTools(registry)
+│   │   │   ├── eventTools.ts — [Ferramentas da IA para eventos e linha do tempo. As fichas de eventos (`assets/events/`) são criadas pelas tools de]
+│   │   │   │   └── ⚙️ registerEventTools(registry)
+│   │   │   ├── historyTools.ts — [Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de]
 │   │   │   │   ├── ⚙️ clampLimit(limit) — Limita a quantidade de itens pedida pela IA.
 │   │   │   │   ├── ⚙️ redactSecrets(text, state) — Remove de um texto qualquer chave de API (as salvas nas configurações e padrões comuns de URL/cabeçalho).
 │   │   │   │   ├── ⚙️ confirmRestore({ fileTitle, comparison, view, hasDraft }) — Pede a confirmação do autor para restaurar uma versão, mostrando a comparação lado a lado.
 │   │   │   │   └── ⚙️ registerHistoryTools(registry) — Registra as ferramentas de histórico e logs.
-│   │   │   ├── permissions.js — [Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).]
+│   │   │   ├── issueTools.ts — [Ferramentas da IA para a Central de Revisões: registrar o que ela encontrou (contradições, problemas]
+│   │   │   │   └── ⚙️ registerIssueTools(registry)
+│   │   │   ├── permissions.ts — [Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).]
 │   │   │   │   ├── ⚙️ parseRelativePath(relPath, bookPath = "") — Valida um caminho relativo à raiz do livro e o divide em segmentos. Tolera `./`, barra inicial e caminhos absolutos que apontem para dentro do livro.
 │   │   │   │   ├── ⚙️ locateFile(state, relPath) — Localiza um arquivo .md na árvore do livro atual.
 │   │   │   │   ├── ⚙️ hasPermission(located, flag) — Indica se a IA possui a permissão ("aiRead" | "aiWrite") sobre o arquivo.
@@ -154,34 +236,104 @@
 │   │   │   │   ├── ⚙️ locateFolder(state, segments) — Localiza o nó de uma pasta na árvore do livro atual. @throws {Error} Se a pasta não existe.
 │   │   │   │   ├── ⚙️ collectFolderFiles(node, prefix) — Lista todos os arquivos `.md` (com o frontmatter) dentro de uma pasta, incluindo subpastas.
 │   │   │   │   └── ⚙️ assertFolderPermission(metadata, flag, folderLabel) — Lança erro se a pasta não tiver a permissão da IA (`aiRead` / `aiWrite` / `aiDelete` no `folder.yml`).
-│   │   │   ├── projectTools.js — [Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o]
+│   │   │   ├── projectTools.ts — [Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o]
 │   │   │   │   ├── ⚙️ findBook(state, folderName) — Livro (da lista do app) correspondente a um nome de pasta, ou o atual quando nada é informado. @throws {Error} Se o livro não existe.
 │   │   │   │   └── ⚙️ registerProjectTools(registry) — Registra as ferramentas de projeto e de configuração consultável.
-│   │   │   ├── registry.js — [Registro de ferramentas (tool calling) independente de provedor.]
+│   │   │   ├── registry.ts — [Registro de ferramentas (tool calling) independente de provedor.]
 │   │   │   │   └── 📦 class ToolRegistry — @typedef {Object} ToolDefinition @property {string} name @property {string} description @property {Object} parameters - JSON Schema (type: "object") dos argumentos. @property {(args: Object, ctx: Object) => Promise<string|Object>} execute
 │   │   │   │       ├── ⚙️ constructor() — Método Construtor
 │   │   │   │       ├── ⚙️ register(tool) — Registra uma ferramenta.
 │   │   │   │       └── ⚙️ getDefinitions() — Definições expostas ao modelo (sem a função de execução).
-│   │   │   ├── skillTools.js — [Ferramenta que carrega skills (instruções) sob demanda.]
+│   │   │   ├── skillTools.ts — [Ferramenta que carrega skills (instruções) sob demanda.]
 │   │   │   │   └── ⚙️ registerSkillTools(registry)
-│   │   │   ├── structureTools.js — [Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo]
+│   │   │   ├── structureTools.ts — [Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo]
 │   │   │   │   ├── ⚙️ requireBook(ctx) — Garante que há um livro aberto. @throws {Error} Se nenhum livro está selecionado.
 │   │   │   │   ├── ⚙️ announceStructureChange(payload) — Avisa a interface que a estrutura do livro mudou.
 │   │   │   │   ├── ⚙️ resolveDestination(destination, ctx) — Valida o destino de uma movimentação: pasta existente com escrita permitida à IA.
 │   │   │   │   └── ⚙️ registerStructureTools(registry) — Registra as ferramentas de estrutura (pastas, mover e excluir).
-│   │   │   └── variableTools.js — [Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.]
+│   │   │   └── variableTools.ts — [Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.]
 │   │   │        └── ⚙️ registerVariableTools(registry) — Registra as ferramentas de variáveis e de link automático.
-│   │   └── usageTracker.js — [Contador local de uso diário da IA, por provedor e modelo.]
+│   │   └── usageTracker.ts — [Contador local de uso diário da IA, por provedor e modelo.]
 │   │        ├── ⚙️ today() — Data local atual no formato AAAA-MM-DD.
 │   │        ├── ⚙️ load() — Lê o contador salvo (descartando dias anteriores).
 │   │        ├── ⚙️ addDailyUsage(provider, model, amount) — Soma uma chamada ao contador do dia.
+│   │        ├── ⚙️ addToHistory(key, amount) — Soma uma chamada ao histórico por dia (relatório da Central de IA).
+│   │        ├── ⚙️ getUsageReport(days = 7) — Relatório de uso dos últimos dias, somado por modelo.
 │   │        ├── ⚙️ getDailyUsage(provider, model) — Uso de hoje para um provedor/modelo.
 │   │        ├── ⚙️ learnDailyQuota(provider, model, requestsPerDay) — Memoriza a cota diária de requisições de um modelo, descoberta quando a API a informa ao estourar o limite. É a única forma de saber o limite real da conta no Gemini: a API só revela o valor ao recusar a chamada.
 │   │        └── ⚙️ getDailyQuota(provider, model) — Cota diária de requisições já descoberta para um modelo.
-│   ├── app.js — [Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.]
+│   ├── app.ts — [Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.]
 │   ├── [components]
+│   │   ├── [Central]
+│   │   │   ├── CentralComponent.ts — [Componente "Central": janela grande com abas laterais (categorias), cabeçalho com o X e corpo com subtítulo e]
+│   │   │   │   └── 📦 class CentralComponent — Casco das centrais.
+│   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Método Construtor
+│   │   │   │       ├── ⚙️ buildContext() — Contexto entregue às páginas.
+│   │   │   │       ├── ⚙️ setupListeners() — Liga os ouvintes (eventos da central e do teclado).
+│   │   │   │       ├── ⚙️ open(id, tab) — Abre uma central.
+│   │   │   │       ├── ⚙️ close() — Fecha a central.
+│   │   │   │       ├── ⚙️ panel() — Página da central aberta.
+│   │   │   │       ├── ⚙️ selectTab(tab) — Seleciona uma aba e desenha o conteúdo.
+│   │   │   │       ├── ⚙️ refresh() — Redesenha a aba atual preservando a rolagem.
+│   │   │   │       ├── ⚙️ scheduleRefresh() — Agrupa vários pedidos de atualização seguidos em um só redesenho.
+│   │   │   │       └── ⚙️ cancelAnimationFrame(this.refreshFrame)
+│   │   │   └── [panels]
+│   │   │        ├── aiPanel.ts — [Central de IA: modelo ativo, fallback de modelos, relatório de uso, depuração do que é enviado e recebido (com as]
+│   │   │        │   ├── ⚙️ modelsOf(state, provider) — Lista de modelos de um provedor (da API, se já carregada; senão o catálogo padrão).
+│   │   │        │   └── 📦 class AiPanel — Página "Central de IA".
+│   │   │        │       ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │       ├── ⚙️ getTabs() — Abas laterais.
+│   │   │        │       ├── ⚙️ getHeader(tab) — Subtítulo e texto de apoio.
+│   │   │        │       ├── ⚙️ dispose() — Ao fechar a central.
+│   │   │        │       ├── ⚙️ renderModel(el) — Contas de IA: lista (ativa, apelido, provedor, modelo, chave mascarada) e formulário de nova conta.
+│   │   │        │       ├── ⚙️ renderFallback(el) — Lista de fallback (contas, na ordem de tentativa).
+│   │   │        │       ├── ⚙️ save({ enabled: fb.enabled, chain: next })
+│   │   │        │       ├── ⚙️ renderUsage(el) — Relatório de uso.
+│   │   │        │       ├── ⚙️ draw()
+│   │   │        │       └── ⚙️ draw()
+│   │   │        ├── bookPanel.ts — [Central do Livro: dados do livro (nome, modo da IA), visão geral e exclusão. Os dados ficam no `config.json` do livro.]
+│   │   │        │   ├── 📦 class BookPanel — Página "Central do Livro".
+│   │   │        │   │   ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │   │   ├── ⚙️ getTabs() — Abas laterais.
+│   │   │        │   │   ├── ⚙️ getHeader(tab) — Subtítulo e texto de apoio.
+│   │   │        │   │   ├── ⚙️ mount(el, `<div class="cn-empty"><strong>Nenhum livro selecionado.</strong></div>`)
+│   │   │        │   │   ├── ⚙️ renderChangelog(el) — Changelog do livro (a mesma lista corrida das Configurações, com rolagem infinita).
+│   │   │        │   │   ├── ⚙️ mountChangelogList(root, this.ctx.services.changelog)
+│   │   │        │   │   ├── ⚙️ renderData(el) — Nome e modo da IA.
+│   │   │        │   │   ├── ⚙️ uiBus_titleChanged(this.ctx, value, book.fullPath)
+│   │   │        │   │   ├── ⚙️ count(node)
+│   │   │        │   │   ├── ⚙️ renderDanger(el) — Exclusão do livro.
+│   │   │        │   │   ├── ⚙️ askDelete(book) — Última confirmação e exclusão do livro.
+│   │   │        │   │   └── ⚙️ clearBook(this.ctx.state)
+│   │   │        │   └── ⚙️ uiBus_titleChanged(ctx, title, path) — Avisa a interface que o nome do livro mudou.
+│   │   │        ├── issuesPanel.ts — [Central de Revisões: página inicial (painel com números, mais graves, correção pela IA, tipos dispensados e]
+│   │   │        │   └── 📦 class IssuesPanel — Página "Central de Revisões".
+│   │   │        │       ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │       ├── ⚙️ getTabs() — Abas laterais: resumo + categorias, cada uma com as bolinhas vermelha/amarela.
+│   │   │        │       ├── ⚙️ getHeader(tab) — Subtítulo e texto de apoio da aba.
+│   │   │        │       ├── ⚙️ render(tab, el) — Desenha a aba.
+│   │   │        │       ├── ⚙️ mount(el, stats + (s.total === 0 ? empty : worstHtml)
+│   │   │        │       ├── ⚙️ askAnalyze(pending) — Confirmação (com a estimativa de tokens) antes de rodar a análise da IA.
+│   │   │        │       ├── ⚙️ setTimeout(()
+│   │   │        │       ├── ⚙️ askAiFix() — Janela de aviso antes de pedir à IA que corrija os pendentes.
+│   │   │        │       ├── ⚙️ renderCategory(tab, el) — Lista de cards de uma categoria, com filtro por tipo.
+│   │   │        │       ├── ⚙️ spellingHtml() — Opções da correção ortográfica (ligar/desligar e idioma), as mesmas das Configurações.
+│   │   │        │       ├── ⚙️ timelineHtml() — Bloco da linha do tempo: ordem sugerida pelo sistema (sem IA) a partir das fichas de eventos, com o botão que a aprova e escreve no arquivo da linha do tempo (o autor nunca edita esse arquivo diretamente).
+│   │   │        │       ├── ⚙️ askApplyTimeline() — Confirmação antes de escrever a sugestão na linha do tempo.
+│   │   │        │       ├── ⚙️ cardHtml(issue, { compact = false } = {}) — Card de um issue.
+│   │   │        │       ├── ⚙️ cardActions() — Ações dos cards (usadas na página inicial e nas categorias).
+│   │   │        │       ├── ⚙️ askDismissType(issue) — Confirmação de "dispensar todos desse tipo".
+│   │   │        │       ├── ⚙️ goToFile(file, excerpt) — Abre outro arquivo citado no issue (contradições entre arquivos).
+│   │   │        │       └── ⚙️ fillSuggestions(el) — Preenche as sugestões de ortografia dos cards de erro de digitação (pedidas ao dicionário sob demanda).
+│   │   │        └── panelKit.ts — [Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de]
+│   │   │             ├── ⚙️ mount(host, html, handlers = {}) — Monta o HTML em um elemento e liga um único ouvinte de clique por delegação: qualquer elemento com `data-act` chama `handlers[act](elemento, evento)`. Também liga `change`/`input` aos elementos com `data-change`/`data-input`.
+│   │   │             ├── ⚙️ confirmModal(uiBus, { title, html, confirmText = "Confirmar", danger = false, onConfirm }) — Abre a janela de confirmação do app (acima da central).
+│   │   │             ├── ⚙️ switchRow({ id = "", checked, title, hint = "", attrs = "", disabled = false }) — Linha com título, descrição e um switch (o mesmo visual das Configurações).
+│   │   │             ├── ⚙️ formatBytes(bytes) — Tamanho em bytes legível (KB, MB, GB).
+│   │   │             ├── ⚙️ plural(n, one, many) — Número com o substantivo no singular ou plural.
+│   │   │             └── ⚙️ shortDate(iso) — Data/hora curta para exibição.
 │   │   ├── [Chat]
-│   │   │   ├── ChatComponent.js — [Componente responsável pela renderização estrutural do chat do assistente de IA]
+│   │   │   ├── ChatComponent.ts — [Componente responsável pela renderização estrutural do chat do assistente de IA]
 │   │   │   │   └── 📦 class ChatComponent — Representa o chat do assistente de IA.
 │   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
 │   │   │   │       ├── ⚙️ onInit()
@@ -217,7 +369,7 @@
 │   │   │   │       ├── ⚙️ prepareButtons(buttons) — Prepara os botões de uma mensagem para o template, descartando qualquer evento fora da lista permitida (as mensagens vêm de um log em disco e de uma IA, então nunca emitimos eventos arbitrários).
 │   │   │   │       ├── ⚙️ createDateDividerElement(dateText) — Cria o elemento visual do divisor de data no chat via template Handlebars.
 │   │   │   │       └── ⚙️ createStartOfChatElement() — Cria o elemento visual indicando o início absoluto do histórico de conversa via template Handlebars.
-│   │   │   ├── animations.js — [Gerencia as animações da interface do chat de IA]
+│   │   │   ├── animations.ts — [Gerencia as animações da interface do chat de IA]
 │   │   │   │   ├── ⚙️ initStarryBackground() — Inicializa o canvas e o loop de renderização do fundo estrelado (estrelas em viagem diagonal contínua).
 │   │   │   │   ├── ⚙️ updateDimensions()
 │   │   │   │   ├── ⚙️ repositionStars()
@@ -227,11 +379,11 @@
 │   │   │   │   ├── ⚙️ advanceStar(star, dt, width, height) — Desloca a estrela devagar, da direita para a esquerda e levemente para cima; estrelas mais "próximas" (zFactor maior) andam mais rápido, dando profundidade. Ao sair por uma borda, reaparece na oposta.
 │   │   │   │   ├── ⚙️ drawStar(ctx, star) — Desenha uma estrela individual no canvas.
 │   │   │   │   └── ⚙️ drawShootingStar(ctx, shootingStar) — Renderiza o efeito de estrela cadente com rastro em gradiente no canvas.
-│   │   │   ├── nebula.js — [Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.]
+│   │   │   ├── nebula.ts — [Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.]
 │   │   │   │   ├── ⚙️ compile(gl, type, src) — Compila um shader.
 │   │   │   │   ├── ⚙️ program(gl, vs, fs) — Liga um programa WebGL.
 │   │   │   │   └── ⚙️ mountNebula(el, options = {}) — Monta o fundo nebulosa dentro de um elemento (o canvas fica atrás do conteúdo).
-│   │   │   └── orbits.js — [Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,]
+│   │   │   └── orbits.ts — [Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,]
 │   │   │        ├── ⚙️ rng(seed) — Gerador pseudo-aleatório com seed (mulberry32): o mesmo seed gera sempre o mesmo arranjo.
 │   │   │        ├── ⚙️ el(name, attrs, style) — Cria um elemento SVG.
 │   │   │        ├── ⚙️ centerFor(corner) — Centro das órbitas conforme o canto escolhido.
@@ -241,8 +393,8 @@
 │   │   │        ├── ⚙️ build(o) — Monta a cena SVG.
 │   │   │        ├── ⚙️ applyColors(container, o) — Aplica as cores ao contêiner (variáveis CSS lidas pelo SVG).
 │   │   │        └── ⚙️ mountOrbits(container, options = {}) — Monta o fundo de órbitas dentro de um elemento.
-│   │   ├── Component.js
-│   │   │   └── 📦 class Component — Classe base abstrata para todos os componentes do Astra Writter. Gerencia ciclo de vida, herança pai-filho (Composite) e renderização via Handlebars.
+│   │   ├── Component.ts
+│   │   │   └── 📦 class Component — Classe base abstrata para todos os componentes do Astra Writer. Gerencia ciclo de vida, herança pai-filho (Composite) e renderização via Handlebars.
 │   │   │       ├── ⚙️ constructor(selector, context, templateHtml, params = null, parent = null) — Cria uma instância do componente.
 │   │   │       ├── ⚙️ newChild(ComponentClass, selector, context, params = null) — Fábrica interna para instanciar e registrar um componente filho de forma limpa pelo pai.
 │   │   │       ├── ⚙️ setChild(child) — Adiciona um componente filho à lista de gerenciamento.
@@ -250,7 +402,7 @@
 │   │   │       ├── ⚙️ compile(templateStr, data = {}) — Compila uma string de template Handlebars com um contexto de dados e retorna a string HTML.
 │   │   │       └── ⚙️ createDOMElement(htmlString) — Converte uma string HTML em um elemento DOM individual (Node).
 │   │   ├── [Dropdown]
-│   │   │   └── DropdownComponent.js — [Componente de dropdown (lista suspensa) personalizado e reutilizável.]
+│   │   │   └── DropdownComponent.ts — [Componente de dropdown (lista suspensa) personalizado e reutilizável.]
 │   │   │        └── 📦 class DropdownComponent — Dropdown com opções e botões de ação.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância do DropdownComponent.
 │   │   │            ├── ⚙️ getContext() — Fornece os dados do template (opções, ações, rótulo atual e estado aberto/fechado).
@@ -259,7 +411,7 @@
 │   │   │            ├── ⚙️ setItems(items) — Substitui a lista de opções e redesenha o dropdown.
 │   │   │            └── ⚙️ setValue(value) — Define a opção selecionada e redesenha o dropdown.
 │   │   ├── [Editor]
-│   │   │   ├── EditorComponent.js — [Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.]
+│   │   │   ├── EditorComponent.ts — [Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.]
 │   │   │   │   └── 📦 class EditorComponent — Representa o Editor Markdown da aplicação baseado em eventos.
 │   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe EditorComponent. @constructor
 │   │   │   │       ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
@@ -269,6 +421,7 @@
 │   │   │   │       ├── ⚙️ getCurrentRel() — Caminho do arquivo aberto relativo à raiz do livro.
 │   │   │   │       ├── ⚙️ runAutoLinks(terms) — Cria os links automáticos no texto do arquivo aberto (sempre no modo visual).
 │   │   │   │       ├── ⚙️ isReadOnly() — Indica se o editor está somente leitura.
+│   │   │   │       ├── ⚙️ setTimeout(()
 │   │   │   │       ├── ⚙️ setupInternalLinkHandler() — Escuta cliques dentro do editor para navegar por links internos e abrir links da web no navegador padrão.
 │   │   │   │       ├── ⚙️ handleEditorChange() — Monitora digitação e aguarda 1s sem digitação para disparar autosave.
 │   │   │   │       ├── ⚙️ clearTimeout(this.autoSaveTimer)
@@ -283,6 +436,7 @@
 │   │   │   │       ├── ⚙️ q("#stat-spell")
 │   │   │   │       ├── ⚙️ q("#stat-spell-item")
 │   │   │   │       ├── ⚙️ showSpell([])
+│   │   │   │       ├── ⚙️ updateReviewPill(summary) — Atualiza o botão da Central de Revisões no rodapé: verde (tudo certo), amarelo (só sugestões e possíveis erros) ou vermelho (há erros confirmados), com a quantidade de pendências.
 │   │   │   │       ├── ⚙️ getProjectWords() — Palavras do dicionário do projeto: títulos, nomes e apelidos de todas as fichas do livro atual (em minúsculas). Nunca são consideradas erro de escrita.
 │   │   │   │       ├── ⚙️ String(text || "")
 │   │   │   │       ├── ⚙️ add(file.metadata?.title)
@@ -297,14 +451,16 @@
 │   │   │   │       ├── ⚙️ setupFooterWarnings() — Liga os avisos do rodapé: cada clique leva o cursor ao próximo item daquela lista (volta ao primeiro no fim).
 │   │   │   │       ├── ⚙️ buildDataBox() — Cria (uma vez) a caixa recolhível "Dados do arquivo" entre a barra de ferramentas e o texto do editor.
 │   │   │   │       ├── ⚙️ toggleDataBox(force) — Expande ou recolhe a caixa de dados.
+│   │   │   │       ├── ⚙️ focusNameField() — Põe o foco (e seleciona o texto) no campo do nome do arquivo na caixa de dados.
 │   │   │   │       ├── ⚙️ renderDataBox() — Preenche a caixa com os campos do arquivo aberto (título e variáveis). Arquivos somente leitura mostram os campos desabilitados.
 │   │   │   │       ├── ⚙️ searchByTag(tag) — Coloca `#tag` no campo de pesquisa do explorer e dispara a pesquisa.
 │   │   │   │       ├── ⚙️ getKnownTags() — Tags já usadas nos arquivos do livro atual (sem repetir), para as sugestões do campo de tags.
 │   │   │   │       ├── ⚙️ parseTags(file.metadata?.tags)
 │   │   │   │       ├── ⚙️ setEditorReadOnly(isReadOnly) — Define o estado de leitura/escrita do editor de texto (bloqueia de verdade: teclado, colar, arrastar e IME).
 │   │   │   │       ├── ⚙️ renderFileContent(fullPath, rawText, isTemp = false) — Renderiza o conteúdo do arquivo no editor e atualiza a interface.
+│   │   │   │       ├── ⚙️ applyInheritedPermissions(metadata, rawMeta, relativePath) — Permissões que o arquivo não define herdam da pasta (valor efetivo calculado na árvore do livro). Elas valem para a interface (somente leitura etc.), mas ficam não enumeráveis: nunca são gravadas no frontmatter do arquivo.
 │   │   │   │       └── ⚙️ resetEditorState() — Reseta a interface do editor para o estado inicial sem arquivo aberto, travando de verdade a edição.
-│   │   │   ├── EditorKit.js — [Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)]
+│   │   │   ├── EditorKit.ts — [Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)]
 │   │   │   │   ├── ⚙️ normalizeExternalUrl(url) — Garante um endereço com protocolo (`google.com` vira `https://google.com`).
 │   │   │   │   └── 📦 class EditorKit — Editor Markdown completo (Toast UI + ferramentas do app).
 │   │   │   │       ├── ⚙️ onChange()
@@ -314,6 +470,7 @@
 │   │   │   │       ├── ⚙️ getView() — View do ProseMirror do modo ativo.
 │   │   │   │       ├── ⚙️ getBrokenLinks() — Links internos quebrados do documento aberto (posições do ProseMirror), na ordem do texto.
 │   │   │   │       ├── ⚙️ getWritingProblems() — Problemas de escrita (palavras desconhecidas e repetidas) do documento aberto, na ordem do texto.
+│   │   │   │       ├── ⚙️ revealText(term, occurrence = 0) — Leva o cursor a um trecho de texto (a n-ésima ocorrência), rolando o documento até ele.
 │   │   │   │       ├── ⚙️ selectRange({ from, to }) — Seleciona um trecho, rola o documento até ele e foca o editor (o cursor fica no trecho).
 │   │   │   │       ├── ⚙️ toggleViewMode() — Alterna entre texto formatado e Markdown cru.
 │   │   │   │       ├── ⚙️ setLocked(locked) — Bloqueia ou libera a edição (somente leitura). O bloqueio vale para teclado, colar, arrastar e IME, pois o próprio ProseMirror passa a não ser editável.
@@ -323,7 +480,7 @@
 │   │   │   │       ├── ⚙️ hide()
 │   │   │   │       ├── ⚙️ hide()
 │   │   │   │       └── ⚙️ destroy() — Destrói o editor e os painéis.
-│   │   │   ├── FindReplacePanel.js — [Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).]
+│   │   │   ├── FindReplacePanel.ts — [Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).]
 │   │   │   │   └── 📦 class FindReplacePanel — Painel de busca e substituição ligado a um editor Toast UI.
 │   │   │   │       ├── ⚙️ constructor(panel, { getView, isReadOnly, getPm }) — Método Construtor
 │   │   │   │       ├── ⚙️ getFind() — Busca ativa, no formato esperado pelo plugin de decoração.
@@ -346,7 +503,7 @@
 │   │   │   │       ├── ⚙️ replaceMatches(this.getView()
 │   │   │   │       ├── ⚙️ replaceAll() — Substitui todas as ocorrências.
 │   │   │   │       └── ⚙️ replaceMatches(this.getView()
-│   │   │   ├── LinkPopup.js — [Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar]
+│   │   │   ├── LinkPopup.ts — [Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar]
 │   │   │   │   └── 📦 class LinkPopup — Popup de inserção de links.
 │   │   │   │       ├── ⚙️ constructor(popup, { search, getSelectedText, insert, onClose }) — Método Construtor
 │   │   │   │       ├── ⚙️ bind() — Liga os eventos do popup.
@@ -358,13 +515,13 @@
 │   │   │   │       ├── ⚙️ renderResults() — Lista os arquivos que combinam com o texto digitado: título em destaque e caminho abaixo, menor.
 │   │   │   │       ├── ⚙️ highlight() — Marca a linha ativa da lista (navegação por setas).
 │   │   │   │       └── ⚙️ pick(item) — Insere o link do arquivo escolhido. O texto selecionado no editor vira o texto do link; sem seleção, o texto é o título do arquivo.
-│   │   │   ├── WritingMenu.js — [Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao]
+│   │   │   ├── WritingMenu.ts — [Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao]
 │   │   │   │   └── 📦 class WritingMenu — Menu flutuante simples (um item por linha).
 │   │   │   │       ├── ⚙️ constructor() — Método Construtor
 │   │   │   │       ├── ⚙️ open({ x, y, title, items }) — Abre o menu.
 │   │   │   │       ├── ⚙️ setTimeout(()
 │   │   │   │       └── ⚙️ close() — Fecha o menu.
-│   │   │   ├── editorTools.js — [Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):]
+│   │   │   ├── editorTools.ts — [Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):]
 │   │   │   │   ├── ⚙️ isInternalHref(href) — Indica se um href aponta para um arquivo Markdown do livro (e não para a web).
 │   │   │   │   ├── ⚙️ hrefToRelPath(href) — Caminho relativo à raiz do livro (minúsculo, sem barra inicial, `?` ou `#`) apontado por um href interno.
 │   │   │   │   ├── ⚙️ stripAutoLinkMarks(markdown) — Remove o marcador de link automático de todos os links do texto Markdown (usado ao sincronizar, quando os links passam a valer como links normais).
@@ -374,7 +531,7 @@
 │   │   │   │   ├── ⚙️ applyAutoLinks(view, terms) — Cria links internos (marcados como automáticos) para todas as ocorrências dos termos no texto livre do documento. Não mexe em títulos, blocos de código, textos já linkados nem em código inline.
 │   │   │   │   ├── ⚙️ removeLinkAt(view, anchor) — Remove o link que envolve um elemento `<a>` do editor visual.
 │   │   │   │   └── ⚙️ createEditorPlugin(api) — Cria o plugin do Toast UI Editor que decora o documento: - links internos para arquivos que não existem mais (classe `wiki-broken` + tooltip); - ocorrências da busca (`find-match` e `find-current`), nos dois modos do editor. As decorações são recalculadas a cada atualização do estado, sempre consistentes com o documento atual.
-│   │   │   ├── tagInput.js — [Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou]
+│   │   │   ├── tagInput.ts — [Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou]
 │   │   │   │   ├── ⚙️ tagChipHtml(tag, clickable = false) — HTML de uma tag colorida (a cor é sempre a mesma para a mesma tag).
 │   │   │   │   └── 📦 class TagInput — Campo de entrada de tags.
 │   │   │   │       ├── ⚙️ constructor(root, { getKnownTags, onChange }) — Método Construtor
@@ -394,17 +551,17 @@
 │   │   │   │       ├── ⚙️ renderList() — Desenha a lista de sugestões.
 │   │   │   │       ├── ⚙️ positionList() — Posiciona a lista (fixed) logo abaixo do campo, para ela poder passar dos limites da caixa de dados.
 │   │   │   │       └── ⚙️ closeList() — Fecha a lista de sugestões.
-│   │   │   └── writingProblems.js — [Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não]
+│   │   │   └── writingProblems.ts — [Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não]
 │   │   │        ├── ⚙️ isCheckableWord(word) — Indica se a palavra entra na verificação ortográfica (3+ letras e sem números).
 │   │   │        └── ⚙️ blockText(block, blockPos) — Texto de um bloco de texto com a posição do documento de cada caractere (nós que não são texto viram espaço).
 │   │   ├── [EditorOverlay]
-│   │   │   └── EditorOverlayComponent.js — [Componente responsável pela renderização estrutural do editor overlay]
+│   │   │   └── EditorOverlayComponent.ts — [Componente responsável pela renderização estrutural do editor overlay]
 │   │   │        └── 📦 class EditorOverlayComponent — Representa o overlay do editor.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
 │   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
 │   │   │            └── ⚙️ toggleEditorOverlay(show, key, message = "", showSpinner = true) — Exibe o overlay respeitando as camadas (stack) por chave.
 │   │   ├── [Explorer]
-│   │   │   ├── ExplorerComponent.js — [Componente responsável pela renderização estrutural e lógica do explorer de arquivos.]
+│   │   │   ├── ExplorerComponent.ts — [Componente responsável pela renderização estrutural e lógica do explorer de arquivos.]
 │   │   │   │   └── 📦 class ExplorerComponent — Representa o explorer de arquivos.
 │   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe.
 │   │   │   │       ├── ⚙️ onInit() — Executado logo após a renderização inicial do componente.
@@ -415,6 +572,8 @@
 │   │   │   │       ├── ⚙️ tabSelectionEvents() — Gerencia a seleção de abas de navegação do explorador.
 │   │   │   │       ├── ⚙️ activateTab(folder) — Ativa uma aba: marca o botão, mostra a pasta raiz correspondente na árvore e atualiza a barra de ações e a mensagem de "sem resultados" da pesquisa.
 │   │   │   │       ├── ⚙️ syncAdvancedModeView() — Sincroniza o estado visual do switch e do container de arquivos avançados com base nas configurações (config.json) do livro atual.
+│   │   │   │       ├── ⚙️ refreshNotesLock() — Atualiza o botão que bloqueia/libera a escrita da IA nas anotações conforme o `aiWrite` do folder.yml de notes.
+│   │   │   │       ├── ⚙️ decorateIssues(summary) — Mostra, em cada arquivo com pendências, as bolinhas de aviso (vermelha: erros; amarela: sugestões e possíveis erros). Elas só aparecem ao passar o mouse, junto dos ícones de editar e excluir, com tooltip da quantidade.
 │   │   │   │       ├── ⚙️ getSearchInput() — Retorna o campo de texto da pesquisa.
 │   │   │   │       ├── ⚙️ isAdvancedModeOn() — Indica se o modo "Arquivos Avançados" está ligado.
 │   │   │   │       ├── ⚙️ toggleSearchClearButton(visible) — Exibe ou oculta o botão X da barra de pesquisa.
@@ -424,11 +583,11 @@
 │   │   │   │       ├── ⚙️ resetSearch() — Zera a pesquisa sem redesenhar (usado ao trocar de livro, quando a árvore será recriada).
 │   │   │   │       ├── ⚙️ refreshSearchUi() — Atualiza os indicadores da pesquisa: bolinhas com a quantidade de matches em cada aba (removidas fora da pesquisa ou quando a aba não tem matches) e a mensagem de "sem resultados".
 │   │   │   │       ├── ⚙️ markActiveFile() — Marca como ativo, na árvore, o arquivo aberto no editor (sem abrir pastas nem trocar de aba).
-│   │   │   │       ├── ⚙️ normalizePath(span.dataset.absolutePath || "")
 │   │   │   │       ├── ⚙️ buildTree(node, currentPath, parentMeta = null) — Função principal de montagem recursiva da árvore a partir do dicionário em memória.
 │   │   │   │       ├── ⚙️ Number(f.dataset.rank)
 │   │   │   │       ├── ⚙️ createFolderNode(folderNode, folderName, relativePath, parentMeta = null) — Processa e cria o nó de pasta utilizando os metadados já cacheados no sub-nó.
 │   │   │   │       ├── ⚙️ categoryOf(bookRelative)
+│   │   │   │       ├── ⚙️ createChapterNode(folderNode, meta, relativePath, bookRel) — Cria o item único de um capítulo (a pasta não aparece no explorer): o clique abre o manuscrito.
 │   │   │   │       ├── ⚙️ clearDropTargets() — Remove o realce das pastas-alvo do arrastar e soltar.
 │   │   │   │       ├── ⚙️ setupDragAndDrop() — Liga o soltar de arquivos sobre pastas (e sobre o fundo da árvore, que equivale à raiz de Anotações). A regra de quais movimentos valem é do FolderService; aqui só se identifica o alvo.
 │   │   │   │       ├── ⚙️ createFileNode(fileData, fileKey, relativePath, parentMeta = null) — Cria o nó de arquivo utilizando os metadados do Frontmatter já presentes no dicionário.
@@ -439,7 +598,7 @@
 │   │   │   │       ├── ⚙️ attemptSelection()
 │   │   │   │       ├── ⚙️ updateFileTempStatus(filePath, isTemp) — Adiciona ou remove a indicação de arquivo temporário (.temp) na UI do Explorer.
 │   │   │   │       └── ⚙️ clearAllTemp() — Remove todas as marcações de arquivos temporários (.temp) e os elementos físicos do asterisco (*) da UI do Explorer.
-│   │   │   └── keyboardNav.js — [Navegação do explorer pelo teclado. Depois de clicar no explorer:]
+│   │   │   └── keyboardNav.ts — [Navegação do explorer pelo teclado. Depois de clicar no explorer:]
 │   │   │        └── 📦 class ExplorerKeyboard — Navegação por teclado do explorer.
 │   │   │            ├── ⚙️ constructor(root) — Método Construtor
 │   │   │            ├── ⚙️ chatHeader()
@@ -453,18 +612,19 @@
 │   │   │            ├── ⚙️ onMouseDown(e) — Clique no explorer: liga o teclado e define o ponto de partida (o item clicado, ou o arquivo selecionado da aba).
 │   │   │            ├── ⚙️ setTimeout(()
 │   │   │            ├── ⚙️ mark(row, btn = -1) — Destaca uma linha (e a rola para a vista).
+│   │   │            ├── ⚙️ restore() — Devolve o teclado ao explorer (ex.: Esc no chat): destaca a última linha usada, ou o arquivo selecionado da aba, ou o primeiro item, e as setas voltam a navegar.
 │   │   │            ├── ⚙️ markChat() — Destaca a gaveta do assistente de IA.
 │   │   │            ├── ⚙️ shouldHandle(e) — Se a tecla pertence ao explorer neste momento.
 │   │   │            └── ⚙️ onKeyDown(e) — Tratamento das teclas.
 │   │   ├── [Modal]
-│   │   │   ├── ModalComponent.js — [Classe gerenciadora de modais em pilha (Stack).]
+│   │   │   ├── ModalComponent.ts — [Classe gerenciadora de modais em pilha (Stack).]
 │   │   │   │   └── 📦 class ModalComponent — Componente de Modal em Pilha (Stack), herdando da classe base Component.
 │   │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ModalComponent.
 │   │   │   │       ├── ⚙️ getContext() — Fornece o contexto de dados para a compilação do template Handlebars.
 │   │   │   │       ├── ⚙️ onInit() — Gancho do ciclo de vida executado logo após a renderização inicial do HTML.
 │   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos (blindagem de cliques internos e botão de fechar).
 │   │   │   │       └── ⚙️ close() — Fecha o modal atual, executa o callback opcional e limpa o elemento do DOM.
-│   │   │   └── ModalManager.js — [Classe gerenciadora da pilha de modais dinâmicos da aplicação.]
+│   │   │   └── ModalManager.ts — [Classe gerenciadora da pilha de modais dinâmicos da aplicação.]
 │   │   │        └── 📦 class ModalManager — Gerenciador responsável por controlar a pilha de modais, overlay escuro e âncoras globais da aplicação.
 │   │   │            ├── ⚙️ constructor(selector, context) — Cria uma instância do ModalManager.
 │   │   │            ├── ⚙️ open(options) — Abre um novo modal empilhando-o sobre os anteriores.
@@ -474,7 +634,7 @@
 │   │   │            ├── ⚙️ toggleOverlay(show) — Alterna a visibilidade do overlay global escuro de fundo.
 │   │   │            └── ⚙️ setupListeners() — Configura os ouvintes de eventos globais no barramento uiBus.
 │   │   ├── [Settings]
-│   │   │   └── SettingsComponent.js — [Componente responsável pela renderização estrutural da drawer de configurações]
+│   │   │   └── SettingsComponent.ts — [Componente responsável pela renderização estrutural da drawer de configurações]
 │   │   │        └── 📦 class SettingsComponent — Representa a drawer de configurações.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
 │   │   │            ├── ⚙️ getContext() — Contexto do template: lista de provedores com o ativo marcado.
@@ -486,19 +646,20 @@
 │   │   │            ├── ⚙️ open() — Abre a gaveta de configurações.
 │   │   │            ├── ⚙️ close() — Fecha a gaveta de configurações.
 │   │   │            ├── ⚙️ collectAiForm() — Lê o formulário de IA.
-│   │   │            ├── ⚙️ syncAiForm(providerId) — Sincroniza select de modelos e campo de chave com o provider informado, usando o que está salvo (ou o modelo padrão).
+│   │   │            ├── ⚙️ syncSpellForm() — Sincroniza o interruptor e o idioma da correção ortográfica com o que está salvo.
+│   │   │            ├── ⚙️ syncAiForm() — Preenche o seletor de contas e o de modelos com o que está salvo (conta ativa e o modelo dela).
 │   │   │            ├── ⚙️ setTimeout(()
 │   │   │            ├── ⚙️ toggleThemeSwitch(theme) — Altera o estado do switch de alteração do theme
 │   │   │            └── ⚙️ updateAiSummary() — Atualiza o resumo (provedor · modelo) mostrado quando o formulário de IA está recolhido.
 │   │   ├── [Sidebar]
-│   │   │   └── SidebarComponent.js — [Componente responsável pela renderização estrutural da barra lateral (Sidebar).]
+│   │   │   └── SidebarComponent.ts — [Componente responsável pela renderização estrutural da barra lateral (Sidebar).]
 │   │   │        └── 📦 class SidebarComponent — Representa o painel lateral esquerdo da aplicação.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
 │   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface da sidebar.
 │   │   │            ├── ⚙️ updateBookList(books) — Atualiza as opções do dropdown de livros.
 │   │   │            └── ⚙️ selectLastBook()
 │   │   ├── [Toast]
-│   │   │   └── ToastComponent.js — [Componente responsável pela renderização estrutural do toast.]
+│   │   │   └── ToastComponent.ts — [Componente responsável pela renderização estrutural do toast.]
 │   │   │        └── 📦 class ToastComponent — Representa o toast da aplicação.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância da classe
 │   │   │            ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da interface.
@@ -508,7 +669,7 @@
 │   │   │            ├── ⚙️ dismiss(toast) — Remove um toast com animação de saída.
 │   │   │            └── ⚙️ setTimeout(()
 │   │   ├── [Toolbar]
-│   │   │   ├── ToolbarComponent.js — [Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).]
+│   │   │   ├── ToolbarComponent.ts — [Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).]
 │   │   │   │   └── 📦 class ToolbarComponent — Representa a barra de ferramentas do editor.
 │   │   │   │       ├── ⚙️ constructor(selector, context, params = null, parent = null) — Cria uma instância do ToolbarComponent.
 │   │   │   │       ├── ⚙️ onInit() — Inicialização do componente executada após a renderização no DOM.
@@ -521,14 +682,15 @@
 │   │   │   │       ├── ⚙️ cleanPath(path) — Caminho do arquivo oficial (normalizado, sem `.temp`) para comparar rascunhos.
 │   │   │   │       ├── ⚙️ refreshTabDirty() — Mostra o asterisco na guia quando o arquivo aberto tem rascunho (como no explorer).
 │   │   │   │       ├── ⚙️ showFileTab(title, canEdit, relativePath) — Mostra (ou esconde) a guia do arquivo aberto. O nome é o mesmo exibido no explorer e é cortado com reticências quando não cabe (a largura da guia é fixa).
+│   │   │   │       ├── ⚙️ showChapterTabs(relativePath, fullPath, canEdit) — Mostra as guias do capítulo (Manuscrito, Esboço e Análise) quando o arquivo aberto é um dos três arquivos de um capítulo. A guia do arquivo aberto fica expandida (nome e caneta) e as outras encolhem para só o ícone.
 │   │   │   │       ├── ⚙️ initAnimations() — Inicializa a animação visual do botão de salvar/sincronizar.
 │   │   │   │       ├── ⚙️ handleSyncClick() — Dispara a solicitação para abertura do modal de sincronização de alterações pendentes.
 │   │   │   │       ├── ⚙️ refreshSaveButtonState() — Centraliza a regra de ativação/desativação do botão Salvar/Sincronizar.
 │   │   │   │       └── ⚙️ setSaveStatus(status) — Atualiza o status do salvamento automático, exibido no rodapé do editor (um ponto colorido e um texto discreto).
-│   │   │   └── animations.js — [Gerencia as animações da interface do usuário]
+│   │   │   └── animations.ts — [Gerencia as animações da interface do usuário]
 │   │   │        └── ⚙️ initSaveButtonAnimation()
 │   │   ├── [Wizard]
-│   │   │   └── WizardComponent.js — [Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar]
+│   │   │   └── WizardComponent.ts — [Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar]
 │   │   │        └── 📦 class WizardComponent — Wizard dinâmico renderizado dentro de um modal.
 │   │   │            ├── ⚙️ constructor(selector, context, params, parent = null) — Cria uma instância do WizardComponent.
 │   │   │            ├── ⚙️ getContext() — Fornece os dados do passo atual para o template.
@@ -549,21 +711,21 @@
 │   │   │            ├── ⚙️ focusField(fieldId) — Foca um campo pelo id.
 │   │   │            ├── ⚙️ close() — Fecha o modal que contém o wizard (a limpeza ocorre no `onClose` do modal).
 │   │   │            └── ⚙️ destroy() — Remove os ouvintes do barramento. Seguro para chamar mais de uma vez.
-│   │   └── index.js — [Barrel para exportação centralizada de todos os componentes de interface.]
+│   │   └── index.ts — [Barrel para exportação centralizada de todos os componentes de interface.]
 │   ├── [controllers]
-│   │   ├── domainController.js — [Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.]
+│   │   ├── domainController.ts — [Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.]
 │   │   │   └── 📦 class DomainController — Controller responsável pelas regras de negócio, IA e manipulação de dados.
 │   │   │       ├── ⚙️ constructor(services, state) — Cria uma instância do DomainController e registra os ouvintes de eventos de domínio.
 │   │   │       └── ⚙️ registerEvents() — Registra todos os escutadores do barramento de domínio.
 │   │   ├── [handlers]
-│   │   │   ├── aiReviewHandler.js — [Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)]
+│   │   │   ├── aiReviewHandler.ts — [Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)]
 │   │   │   │   ├── ⚙️ onAiReviewOpen({ files }, fileService, state) — Abre, em sequência, a janela de comparação de cada arquivo alterado pela IA.
 │   │   │   │   ├── ⚙️ createAddedPlugin(added) — Cria o plugin do editor que marca (decoração `diff-added`) os blocos novos da IA no modo visual.
 │   │   │   │   ├── ⚙️ renderOld(body, removed) — Renderiza a versão antiga (Markdown interpretado e estático), marcando em vermelho os blocos removidos.
 │   │   │   │   ├── ⚙️ describeDataChanges(before, after) — Lista as variáveis do frontmatter (`data`) cujo valor mudou entre duas versões do arquivo.
 │   │   │   │   ├── ⚙️ reviewFile(originalPath, fileService, state) — Mostra a janela de comparação de um arquivo e resolve quando o usuário escolhe uma versão.
 │   │   │   │   └── ⚙️ toastError(error) — Avisa uma falha ao gravar a escolha do usuário.
-│   │   │   ├── bookHandler.js — [Handler dos eventos relacionados ao livro/projeto]
+│   │   │   ├── bookHandler.ts — [Handler dos eventos relacionados ao livro/projeto]
 │   │   │   │   ├── ⚙️ fetchBooks(state, bookService)
 │   │   │   │   ├── ⚙️ refreshBookList(state, bookService) — Recarrega a lista de livros do disco e avisa a interface (`books:updated`).
 │   │   │   │   ├── ⚙️ onFolderToggle(state, bookService, payload) — Manipula a abertura/fechamento de pastas na árvore, atualizando o estado do livro atual.
@@ -573,40 +735,39 @@
 │   │   │   │   ├── ⚙️ onFetchBooksList(req, bookService) — Solicita lista de livros do backend e também confere qual o último livro selecionado. @async
 │   │   │   │   ├── ⚙️ onAiLock(locked)
 │   │   │   │   └── ⚙️ clearBook(state) — Deixa o app vazio, aguardando a seleção de um livro (explorer, editor e chat limpos).
-│   │   │   ├── chapterHandler.js
-│   │   │   ├── characterHandler.js
-│   │   │   ├── chatHandler.js — [Handler para orquestração de eventos e mensagens do chat.]
+│   │   │   ├── chapterHandler.ts
+│   │   │   ├── characterHandler.ts
+│   │   │   ├── chatHandler.ts — [Handler para orquestração de eventos e mensagens do chat.]
 │   │   │   │   ├── ⚙️ onSystemNotice({ text }, aiService) — Mostra (e grava no histórico) uma mensagem "system" no chat, usada para eventos importantes realizados pela IA.
 │   │   │   │   ├── ⚙️ onCreationNotice(payload, aiService) — Avisa no chat quando um item (livro, capítulo, ficha ou anotação) foi criado pela IA. Criações feitas pelo usuário não geram aviso.
 │   │   │   │   ├── ⚙️ onQuickReply({ data }, aiService) — Trata o clique em um botão de resposta pronta: envia o texto do botão como se o usuário o tivesse digitado.
 │   │   │   │   ├── ⚙️ onSendMessage({ promptText }, aiService) — Trata o envio de uma mensagem digitada pelo usuário no chat.
 │   │   │   │   ├── ⚙️ loadHistory(offset, aiService) — Carrega o histórico de mensagens do chat para a sessão atual do livro ativo. Se o lote inicial tiver <= 20 mensagens, busca arquivos anteriores até acumular >= 50 mensagens.
 │   │   │   │   └── ⚙️ fetchMoreHistory(offset, aiService) — Busca mais histórico antigo quando o usuário rola o chat até o topo (Infinite Scroll).
-│   │   │   ├── configHandler.js — [Handler para gerenciar alterações no arquivo config.json dos projetos.]
+│   │   │   ├── configHandler.ts — [Handler para gerenciar alterações no arquivo config.json dos projetos.]
 │   │   │   │   ├── ⚙️ onConfigChanged(payload, state, bookService)
-│   │   │   │   ├── ⚙️ onAiSettingsSave(data, aiService) — Persiste o provider de IA, o modelo e a chave de API escolhidos.
-│   │   │   │   ├── ⚙️ onAiModelsRequested({ provider }, aiService) — Busca os modelos disponíveis do provider e avisa a interface. Falhas (chave inválida, sem rede) são silenciosas: o select continua com a lista padrão.
+│   │   │   │   ├── ⚙️ onAiSettingsSave(data, aiService) — Persiste a conta de IA ativa e o modelo escolhidos (a chave de API é configurada na Central de IA).
+│   │   │   │   ├── ⚙️ onAiModelsRequested({ provider, accountId }, aiService) — Busca os modelos disponíveis do provider e avisa a interface. Falhas (chave inválida, sem rede) são silenciosas: o select continua com a lista padrão.
 │   │   │   │   ├── ⚙️ onCurrentConfigChanged(state, config) — Processa a alteração de um arquivo config.json do projeto atual detectada no sistema de arquivos.
 │   │   │   │   ├── ⚙️ applySavedSpellLanguage() — Aplica o idioma de correção ortográfica salvo (usado ao iniciar o app) e sincroniza o seletor.
 │   │   │   │   ├── ⚙️ isSpellcheckEnabled() — Se a correção ortográfica e gramatical está ligada (padrão: ligada).
 │   │   │   │   ├── ⚙️ onSpellcheckToggled({ value }) — Liga/desliga a correção ortográfica e gramatical e avisa o editor para atualizar o rodapé.
 │   │   │   │   └── ⚙️ onSpellLanguageChanged({ value }) — Troca o idioma da correção ortográfica e o persiste.
-│   │   │   ├── creationHandler.js — [Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação]
+│   │   │   ├── creationHandler.ts — [Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação]
 │   │   │   │   ├── ⚙️ onWizardSubmit(payload, state, services) — Trata o envio de um wizard: executa a ação do tipo correspondente e avisa o wizard do resultado (`wizard:completed` ou `wizard:failed`).
 │   │   │   │   ├── ⚙️ openCreated(result, state, services) — Após a criação pela interface, deixa o item pronto para uso: seleciona o livro novo ou abre o arquivo criado.
 │   │   │   │   ├── ⚙️ onTreeChanged({ bookPath }, state, bookService) — Atualiza o mapa de arquivos do livro atual e avisa a interface (`tree:updated`) quando o item criado pertence a ele.
 │   │   │   │   └── ⚙️ onBookCreated(state, bookService) — Reage à criação de um livro (pela UI ou pela IA): atualiza a lista de livros exibida.
-│   │   │   ├── deleteHandler.js — [Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:]
+│   │   │   ├── deleteHandler.ts — [Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:]
 │   │   │   │   ├── ⚙️ escapeHtml(text) — Escapa texto para uso seguro em HTML.
 │   │   │   │   ├── ⚙️ ensureUnlocked(state) — Verifica se o livro está livre para exclusões (a IA trabalhando trava o projeto).
 │   │   │   │   ├── ⚙️ onFileDeleteRequest(payload, state, deletion, services) — Trata o clique no botão de excluir de um arquivo: valida a permissão e abre a confirmação.
 │   │   │   │   └── ⚙️ onStructureChanged(payload, state, services) — Atualiza a interface depois de uma alteração de estrutura feita pela IA (pasta criada, arquivo ou pasta movidos ou excluídos, versão restaurada): explorer, rascunhos e o arquivo aberto no editor.
-│   │   │   ├── exportHandler.js — [Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.]
+│   │   │   ├── exportHandler.ts — [Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.]
 │   │   │   │   ├── ⚙️ toExportHtml(markdown) — HTML do texto para Word e PDF: links internos do livro (que não existem fora do app) viram texto simples.
 │   │   │   │   └── ⚙️ onExportFile({ data }, state) — Exporta o arquivo aberto no formato escolhido (o app pergunta onde salvar).
-│   │   │   ├── fileHandler.js — [Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.]
+│   │   │   ├── fileHandler.ts — [Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.]
 │   │   │   │   ├── ⚙️ syncFile(filePath, fileService, state) — Persiste as alterações de um único arquivo (socreve original com .temp e limpa estado)
-│   │   │   │   ├── ⚙️ syncMultipleFiles(filePaths, fileService, state) — Sincroniza uma lista de caminhos de arquivos em lote.
 │   │   │   │   ├── ⚙️ onSyncOpenModal(fileService, state, onDone = null) — Varre o sistema de arquivos via FileService e abre o modal de sincronização.
 │   │   │   │   ├── ⚙️ attachSyncModalEvents(syncModal, fileService, state) — Gerencia os ouvintes de eventos e interações dentro do modal.
 │   │   │   │   ├── ⚙️ onFileGet(req, state, fileService) — Realiza a consulta do arquivo no disco (com prioridade .temp), atualiza o state e notifica globalmente.
@@ -617,7 +778,7 @@
 │   │   │   │   ├── ⚙️ onTempDeleted(filePath, state, fileService)
 │   │   │   │   ├── ⚙️ handlePendingTempFiles(fileService)
 │   │   │   │   └── ⚙️ onSyncRequireAll({ onDone }, fileService, state) — Exige que todos os rascunhos do projeto sejam resolvidos (usado antes de a IA editar arquivos).
-│   │   │   ├── folderHandler.js — [Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.]
+│   │   │   ├── folderHandler.ts — [Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.]
 │   │   │   │   ├── ⚙️ refresh(state, services) — Atualiza a árvore do explorer e a lista de rascunhos após uma alteração de pastas/arquivos.
 │   │   │   │   ├── ⚙️ askName({ title, label, value = "", confirmLabel, onConfirm }) — Abre um modal com um campo de texto e devolve o valor digitado ao confirmar.
 │   │   │   │   ├── ⚙️ onFolderCreate(payload, state, folders, services) — Trata o pedido de nova pasta (botão da mini toolbar ou da pasta).
@@ -625,50 +786,49 @@
 │   │   │   │   ├── ⚙️ onFolderDelete(payload, state, folders, services) — Trata o pedido de excluir uma pasta do usuário: avisa sempre que os arquivos dentro dela também serão excluídos.
 │   │   │   │   ├── ⚙️ closeIfInside(state, rel) — Se o arquivo aberto estava dentro da pasta excluída, limpa o editor.
 │   │   │   │   ├── ⚙️ onFileMove({ file, dest }, state, folders, services) — Trata o soltar de um arquivo sobre uma pasta (arrastar e soltar). Movimentos entre categorias diferentes são recusados com um aviso.
-│   │   │   │   └── ⚙️ onFolderMove({ folder, dest }, state, folders, services) — Trata o soltar de uma pasta do usuário sobre outra pasta (mesma regra de categoria dos arquivos).
-│   │   │   ├── historyHandler.js — [Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no]
+│   │   │   │   ├── ⚙️ onFolderMove({ folder, dest }, state, folders, services) — Trata o soltar de uma pasta do usuário sobre outra pasta (mesma regra de categoria dos arquivos).
+│   │   │   │   └── ⚙️ onToggleNotesAiWrite(state, services) — Bloqueia/libera a escrita da IA em todas as anotações (alterna `aiWrite` no `folder.yml` de `notes`; arquivos e subpastas herdam).
+│   │   │   ├── historyHandler.ts — [Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no]
 │   │   │   │   └── ⚙️ onHistoryOpen(state, changelog, services) — Abre o modal com o histórico de versões do arquivo aberto no editor.
-│   │   │   ├── linkHandler.js — [Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e]
+│   │   │   ├── linkHandler.ts — [Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e]
 │   │   │   │   └── ⚙️ onAutoLink(state) — Trata o clique no botão "Linkar termos".
-│   │   │   ├── logViewerHandler.js — [Handler dos visualizadores de logs da tela de configurações: o changelog do livro (lista corrida com]
-│   │   │   │   ├── ⚙️ onChangelogViewerOpen(state, changelog) — Abre o modal com o changelog do livro atual. Ao rolar até o fim do arquivo de log carregado, o próximo arquivo (mais antigo) é carregado automaticamente, até acabarem os arquivos.
-│   │   │   │   ├── ⚙️ mountChangelogList(root, changelog) — Liga a lista do changelog ao seu contêiner: carrega o arquivo de log mais recente e, conforme o usuário rola, os mais antigos.
-│   │   │   │   └── ⚙️ onAiErrorLogOpen() — Abre o modal com o log de erros retornados pela IA.
-│   │   │   ├── searchHandler.js — [Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.]
+│   │   │   ├── logViewerHandler.ts — [Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.]
+│   │   │   │   └── ⚙️ mountChangelogList(root, changelog) — Liga a lista do changelog ao seu contêiner: carrega o arquivo de log mais recente e, conforme o usuário rola, os mais antigos.
+│   │   │   ├── searchHandler.ts — [Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.]
 │   │   │   │   ├── ⚙️ cancelPending() — Cancela qualquer pesquisa pendente ou em andamento.
 │   │   │   │   ├── ⚙️ onSearchChanged({ value }, state, searchService) — Trata a alteração do texto da pesquisa. Com texto, pesquisa após o debounce e publica `search:results`; vazio, cancela o modo de pesquisa publicando `search:cleared`.
 │   │   │   │   └── ⚙️ onSearchClear() — Trata o pedido de limpar a pesquisa (botão X): encerra o modo de pesquisa.
-│   │   │   └── variablesHandler.js — [Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo]
+│   │   │   └── variablesHandler.ts — [Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo]
 │   │   │        ├── ⚙️ isOpenFile(state, path) — Indica se o caminho é o arquivo aberto no editor.
 │   │   │        ├── ⚙️ loadDocument(state, fileService, path) — Carrega o frontmatter e o corpo de um arquivo (do editor, se aberto; senão do disco, preferindo o rascunho).
 │   │   │        ├── ⚙️ onVariablesOpen(state, fileService, payload) — Abre o modal (wizard de passo único) com os campos do arquivo. Sem `payload.data.path`, usa o arquivo aberto.
 │   │   │        ├── ⚙️ onVariablesSave({ values, context }, state, fileService) — Salva os dados alterados no rascunho (.temp) do arquivo, esteja ele aberto no editor ou não, e notifica os barramentos. Renomear atualiza o título e o H1. @throws {Error} Se o arquivo não pode ser editado ou o rascunho não pôde ser gravado.
 │   │   │        └── ⚙️ onVariablesInlineSave({ values }, state, fileService) — Salva a caixa "Dados do arquivo" do editor (arquivo aberto) e avisa o resultado.
-│   │   └── uiController.js — [Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.]
+│   │   └── uiController.ts — [Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.]
 │   │        └── 📦 class UiController — Controller responsável pelas reações visuais da interface.
 │   │            ├── ⚙️ constructor(services, state) — Cria uma instância do UiController e registra os ouvintes de eventos da UI.
 │   │            ├── ⚙️ registerEvents() — Registra todos os escutadores do barramento de UI.
 │   │            └── ⚙️ openCreationWizard(kind, folder) — Pede ao handler de criação que abra o wizard do tipo informado.
 │   ├── [core]
-│   │   ├── appContainer.js — [Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar]
+│   │   ├── appContainer.ts — [Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar]
 │   │   │   └── 📦 class AppContainer — Orquestrador principal da aplicação no processo de renderização. Gerencia a inicialização e injeção de dependências das classes de serviços e UI.
 │   │   │       ├── ⚙️ constructor() — Cria uma instância do AppContainer e inicializa suas dependências. @constructor
 │   │   │       ├── ⚙️ async(component)
 │   │   │       └── ⚙️ setupGlobalEvents() — Configura ouvintes globais de eventos na janela (arrastar arquivos, restrições de TAB, etc.).
-│   │   ├── splash.js — [Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela]
+│   │   ├── splash.ts — [Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela]
 │   │   │   ├── ⚙️ initSplash() — Prepara a abertura conforme o tema salvo (claro: fundo da barra de título e letras chumbo) e começa a carregar as fontes. Não anima nada: a tela fica vazia até {@link hideSplash}.
 │   │   │   └── ⚙️ hideSplash() — Toca a sequência da abertura e a remove (o app chama quando fica pronto).
-│   │   ├── state.js — [Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.]
+│   │   ├── state.ts — [Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.]
 │   │   │   └── 📦 class State — Classe responsável por gerenciar o estado global compartilhado da aplicação.
 │   │   │       └── ⚙️ constructor() — Cria uma instância do gerenciador de estado. @constructor
-│   │   ├── themeManager.js — [Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.]
+│   │   ├── themeManager.ts — [Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.]
 │   │   │   └── 📦 class ThemeManager — Classe responsável por gerenciar temas visuais e preferências de claro/escuro da interface.
 │   │   │       ├── ⚙️ constructor() — Cria uma instância do ThemeManager. @constructor
 │   │   │       ├── ⚙️ init() — Inicializa o gerenciador de temas, recuperando o tema salvo e configurando os ouvintes de evento.
 │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos.
 │   │   │       ├── ⚙️ toggleTheme(isDark) — Alterna o tema atual e o persiste no armazenamento local.
 │   │   │       └── ⚙️ applyTheme(isDark) — Aplica as classes visuais do tema no corpo da página, no editor e opcionalmente na janela nativa.
-│   │   └── tooltip.js — [Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma]
+│   │   └── tooltip.ts — [Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma]
 │   │        ├── ⚙️ ensureTip() — Cria (uma vez) o elemento da dica.
 │   │        ├── ⚙️ findHost(target) — Elemento (o próprio ou um ancestral) que tem dica.
 │   │        ├── ⚙️ readText(host) — Texto da dica do elemento; troca o `title` nativo por `data-tooltip`.
@@ -676,8 +836,8 @@
 │   │        ├── ⚙️ show(host) — Mostra a dica do elemento, abaixo dele (ou acima se não couber), centralizada e dentro da janela.
 │   │        └── ⚙️ initTooltips() — Liga as tooltips personalizadas ao documento (chamar uma vez).
 │   ├── [events]
-│   │   ├── domainBus.js — [Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.]
-│   │   ├── uiBus.js — [scripts/renderer/events/eventUi.js]
+│   │   ├── domainBus.ts — [Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.]
+│   │   ├── uiBus.ts — [scripts/renderer/events/eventUi.js]
 │   │   │   └── 📦 class UiEventBus
 │   │   │       ├── ⚙️ constructor() — @constructor
 │   │   │       ├── ⚙️ initDeclarativeEvents(this.bus)
@@ -692,13 +852,58 @@
 │   │   │       ├── ⚙️ reject(new Error(response.error)
 │   │   │       ├── ⚙️ resolve(response.data)
 │   │   │       └── ⚙️ onReq(event, callback) — @method onReq
-│   │   └── uiDeclarativeEvents.js
+│   │   └── uiDeclarativeEvents.ts
 │   │        └── ⚙️ initDeclarativeEvents(uiBus) — Inicializa o escutador global de eventos no documento.
-│   ├── renderer.js
+│   ├── renderer.ts
+│   ├── [review]
+│   │   ├── digest.ts — [Digests: o "arquivo-sombra" de metadados de cada arquivo do livro, em `.system/digests/`. A IA lê cada arquivo UMA vez]
+│   │   │   ├── ⚙️ digestSystem({ facts = true, events = true, style = false } = {}) — Instruções de sistema do digest, só com as partes pedidas (cada parte a mais custa tokens de resposta).
+│   │   │   ├── ⚙️ digestPrompt(rel, title, body) — Prompt do digest de um arquivo.
+│   │   │   ├── ⚙️ parseJsonLoose(text) — Lê um JSON devolvido pela IA, tolerando cercas de código e texto em volta.
+│   │   │   ├── ⚙️ squash(text) — Compara textos ignorando espaços repetidos e maiúsculas (para conferir se uma citação existe no arquivo).
+│   │   │   ├── ⚙️ normalizeDigest(raw, content) — Valida e normaliza o digest devolvido pela IA. Citações que não existem no texto são descartadas (a IA às vezes as reescreve), para o "ir ao trecho" nunca apontar para o lugar errado.
+│   │   │   ├── ⚙️ findCandidates(digests) — Procura candidatos a contradição SEM IA: o mesmo atributo da mesma entidade com valores diferentes em arquivos (ou trechos) diferentes. Só os candidatos vão para a verificação da IA.
+│   │   │   ├── ⚙️ verifyPrompt(candidate) — Prompt da verificação de um candidato.
+│   │   │   ├── ⚙️ findStyleShifts(digests) — Procura, SEM IA, capítulos que fogem do padrão do livro em narrador (pessoa) ou tempo verbal: o valor mais comum entre os capítulos analisados é o padrão, e os capítulos diferentes viram sugestões. Só vale com pelo menos 3 capítulos.
+│   │   │   └── ⚙️ alignPrompt(synopsis, chapters) — Prompt da comparação com o objetivo do livro.
+│   │   ├── issueCheckers.ts — [Verificadores determinísticos (sem IA) da Central de Revisões: links internos quebrados, palavras repetidas e]
+│   │   │   ├── ⚙️ shortHash(text) — Hash curto e estável de um texto (FNV-1a de 32 bits, em base 36). Usado nos ids dos issues.
+│   │   │   ├── ⚙️ bodyStart(content) — Índice onde o corpo do arquivo começa (logo depois do frontmatter YAML).
+│   │   │   ├── ⚙️ maskCode(content) — Cópia do texto sem o frontmatter e sem blocos/trechos de código (trocados por espaços, mesmo tamanho).
+│   │   │   ├── ⚙️ maskProse(content) — Cópia do texto com o que não é prosa trocado por espaços: frontmatter, código, tags HTML e links Markdown completos (nomes de fichas e endereços não são conferidos).
+│   │   │   ├── ⚙️ lineOf(content, index) — Número da linha (base 1) de uma posição do texto.
+│   │   │   ├── ⚙️ buildIssue({ type, file, content, start, end, message, suggestion, extra, seen }) — Monta um issue completo (id estável, linha e severidade do tipo) a partir do básico.
+│   │   │   ├── ⚙️ findBrokenLinkIssues(file, content, existing, toRel) — Links internos (`[texto](/caminho.md)`) que apontam para arquivos que não existem. Um issue por link, mesmo que o mesmo link quebrado apareça várias vezes no arquivo.
+│   │   │   ├── ⚙️ findRepeatedWordIssues(file, content) — Palavras repetidas em sequência ("de de"). Um issue por ocorrência.
+│   │   │   ├── ⚙️ collectWords(content) — Palavras candidatas à verificação ortográfica de um arquivo (3+ letras, sem números), com as posições.
+│   │   │   ├── ⚙️ findTypoIssues(file, content, words, misspelled, repeated = []) — Issues de palavras desconhecidas, dado o conjunto de palavras que o dicionário não reconhece.
+│   │   │   └── ⚙️ dictionaryKey(word) — Chave de comparação de palavras para o dicionário do livro (sem diferenciar maiúsculas; acentos importam).
+│   │   ├── issueTypes.ts — [Catálogo das categorias e dos tipos de issue da Central de Revisões.]
+│   │   │   ├── ⚙️ typeInfo(type) — Descrição de um tipo (com um padrão para tipos desconhecidos).
+│   │   │   ├── ⚙️ categoryInfo(id) — Categoria pelo id.
+│   │   │   └── ⚙️ normalizeSeverity(category, severity) — Normaliza a severidade: dicas de melhoria nunca são vermelhas.
+│   │   ├── reviewStore.ts — [Persistência da Central de Revisões. Tudo fica dentro da pasta do livro, em `.system/review/` (e os digests em]
+│   │   │   ├── ⚙️ systemPath(bookPath, rel) — Caminho absoluto de um arquivo de `.system` do livro.
+│   │   │   ├── ⚙️ readSystemJson(bookPath, rel, fallback) — Lê um JSON de `.system` (devolve o valor padrão se não existir ou estiver corrompido). @template T
+│   │   │   ├── ⚙️ writeSystemJson(bookPath, rel, data) — Grava um JSON em `.system` (cria as pastas que faltarem).
+│   │   │   └── ⚙️ loadReviewData(bookPath) — Carrega tudo o que a central persiste para um livro.
+│   │   └── timeline.ts — [Lógica (sem IA) da linha do tempo a partir das fichas de eventos (`assets/events/`). Cada evento tem um momento]
+│   │        ├── ⚙️ isEventFile(rel) — Indica se um caminho (relativo ao livro) é uma ficha de evento.
+│   │        ├── ⚙️ parseYear(when) — Lê o número do ano de um momento em texto livre ("ano 312", "312 d.C.", "Ano 5, inverno", "300 a.C.").
+│   │        ├── ⚙️ splitNames(value) — Divide uma lista de nomes separados por vírgula, ponto e vírgula ou quebra de linha.
+│   │        ├── ⚙️ eventFromMetadata(rel, meta, title) — Extrai os dados de evento do frontmatter de uma ficha.
+│   │        ├── ⚙️ timelineIssue(type, file, message) — Cria um issue da linha do tempo.
+│   │        ├── ⚙️ analyzeTimeline(events) — Analisa os eventos: monta o grafo de ordem, procura ciclos e contradições e sugere a ordem final.
+│   │        └── ⚙️ timelineMarkdown(ordered) — Texto Markdown do corpo da linha do tempo, a partir da ordem sugerida.
 │   ├── [services]
-│   │   ├── aiService.js — [Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.]
+│   │   ├── aiService.ts — [Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.]
 │   │   │   ├── ⚙️ getTodaySessionDate() — Obtém a data atual formatada como YYYY-MM-DD para nomear a sessão do chat.
 │   │   │   └── 📦 class AiService — Classe de serviço da Inteligência Artificial.
+│   │   │       ├── ⚙️ materialize() — Reflete a conta ativa no restante do app: `state.aiProvider` e `state.aiSettings.providers[provedor]` (chave e modelo da conta ativa), que é o que o gateway, o chat e as tools já leem.
+│   │   │       ├── ⚙️ accounts() — Contas de IA (com a chave, para uso interno; a interface só mostra os últimos caracteres).
+│   │   │       ├── ⚙️ activeAccount() — Conta de IA ativa.
+│   │   │       ├── ⚙️ mutate()
+│   │   │       ├── ⚙️ selectAccount(id, model, actor) — Seleciona a conta ativa (e, opcionalmente, o modelo dela).
 │   │   │       ├── ⚙️ getCurrentChatLogFilePath(sessionIndex = 1) — Monta o caminho completo do arquivo de log da sessão atual.
 │   │   │       ├── ⚙️ getActiveModel() — Modelo ativo do provedor selecionado (o salvo nas configurações ou o padrão).
 │   │   │       ├── ⚙️ getProviderInfo(provider)
@@ -708,10 +913,19 @@
 │   │   │       ├── ⚙️ learnDailyQuota(provider, model, error.quotaValue)
 │   │   │       ├── ⚙️ resetUsage() — Zera o consumo de tokens (nova sessão de chat).
 │   │   │       └── ⚙️ saveMessage(message) — Salva uma nova mensagem no arquivo de log da sessão atual do livro ativo.
-│   │   ├── bookService.js — [Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.]
+│   │   ├── analysisService.ts — [Análise do livro pela IA, pensada para gastar poucos tokens:]
+│   │   │   ├── ⚙️ estimateTokens(chars) — Estimativa grosseira de tokens de um texto.
+│   │   │   └── 📦 class AnalysisService — Serviço de análise do livro.
+│   │   │       ├── ⚙️ constructor(state, changelog, fileService, issues) — Método Construtor
+│   │   │       ├── ⚙️ settings() — Configurações da análise (salvas junto das de IA).
+│   │   │       ├── ⚙️ walk(tree, "")
+│   │   │       ├── ⚙️ cancel() — Pede para interromper a análise em andamento (termina o arquivo atual).
+│   │   │       ├── ⚙️ setProgress(progress) — Atualiza o progresso exibido na interface.
+│   │   │       └── ⚙️ notifyError(error) — Mostra o erro de uma chamada da análise ao autor.
+│   │   ├── bookService.ts — [Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.]
 │   │   │   └── 📦 class BookService
 │   │   │       └── ⚙️ constructor(state, services) — Cria uma instância do BookService.
-│   │   ├── changelogService.js — [Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra]
+│   │   ├── changelogService.ts — [Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra]
 │   │   │   └── 📦 class ChangelogService — Serviço de registro e consulta do changelog.
 │   │   │       ├── ⚙️ constructor(state) — Cria uma instância do ChangelogService.
 │   │   │       ├── ⚙️ userActor() — Autor "usuário".
@@ -730,7 +944,8 @@
 │   │   │       ├── ⚙️ endSessionsExcept(keepPath = null) — Encerra as sessões de todos os arquivos, exceto o informado (usado ao trocar de arquivo no editor).
 │   │   │       ├── ⚙️ endAiSessions() — Encerra as sessões de rascunho da IA (quando ela termina de editar).
 │   │   │       └── ⚙️ recordMove(newPath, oldPath, actor, bookPath) — Registra que um arquivo mudou de caminho (ex.: capítulo renumerado). O histórico do arquivo continua valendo.
-│   │   ├── creationService.js — [Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.]
+│   │   ├── creationService.ts — [Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.]
+│   │   │   ├── ⚙️ withoutAiWrite(flags) — Cópia das permissões sem `aiWrite` (para os arquivos que herdam essa permissão da pasta).
 │   │   │   ├── ⚙️ pad(n, size = 3) — Formata um número com zeros à esquerda.
 │   │   │   ├── ⚙️ nextNumber(names, regex) — Calcula o próximo número livre de uma sequência, a partir dos nomes existentes.
 │   │   │   ├── ⚙️ sanitizeFolder(folder) — Valida um caminho de pasta relativo à raiz do livro (sem `..`, sem pastas ocultas e sem caminho absoluto).
@@ -746,17 +961,17 @@
 │   │   │       ├── ⚙️ replaceFirstHeading(draft.body, title)
 │   │   │       ├── ⚙️ replaceFirstHeading(body, title)
 │   │   │       └── ⚙️ notify(event, payload) — Notifica os dois barramentos sobre um item criado.
-│   │   ├── deletionService.js — [Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.]
+│   │   ├── deletionService.ts — [Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.]
 │   │   │   └── 📦 class DeletionService — Serviço de exclusão de arquivos e capítulos.
 │   │   │       ├── ⚙️ constructor(state, changelog) — Método Construtor
 │   │   │       ├── ⚙️ requireBook() — Caminho do livro atual (normalizado, sem barra final). @throws {Error} Se nenhum livro está selecionado.
 │   │   │       └── ⚙️ notify(event, payload) — Notifica os dois barramentos.
-│   │   ├── fileService.js — [Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.]
+│   │   ├── fileService.ts — [Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.]
 │   │   │   └── 📦 class FileService — Serviço de manipulação e persistência de arquivos locais via IPC do Electron.
 │   │   │       ├── ⚙️ constructor(state, changelog = null) — Cria uma instância do FileService.
 │   │   │       ├── ⚙️ getTempPath(filePath) — Retorna o caminho do arquivo temporário (.temp) correspondente.
 │   │   │       └── ⚙️ stripAutoLinkMarks(contentToSave)
-│   │   ├── folderService.js — [Serviço das pastas do usuário e da movimentação de arquivos entre pastas.]
+│   │   ├── folderService.ts — [Serviço das pastas do usuário e da movimentação de arquivos entre pastas.]
 │   │   │   ├── ⚙️ categoryOf(bookRel) — Categoria oficial de um caminho relativo ao livro (`notes` ou `assets/<categoria>`), ou null.
 │   │   │   ├── 📦 class FolderService — Serviço de pastas do usuário e movimentação de arquivos.
 │   │   │   │   ├── ⚙️ constructor(state, changelog) — Método Construtor
@@ -766,20 +981,58 @@
 │   │   │   │   ├── ⚙️ checkFolderMove(folderRel, destRel) — Verifica se uma pasta do usuário pode ser movida para dentro de outra pasta (mesma categoria oficial, nunca para dentro de si mesma).
 │   │   │   │   └── ⚙️ notify(event, payload) — Notifica os dois barramentos.
 │   │   │   └── ⚙️ escapeRegExp(text) — Escapa um texto para uso literal em expressão regular.
-│   │   ├── indexService.js — [Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos]
-│   │   ├── searchService.js — [Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).]
+│   │   ├── indexService.ts — [Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos]
+│   │   ├── issueService.ts — [Serviço da Central de Revisões: mantém a lista de issues do livro (problemas, inconsistências e sugestões),]
+│   │   │   └── 📦 class IssueService — Serviço de issues (Central de Revisões).
+│   │   │       ├── ⚙️ constructor(state, changelog, fileService) — Método Construtor
+│   │   │       ├── ⚙️ listen() — Liga os ouvintes: o livro trocado carrega tudo; qualquer alteração de arquivo agenda uma reanálise incremental.
+│   │   │       ├── ⚙️ relOf(abs) — Caminho relativo ao livro de um caminho absoluto (sem `.temp`).
+│   │   │       ├── ⚙️ schedule(rel) — Agenda uma reanálise (de um arquivo ou do livro todo), agrupando pedidos seguidos.
+│   │   │       ├── ⚙️ clearTimeout(this.timer)
+│   │   │       ├── ⚙️ unload() — Esquece tudo (nenhum livro selecionado).
+│   │   │       ├── ⚙️ publish() — Avisa a interface (e a IA) que a lista mudou.
+│   │   │       ├── ⚙️ knownWords() — Palavras que nunca são erro: dicionário do livro e títulos/nomes/apelidos das fichas.
+│   │   │       ├── ⚙️ all() — Todos os issues visíveis (sem os dispensados, os de tipos dispensados e as palavras aceitas no dicionário).
+│   │   │       ├── ⚙️ find(id) — Localiza um issue visível pelo id.
+│   │   │       ├── ⚙️ list(filter = {}) — Filtra os issues.
+│   │   │       ├── ⚙️ summary() — Resumo da central: totais, por categoria, por tipo, por arquivo e os mais graves.
+│   │   │       ├── ⚙️ brief(issue) — Versão compacta de um issue (o que a IA e a interface listam).
+│   │   │       ├── ⚙️ dismissedTypes() — Tipos dispensados (com a data) e o catálogo para exibir na página inicial.
+│   │   │       ├── ⚙️ dictionaryWords() — Palavras do dicionário do livro.
+│   │   │       ├── ⚙️ rebuildTimeline() — Recalcula a linha do tempo a partir das fichas de eventos em cache: guarda a sugestão de ordem e publica os issues da categoria "linha do tempo" (ordem circular, momento contraditório, referências inexistentes...).
+│   │   │       ├── ⚙️ timelineSuggestion() — Sugestão de ordem da linha do tempo (calculada pelo sistema, sem IA) e a ficha da linha do tempo.
+│   │   │       ├── ⚙️ describeFile(content, rel) — Metadados guardados no cache de um arquivo: título e palavras que nunca são erro (título, nome e apelidos).
+│   │   │       ├── ⚙️ String(text || "")
+│   │   │       ├── ⚙️ add(meta.title)
+│   │   │       ├── ⚙️ add(meta.data?.title?.content)
+│   │   │       ├── ⚙️ splitAliases(meta.data?.aliases?.content)
+│   │   │       ├── ⚙️ countTypes(issues) — Contagem por tipo de uma lista de issues.
+│   │   │       ├── ⚙️ relocateRegistered(rel, content) — Reposiciona (ou remove, se o trecho sumiu) os issues registrados pela IA de um arquivo alterado.
+│   │   │       ├── ⚙️ locate(content, excerpt, hint = 0) — Posição do trecho no texto: a mais próxima da dica (o trecho pode ter andado por edições acima dele).
+│   │   │       ├── ⚙️ removeIssue(id) — Retira um issue das listas (derivados e registrados).
+│   │   │       ├── ⚙️ setExternal(key, issues) — Define os issues de uma fonte externa (ex.: `timeline`), substituindo os anteriores dela.
+│   │   │       ├── ⚙️ fileTitle(rel) — Título de um arquivo para exibição (o título do frontmatter ou o nome do arquivo).
+│   │   │       └── ⚙️ category(id) — Categoria e rótulo para exibir (atalho para a interface).
+│   │   ├── searchService.ts — [Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).]
 │   │   │   └── 📦 class SearchService — Serviço que delega a busca de texto ao processo principal (que lê os arquivos do disco).
-│   │   ├── serviceManager.js — [Agregador central de serviços (Facade). Instancia e gerencia o acesso]
+│   │   ├── serviceManager.ts — [Agregador central de serviços (Facade). Instancia e gerencia o acesso]
 │   │   │   └── 📦 class ServiceManager — Gerencia todas as classes de serviços.
 │   │   │       └── ⚙️ constructor(state) — Inicializa e agrupa todos os serviços da aplicação. @constructor
-│   │   └── spellService.js — [Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal]
+│   │   ├── skillService.ts — [Skills criadas pelo autor. Cada skill é um arquivo Markdown em `<livro>/.system/skills/<nome>.md` (frontmatter com]
+│   │   │   └── 📦 class SkillService — Serviço das skills do livro.
+│   │   │       ├── ⚙️ constructor(state) — Método Construtor
+│   │   │       ├── ⚙️ setCustomSkills([])
+│   │   │       └── ⚙️ setCustomSkills(list)
+│   │   └── spellService.ts — [Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal]
 │   │        └── 📦 class SpellService — Serviço de verificação ortográfica por contagem.
+│   │            ├── ⚙️ constructor() — Método Construtor
+│   │            ├── ⚙️ setBookWords(words) — Define o dicionário do livro (Central de Revisões: "adicionar ao dicionário").
 │   │            └── ⚙️ reset() — Chamado quando o idioma muda (o dicionário novo é carregado no primeiro uso).
 │   └── [utils]
-│        ├── autoLinkText.js — [Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e]
+│        ├── autoLinkText.ts — [Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e]
 │        │   ├── ⚙️ linkSegment(text, terms) — Linka os termos em um trecho de texto livre (sem links nem código).
-│        │   └── ⚙️ applyAutoLinksToMarkdown(body, terms) — Cria links internos para as ocorrências dos termos no corpo Markdown. Não mexe em títulos, blocos de código, código inline, imagens nem textos que já são links.
-│        ├── bookFiles.js — [Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos]
+│        │   └── ⚙️ applyAutoLinksToMarkdown(body, terms) — Cria links internos para as ocorrências dos termos no corpo Markdown. Títulos também são linkados; não mexe em blocos de código, código inline, imagens nem textos que já são links.
+│        ├── bookFiles.ts — [Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos]
 │        │   ├── ⚙️ flattenBookTree(tree, bookPath) — Achata a árvore de arquivos do livro em uma lista de arquivos Markdown oficiais.
 │        │   ├── ⚙️ fileTitle(file) — Título de exibição de um arquivo.
 │        │   ├── ⚙️ isLinkTarget(file) — Indica se o arquivo pode ser destino de um link interno (ficha legível, fora modelos e índices).
@@ -788,7 +1041,7 @@
 │        │   ├── ⚙️ splitAliases(value) — Divide o valor da variável de apelidos em uma lista (separada por vírgula, ponto e vírgula ou quebra de linha).
 │        │   ├── ⚙️ buildAutoLinkTerms(files, currentRelPath = "") — Termos (nome e apelidos) que o link automático procura no texto, cada um apontando para o arquivo de origem. Só entram as fichas do mundo (`assets/<pasta>/arquivo.md`), nunca o próprio arquivo aberto.
 │        │   └── ⚙️ existingPathSet(files) — Conjunto de caminhos relativos (minúsculos) dos arquivos existentes, para validar links internos.
-│        ├── bookIndex.js — [Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual]
+│        ├── bookIndex.ts — [Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual]
 │        │   ├── ⚙️ entityIndexPath(bookRelPath) — Caminho (relativo ao livro) do índice que lista um arquivo de ficha, ou null se o arquivo não é listado em índice. Fichas dentro de subpastas do usuário entram no índice da categoria (`assets/characters/index.md`).
 │        │   ├── ⚙️ indexPathsFor(bookRelPath) — Índices do livro que podem conter link para um arquivo excluído (capítulos e categorias do Mundo).
 │        │   ├── ⚙️ safeTitle(title) — Remove título de link do texto (colchetes quebrariam o Markdown).
@@ -796,48 +1049,51 @@
 │        │   ├── ⚙️ lineLinksTo(line, paths) — Indica se uma linha do índice é o link de um dos caminhos (com ou sem barra inicial e `#fragmento`).
 │        │   ├── ⚙️ addIndexLink(indexContent, title, bookRelPath) — Acrescenta o link de um arquivo ao texto de um índice (sem duplicar se já estiver lá).
 │        │   └── ⚙️ removeIndexLinks(indexContent, bookRelPaths) — Remove do texto de um índice as linhas que apontam para os arquivos informados.
-│        ├── changelogFormat.js — [Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.]
+│        ├── changelogFormat.ts — [Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.]
 │        │   ├── ⚙️ formatDateTime(iso) — Formata uma data ISO como "DD/MM/AAAA HH:MM:SS" (horário local).
 │        │   ├── ⚙️ describeActor(actor) — Descreve quem realizou uma ação, com a classe de cor correspondente.
 │        │   ├── ⚙️ displayPath(path, action) — Nome exibido para o caminho registrado (`.` significa o livro inteiro ou, para configurações, o app).
+│        │   ├── ⚙️ summarizeReview(meta) — Resumo de um registro da Central de Revisões.
 │        │   ├── ⚙️ summarizeEntry(entry) — Resumo curto de um registro (linhas alteradas, ferramenta usada, versão restaurada...).
 │        │   └── ⚙️ toViewEntry(entry) — Prepara um registro para o template de listagem.
-│        ├── chatActions.js — [Catálogo das ações nativas que um botão do chat pode disparar.]
+│        ├── chatActions.ts — [Catálogo das ações nativas que um botão do chat pode disparar.]
 │        │   └── ⚙️ isAllowedChatEvent(event) — Indica se um evento pode ser disparado por um botão do chat.
-│        ├── chatBackground.js — [Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.]
+│        ├── chatBackground.ts — [Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.]
 │        │   ├── ⚙️ modeUsesColor(mode) — Tipos que aceitam escolher a cor de fundo.
 │        │   ├── ⚙️ getChatBackground(theme) — Preferência salva (ou o padrão) para um tema.
 │        │   ├── ⚙️ hasSavedColor(theme, mode) — Se o usuário já escolheu uma cor para o tipo de fundo (nas estrelas, sem escolha vale o degradê padrão do tema).
 │        │   ├── ⚙️ getColor(theme, mode) — Cor salva (ou a padrão) de um tipo de fundo em um tema.
 │        │   ├── ⚙️ setChatBackgroundMode(theme, mode) — Salva o tipo de fundo de um tema.
 │        │   └── ⚙️ setChatBackgroundColor(theme, mode, color) — Salva a cor de um tipo de fundo em um tema.
-│        ├── chatMarkdown.js — [Conversão segura de Markdown (respostas da IA) em HTML para o chat.]
+│        ├── chatMarkdown.ts — [Conversão segura de Markdown (respostas da IA) em HTML para o chat.]
 │        │   └── ⚙️ renderChatMarkdown(markdown) — Converte Markdown em HTML sanitizado (qualquer HTML cru vindo da IA é filtrado).
-│        ├── deletePermission.js — [Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.]
+│        ├── deletePermission.ts — [Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.]
 │        │   ├── ⚙️ canDeleteFile(metadata, bookRelPath, who = "user") — Indica se um arquivo pode ser excluído.
 │        │   ├── ⚙️ isChapterFolder(bookRelPath) — Indica se um caminho (relativo ao livro) é uma pasta de capítulo.
 │        │   └── ⚙️ chapterNumber(folderName) — Número de uma pasta de capítulo (`chapter_003` -> 3).
-│        ├── diff.js — [Comparação linha a linha entre duas versões de um texto.]
+│        ├── diff.ts — [Comparação linha a linha entre duas versões de um texto.]
 │        │   └── ⚙️ diffLines(oldText, newText) — Compara dois textos e indica quais linhas foram removidas (versão antiga) e adicionadas (versão nova).
-│        ├── helpers.js — [Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.]
+│        ├── hash.ts — [Hash de textos no renderer (SHA-1 em hexadecimal, via Web Crypto).]
+│        │   └── ⚙️ sha1(text) — Calcula o SHA-1 de um texto.
+│        ├── helpers.ts — [Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.]
 │        │   ├── ⚙️ normalizeItemMetadata(rawMetadata, fallbackTitle = "") — Garante que todas as chaves obrigatórias do objeto de metadados existam com valores padrão (fallbacks).
 │        │   ├── ⚙️ normalizePath(p) — Normaliza caminhos de arquivo para evitar quebras em seletores CSS ou chamadas do Node/IPC.
 │        │   ├── ⚙️ getRelativePath(fullPath) — Transforma um caminho completo em um caminho relativo a partir da pasta 'books', garantindo que a pasta do livro imediatamente abaixo de 'books' comece com 'book_'.
 │        │   ├── ⚙️ escapeHtml(text) — Utilitário simples para sanitizar textos HTML.
 │        │   ├── ⚙️ highlightMatch(text, term) — Escapa o texto e destaca (com `<mark>`) as ocorrências do termo, ignorando maiúsculas, acentos, pontuação e artigos/conjunções (mesma regra da busca).
 │        │   └── ⚙️ uniqueId(prefix = "id") — Gera um identificador curto e único para correlacionar eventos (ex.: wizards abertos em paralelo).
-│        ├── historyCompare.js — [Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown]
+│        ├── historyCompare.ts — [Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown]
 │        │   ├── ⚙️ groupSegments(lines, isChanged) — Agrupa linhas consecutivas com o mesmo estado (alterada ou não) em trechos que serão interpretados juntos como Markdown. Linhas em branco acompanham o trecho anterior, para não quebrar parágrafos e listas.
 │        │   ├── ⚙️ renderSegments(segments, kind) — Converte os trechos em HTML (Markdown interpretado e sanitizado), marcando os alterados.
 │        │   └── ⚙️ buildComparison(currentText, versionText) — Prepara a comparação entre o texto atual e uma versão do histórico.
-│        ├── markdown.js — [Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.]
+│        ├── markdown.ts — [Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.]
 │        │   ├── ⚙️ parseSimpleYaml(yamlText) — Interpreta um texto YAML simples (chave: valor, uma por linha). Usado como alternativa quando o YAML é inválido.
 │        │   ├── ⚙️ parseYaml(yamlText) — Converte um texto YAML em objeto JS, caindo no interpretador simples se o YAML for inválido.
 │        │   ├── ⚙️ stringifyYaml(data) — Converte um objeto JS em texto YAML.
 │        │   ├── ⚙️ parseMarkdown(fileContent, isYmlOnly = false) — Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
 │        │   ├── ⚙️ splitFrontmatter(fileContent) — Separa o bloco de Frontmatter (texto bruto, intacto) do corpo do Markdown.
 │        │   └── ⚙️ stringifyFrontmatter(metadata, body) — Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
-│        └── template.js — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
+│        └── template.ts — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
 │             ├── ⚙️ slugify(text) — Gera um slug simples (minúsculo, sem acentos, separado por hífen).
 │             ├── ⚙️ isVariableLeaf(node) — Indica se um nó de `data` é uma variável (folha) e não um grupo de variáveis.
 │             ├── ⚙️ flattenVariables(data, prefix = []) — Achata o objeto `data` em uma lista de variáveis, com o caminho completo como id.
@@ -852,13 +1108,15 @@
 │             ├── ⚙️ renderTemplateFile({ metadata, body }) — Serializa o resultado de {@link applyTemplateValues} em texto de arquivo (frontmatter + corpo).
 │             ├── ⚙️ replaceFirstHeading(body, title) — Substitui o primeiro título de nível 1 do corpo (ou insere um no topo, se não houver).
 │             └── ⚙️ appendToBody(fileContent, line) — Anexa um texto ao final do corpo de um arquivo, preservando o frontmatter intacto.
-└── [shared]
-     ├── looseText.js — [Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface]
-     │   ├── ⚙️ foldText(text) — Normaliza um texto (minúsculas e sem acentos) preservando o comprimento, para que os índices valham no original.
-     │   ├── ⚙️ tokenize(folded) — Divide o texto (já normalizado) em palavras, com a posição de cada uma no original.
-     │   ├── ⚙️ looseWords(term) — Palavras significativas do termo pesquisado (sem artigos/conjunções/preposições e sem pontuação).
-     │   └── ⚙️ findMatches(text, term) — Todas as ocorrências do termo no texto, de forma tolerante (ver o topo do arquivo). Também aceita a ocorrência literal (ignorando só maiúsculas/acentos), útil enquanto a palavra ainda está sendo digitada.
-     └── tags.js — [Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado]
-          ├── ⚙️ normalizeTag(raw) — Normaliza uma tag: minúsculas, sem "#", espaços internos viram hífen e só ficam letras (com acento), números e `- _ / .`.
-          ├── ⚙️ parseTags(input) — Converte uma lista/texto (separado por vírgulas) em tags normalizadas, sem repetição, na ordem digitada.
-          └── ⚙️ tagColorIndex(tag) — Índice (0 a TAG_COLOR_COUNT-1) da cor da tag: hash FNV-1a das letras, portanto nunca muda para a mesma tag.
+├── [shared]
+│   ├── looseText.ts — [Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface]
+│   │   ├── ⚙️ foldText(text) — Normaliza um texto (minúsculas e sem acentos) preservando o comprimento, para que os índices valham no original.
+│   │   ├── ⚙️ tokenize(folded) — Divide o texto (já normalizado) em palavras, com a posição de cada uma no original.
+│   │   ├── ⚙️ looseWords(term) — Palavras significativas do termo pesquisado (sem artigos/conjunções/preposições e sem pontuação).
+│   │   └── ⚙️ findMatches(text, term) — Todas as ocorrências do termo no texto, de forma tolerante (ver o topo do arquivo). Também aceita a ocorrência literal (ignorando só maiúsculas/acentos), útil enquanto a palavra ainda está sendo digitada.
+│   └── tags.ts — [Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado]
+│        ├── ⚙️ normalizeTag(raw) — Normaliza uma tag: minúsculas, sem "#", espaços internos viram hífen e só ficam letras (com acento), números e `- _ / .`.
+│        ├── ⚙️ parseTags(input) — Converte uma lista/texto (separado por vírgulas) em tags normalizadas, sem repetição, na ordem digitada.
+│        └── ⚙️ tagColorIndex(tag) — Índice (0 a TAG_COLOR_COUNT-1) da cor da tag: hash FNV-1a das letras, portanto nunca muda para a mesma tag.
+└── [types]
+     └── global.d.ts — [Declarações globais do projeto (módulos de recursos do Vite e as APIs expostas pelo preload).]

@@ -115,3 +115,16 @@
 [ ] o botão de pastas da mini toolbar abre todas as pastas da aba e, se já estiverem abertas, fecha todas
 [ ] "Limpar log" do log de erros da IA pede confirmação antes de apagar
 [ ] nenhum overlay (modais e gaveta de configurações) cobre a barra de título da janela
+[ ] o app compila e inicia (`npm start`) com todo o código em TypeScript e `npm run typecheck` passa
+[ ] permissões não definidas no arquivo vêm da pasta-mãe, avó... até a raiz; o cadeado de Anotações muda todas as anotações
+[ ] a gaveta de configurações cobre a barra de título, tem a largura da sidebar e o cabeçalho fixo
+[ ] botões coloridos têm texto branco no tema claro e escuro-profundo no escuro (inclusive na revisão da IA)
+[ ] a caneta da guia foca o campo do nome; Esc no chat devolve as setas ao explorer
+[ ] a Central de Revisões abre pelo rodapé e pelas Configurações; o botão fica verde, amarelo ou vermelho conforme as pendências
+[ ] corrigir, dispensar, dispensar tipo, adicionar ao dicionário e "ir para o trecho" funcionam; tipos dispensados voltam pela página inicial
+[ ] criar ficha/anotação/evento/capítulo gera `.md.temp`; sincronizar converte em oficial; descartar remove o arquivo e o link do índice
+[ ] a linha do tempo sugere a ordem, detecta ciclo e só é escrita pela central (aprovação) ou pela IA
+[ ] a análise da IA mostra estimativa, cria digests em `.system/digests/` e registra contradições
+[ ] várias contas de IA com apelido; seletor das Configurações sincronizado com a Central de IA; chave só na central
+[ ] Central do Livro: renomear, modo da IA, changelog e exclusão; Central de IA: fallback, uso, depuração, log de erros e skills
+

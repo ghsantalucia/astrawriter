@@ -2,8 +2,20 @@ const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
 module.exports = {
+  // Pasta de saída do empacotamento (padrão: out)
+  outDir: process.env.FORGE_OUT_DIR || 'out',
   packagerConfig: {
     asar: true,
+    // Nome do executável e ícone (public/icon.ico)
+    executableName: 'Astra Writer',
+    icon: 'public/icon',
+    // Vão para a pasta resources/ do app instalado: o modelo de livro e o ícone da janela
+    extraResource: ['templates', 'public/icon.ico'],
+    // Empacota só o resultado do build (.vite) e as dependências de produção (o main usa require em runtime)
+    ignore: (file) => {
+      if (!file) return false;
+      return !(/^\/\.vite/.test(file) || /^\/node_modules/.test(file) || file === '/package.json');
+    },
   },
   rebuildConfig: {},
   makers: [
@@ -30,14 +42,14 @@ module.exports = {
       config: {
         build: [
           {
-            // Aponta para o main.js dentro de src/main/
-            entry: 'src/main/main.js',
+            // Aponta para o main.ts dentro de src/main/
+            entry: 'src/main/main.ts',
             config: 'vite.main.config.mjs',
             target: 'main',
           },
           {
-            // Aponta para o preload.js dentro de src/preload/
-            entry: 'src/preload/preload.js',
+            // Aponta para o preload.ts dentro de src/preload/
+            entry: 'src/preload/preload.ts',
             config: 'vite.preload.config.mjs',
             target: 'preload',
           },

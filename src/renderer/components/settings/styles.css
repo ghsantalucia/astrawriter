@@ -3,22 +3,24 @@
    ========================================================================== */
 
 #settings-container {
+  /* Único componente que pode cobrir a barra de título: altura total da janela e a largura exata da sidebar (481px) */
   position: fixed;
-  /* Abaixo da barra de título (30px), como os modais */
-  top: 30px;
-  left: -480px;
-  width: 480px;
-  height: calc(100vh - 30px);
-  background-color: var(--bg-sidebar);
+  top: 0;
+  left: -481px;
+  width: 481px;
+  height: 100vh;
+  /* Mesma cor da barra de título e da sidebar */
+  background-color: var(--bg-header);
   color: var(--text-sidebar);
   z-index: 201;
   box-shadow: 4px 0 18px var(--shade);
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  padding: 20px 22px;
+  padding: 0;
   border-right: 1px solid var(--line);
-  overflow-y: auto;
+  /* Quem rola é só o .settings-content (abaixo do cabeçalho fixo) */
+  overflow: hidden;
 }
 
 #settings-container.open {
@@ -26,11 +28,16 @@
 }
 
 .settings-header {
+  /* Fixo no topo da gaveta: o X fica sempre à mão, mesmo com a lista rolada */
+  position: relative;
+  z-index: 5;
   display: flex;
+  flex: none;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0 16px;
-  margin-bottom: 8px;
+  padding: 36px 22px 14px;
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .settings-header h3 {
@@ -66,6 +73,10 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding: 16px 22px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Cartões de seção */
@@ -244,17 +255,17 @@
   display: none;
 }
 
-/* Barra de rolagem da gaveta: fina, discreta e no tom do tema (engrossa ao passar o mouse sobre ela) */
-#settings-container::-webkit-scrollbar {
+/* Barra de rolagem da lista de configurações (abaixo do cabeçalho fixo): fina, discreta e no tom do tema (engrossa ao passar o mouse sobre ela) */
+.settings-content::-webkit-scrollbar {
   width: 8px;
 }
 
-#settings-container::-webkit-scrollbar-track {
+.settings-content::-webkit-scrollbar-track {
   background: transparent;
   margin: 6px 0;
 }
 
-#settings-container::-webkit-scrollbar-thumb {
+.settings-content::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb);
   background-clip: padding-box;
   border: 2px solid transparent;
@@ -262,7 +273,7 @@
   transition: border-width 0.25s ease;
 }
 
-#settings-container::-webkit-scrollbar-thumb:hover {
+.settings-content::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover);
   border-width: 1px;
 }

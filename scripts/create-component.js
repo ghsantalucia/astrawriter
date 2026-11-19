@@ -33,14 +33,14 @@ const kebabName = words.map((w) => w.toLowerCase()).join("-");
 // Definições de Nomes Finais
 const folderName = pascalName; // Ex: LeftSidebar
 const className = `${pascalName}Component`; // Ex: LeftSidebarComponent
-const fileName = `${pascalName}.js`; // Ex: LeftSidebar.js
+const fileName = `${pascalName}.ts`; // Ex: LeftSidebar.ts
 const cssContainerId = `#${kebabName}-container`; // Ex: #left-sidebar-container
 
 // 2. Mapeamento de Caminhos
 const componentsDir = path.resolve(__dirname, "../src/renderer/components");
 const targetDir = path.join(componentsDir, folderName);
 const templatesDir = path.join(targetDir, "templates");
-const barrelPath = path.join(componentsDir, "index.js");
+const barrelPath = path.join(componentsDir, "index.ts");
 
 // Verifica se a pasta do componente já existe
 if (fs.existsSync(targetDir)) {
@@ -53,7 +53,7 @@ fs.mkdirSync(templatesDir, { recursive: true });
 
 // 4. Definição do Conteúdo dos Arquivos
 
-// LeftSidebar.js
+// LeftSidebar.ts
 const jsContent = `/**
  * @file Componente ${pascalName}
  */
@@ -111,7 +111,7 @@ fs.writeFileSync(path.join(targetDir, fileName), jsContent, "utf-8");
 fs.writeFileSync(path.join(targetDir, "styles.css"), cssContent, "utf-8");
 fs.writeFileSync(path.join(templatesDir, "main.hbs"), hbsContent, "utf-8");
 
-// 6. Atualização do Barrel (/src/renderer/components/index.js)
+// 6. Atualização do Barrel (/src/renderer/components/index.ts)
 const barrelExportLine = `export { ${className} } from "./${folderName}/${fileName}";\n`;
 
 if (fs.existsSync(barrelPath)) {
@@ -124,4 +124,4 @@ console.log(`✅ Componente "${className}" criado com sucesso!`);
 console.log(` 📂 Pasta: ${targetDir}`);
 console.log(` 📄 Classe: ${fileName}`);
 console.log(` 🎨 CSS Container: ${cssContainerId}`);
-console.log(` 🔄 Adicionado ao Barrel: src/renderer/components/index.js`);
+console.log(` 🔄 Adicionado ao Barrel: src/renderer/components/index.ts`);

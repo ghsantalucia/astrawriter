@@ -38,7 +38,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 32px 40px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-window);
   max-width: 400px;
   display: flex;
   flex-direction: column;

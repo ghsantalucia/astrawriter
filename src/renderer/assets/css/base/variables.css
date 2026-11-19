@@ -19,6 +19,10 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  /* Janelas (modais, centrais, menus e painéis flutuantes): meio-termo, mais retas que o padrão antigo */
+  --radius-window: 5px;
+  /* Botões e campos: levemente suavizados (nem pontudos, nem infantis) */
+  --radius-control: 4px;
 
   /* Barra de título da janela: muda com o tema (o main sincroniza os botões nativos) */
   --bg-header: #ece9f6;
@@ -42,6 +46,7 @@
   --text-dim: #5a5475;
   --text-subtle: #6f698f;
   --text-on-accent: #ffffff;
+  --text-on-danger: #ffffff;
   --text-header: #b9c7d1;
   --text-sidebar: #2b2542;
   --text-editor: #2b2542;
@@ -105,6 +110,7 @@ body.dark-theme {
   --text-dim: #a6adc8;
   --text-subtle: #6c7086;
   --text-on-accent: #11111b;
+  --text-on-danger: #11111b;
   --text-header: #a6adc8;
   --text-sidebar: #cdd6f4;
   --text-editor: #cdd6f4;

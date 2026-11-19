@@ -1,12 +1,12 @@
-# Astra Writter: Memória de Arquitetura e Padrões de Projeto
+# Astra Writer: Memória de Arquitetura e Padrões de Projeto
 
 Esta documentação serve como o nosso "manual de sobrevivência" e fonte única de verdade para o projeto. Escrevi este registro para consolidar o conhecimento técnico, as escolhas arquiteturais e os padrões que estamos adotando, garantindo que o contexto e a consistência do projeto se mantenham intactos independentemente dos limites de memória dos logs.
 
 ---
 
-## 1. O Que é o Astra Writter?
+## 1. O Que é o Astra Writer?
 
-O **Astra Writter** é um editor de livros assistido por IA, desenvolvido para manter a rigidez e a consistência em universos narrativos complexos. O aplicativo possui três modos de operação:
+O **Astra Writer** é um editor de livros assistido por IA, desenvolvido para manter a rigidez e a consistência em universos narrativos complexos. O aplicativo possui três modos de operação:
 
 - **Auxílio de Escrita:** O usuário comanda a IA, que redige trechos sujeitos a revisão humana direta.
 - **Criação Guiada:** A IA gera capítulo a capítulo com revisão e prompts do usuário.
@@ -95,7 +95,7 @@ Tudo o que é criado, alterado, excluído, movido, restaurado, salvo automaticam
 
 ### Estrutura dos livros e exclusões
 
-- Capítulos ficam em `content/chapter_NNN/` (antes `cap_NNN`). Livros antigos são migrados automaticamente ao listar os livros (`src/main/book-migrations.js`): pastas renomeadas, referências em `content/index.md`, `config.json` e no changelog atualizadas.
+- Capítulos ficam em `content/chapter_NNN/` (antes `cap_NNN`). Livros antigos são migrados automaticamente ao listar os livros (`src/main/book-migrations.ts`): pastas renomeadas, referências em `content/index.md`, `config.json` e no changelog atualizadas. A migração 7 (`ensureChapterLayout`) deixa cada capítulo com só três arquivos — `1_outline.md` (Esboço, antigo `1_script.md`), `2_draft.md` e `3_analysis.md` (Análise, que absorve a pasta `backlog`: arquivos do modelo são descartados, os editados viram seções; `3_metadata.md` é removido; tudo registrado no changelog para rollback). No explorer o capítulo é um item único (`chapterNode.hbs`) e a toolbar mostra as guias Manuscrito/Esboço/Análise (`#chapter-tabs`).
 - **Exclusão** (botão de lixeira ao passar o mouse no explorer): anotações e fichas do mundo, com modal de confirmação. Capítulos são excluídos pela **pasta inteira** (arquivos e subpastas) e os seguintes são **renumerados** sem deixar buracos; os ajustes colaterais (mover pastas, atualizar o índice e títulos padrão) entram no changelog com o autor **Sistema**.
 - **Permissão de exclusão** no frontmatter: `userDelete` e `aiDelete` (ver `docs/ai-tools.md` e `src/renderer/utils/deletePermission.js`). Arquivos da escrita (`content/`), índices (`index.md`) e modelos (`template.md`) nunca são excluídos individualmente; quem não pode editar um arquivo também não pode excluí-lo.
 - Variáveis de apelido (`aliases`) em personagens, ambientes e sistemas alimentam o botão "Linkar termos" do editor.
@@ -114,7 +114,7 @@ A lista de tools da IA e o guia de uso ficam em `docs/ai-tools.md`. **Sempre que
 
 ## 5. Planejamento Futuro (Roadmap Técnico)
 
-- **TypeScript:** Adoção de tipagem via TypeScript em todo o projeto.
+- **TypeScript:** o código de `src/` já está em arquivos `.ts` (ver "Migração para TypeScript" abaixo); falta **tipar** de fato, arquivo por arquivo.
 - **Tailwind CSS:** Adoção gradual de classes utilitárias para modernizar a estilização dos componentes e coexistir de forma segura com o CSS atual.
 - **Testes Automatizados:**
   - _Vitest_ para testes unitários e de integração integrados ao Vite.
@@ -251,3 +251,53 @@ autor, atualize também o guia.**
   anotações `note_001.md` e fichas `character_001.md`, `place_001.md`, `element_001.md` (`CreationService`, `FolderService.createFolder`). Itens antigos mantêm o nome que já tinham.
 
 - **Overlays abaixo da barra de título:** `#modal-container` e `#settings-container` começam em `top: 30px` (altura de `#window-header`) e têm `height: calc(100vh - 30px)`, então o escurecimento/blur nunca cobre a barra de título (os botões nativos da janela ficam coerentes com o resto dela). Novos overlays de tela cheia devem seguir a mesma regra.
+
+
+## Migração para TypeScript
+
+- **Estado atual:** todo o código de `src/` (main, preload e renderer) foi renomeado de `.js` para `.ts` e continua funcionando igual. Onde os textos desta documentação citam um arquivo
+  `.js` de `src/`, leia `.ts`. Ficaram em JavaScript apenas as ferramentas de projeto: `forge.config.js`, `vite.*.config.mjs` e `scripts/*.js`.
+- **Ainda sem tipos:** cada arquivo começa com `// @ts-nocheck`. É a base da migração incremental: o `tsc` passa, o Vite compila, e os tipos entram aos poucos. Para tipar um
+  arquivo, remova a linha `// @ts-nocheck` e corrija os erros que o `npm run typecheck` apontar (declarar as propriedades das classes, tipar os parâmetros, tipar `window.electronAPI`).
+- **Configuração:** `tsconfig.json` (`strict: false`, `noEmit`, `verbatimModuleSyntax` para o esbuild nunca descartar imports), `src/types/global.d.ts` (módulos `?raw`, globais do Forge e `Window`).
+  O Vite (esbuild) só remove os tipos, não os verifica; a verificação é o `npm run typecheck`.
+- **Imports:** continuam escritos com `.js` (`./app.js`): o Vite os resolve para o `.ts` correspondente. A exceção são os imports dinâmicos por padrão de pasta (`aiGateway.ts` e
+  `aiService.ts`), que usam `index.ts` porque o Vite procura os arquivos reais no disco.
+- **Documentação gerada:** os mapas (`file-map`, `code-map`, `event-map`) leem `.ts`. O JSDoc (`docs:web`) só funciona enquanto os arquivos não tiverem sintaxe de tipos; ao tipar, trocar por TypeDoc.
+- **Novos arquivos:** crie sempre `.ts` (o `scripts/create-component.js` já gera `.ts`).
+
+## Empacotamento e instalador
+
+Ver `docs/guia-de-instalacao.md`. Resumo: `npm run release` (`scripts/release.js`) empacota com o Forge e gera o instalador NSIS com o electron-builder (`electron-builder.yml`, `build/installer.nsh`) em `release/`.
+No app instalado, `books/` fica ao lado do executável e `templates/` e o ícone em `resources/` (`src/main/paths.ts`); o desinstalador preserva `books/`. O pacote só leva `.vite/`, `node_modules/` e `package.json`.
+
+## Herança de permissões, bloqueio da IA em Anotações e ajustes de interface
+
+- **Herança de permissões (`humanRead`, `humanWrite`, `aiRead`, `aiWrite`):** o `get-tree` (`main/ipc-handlers.ts`, `withInherited`) preenche o que o arquivo/pasta não define com o valor da pasta-mãe,
+  depois da avó e assim até a raiz do livro; o valor efetivo vai em `metadata` da árvore (usado pelo explorer e pelas tools da IA). `aiDelete`/`userDelete`/`userRename` **não** são herdados
+  (valem só para o próprio item). Os metadados do `gray-matter` são cacheados por conteúdo, por isso o main trabalha em uma cópia (`{ ...data }`).
+  O editor aplica o valor herdado ao arquivo aberto como propriedade **não enumerável** (`EditorComponent.applyInheritedPermissions`): vale para a interface, mas nunca é gravado no frontmatter.
+- **Anotações:** só `notes/folder.yml` define `aiWrite`; arquivos e subpastas não o gravam (migração 5 em `book-migrations.ts`, `createNote` e `createFolder` já criam sem ele).
+  O botão de cadeado na mini toolbar de Anotações (`#btn-notes-ai-lock`, `FolderService.setFlag`, `folderHandler.onToggleNotesAiWrite`) alterna o `aiWrite` desse `folder.yml`.
+- **Gaveta de configurações:** é o único overlay que cobre a barra de título (altura total da janela, 481px de largura como a sidebar, fundo `--bg-header`); o cabeçalho "Configurações ✕" é `position: sticky`.
+  Modais continuam abaixo da barra de título.
+- **Botões nos dois temas:** o texto dos botões coloridos usa os tokens `--text-on-accent` e `--text-on-danger` (claro: branco; escuro: `#11111b`). Não escreva cores de texto fixas em botões com fundo colorido.
+  Todo Toast UI Editor nasce já no tema atual (`toastui-editor-dark`), inclusive o da tela de revisão da IA.
+- **Caneta da guia:** abrir a caixa de dados põe o foco (e seleciona) no campo do nome (`focusNameField`).
+- **Esc no chat:** fecha a gaveta e devolve a navegação por setas ao explorer (`explorer:keyboard-restore` → `ExplorerKeyboard.restore`).
+- **Auto-link:** passa a linkar também em títulos (só blocos de código e texto já linkado ficam de fora).
+- **Intro:** primeira execução sem tema salvo usa o tema claro (igual ao themeManager); a estrela cadente cruza a tela na diagonal (de ~36% da largura, no alto, até embaixo à direita).
+- **Nome do produto:** "Astra Writer" (um "t"). O `productName` técnico do `package.json` continua `draftweaver-v2` (define a pasta de dados do usuário).
+
+## Centrais, Central de Revisões, eventos, digests e contas de IA
+
+- **Centrais** (`components/Central/`): janela grande com abas laterais quadradas, cabeçalho com X e overlay que bloqueia o app (`#central-container`, z-index 150, abaixo dos modais). O `CentralComponent` é só o casco; as páginas (`panels/issuesPanel`, `bookPanel`, `aiPanel`) cumprem o contrato `title`, `getTabs()`, `getHeader(tab)`, `render(tab, el)`, `dispose?()`. Abre-se por `central:open` (`{ central: "issues"|"book"|"ai", tab? }`): botão do rodapé do editor, botões da gaveta de Configurações ou eventos. O contexto (`context.services`) dá acesso aos serviços.
+- **Central de Revisões:** botão no rodapé do editor (verde "Tudo certo", amarelo ou vermelho + contagem). Resumo (números, mais graves, análise da IA, correção pela IA com aviso, tipos dispensados, dicionário), uma aba por categoria (cards com tag do tipo, arquivo/linha, trecho, solução, *ir para o trecho*, *corrigir*, *dispensar*, *adicionar ao dicionário*, *dispensar todos desse tipo*) e as opções de correção ortográfica (as mesmas das Configurações, sincronizadas por `spellcheck:changed`). Os ícones de pendências aparecem nos arquivos do explorer ao passar o mouse.
+- **IssueService** (`services/issueService.ts`): varredura **incremental** (`main/book-scan.ts`, hash por arquivo; só o que mudou é relido) com os verificadores determinísticos de `review/issueCheckers.ts` (links quebrados, palavra repetida, erro de digitação com Hunspell, ignorando frontmatter, código e links). Cache e dados em `<livro>/.system/review/`. Atualiza por eventos (`temp-file:saved`, `file:created`, `book:structure-changed`...) com debounce e emite `issues:changed`. Corrigir grava no `.temp` com o autor Sistema; mudanças viram um registro `review` **agrupado** no changelog (um por arquivo/lote). Dispensar guarda o id (estável: arquivo + tipo + trecho + ocorrência).
+- **Eventos e linha do tempo:** categoria `assets/events/` (fichas com `when`, `after`, `before`); `assets/timeline.md` foi movido para `assets/events/timeline.md` (migração 6, somente leitura para o autor). `review/timeline.ts` calcula a ordem sugerida e os issues da categoria "linha do tempo". O autor aprova a sugestão na central; a IA usa `update_timeline`.
+- **Arquivos novos são rascunho:** fichas, anotações, eventos e capítulos criados nascem como `.md.temp` (`CreationService.writeNewFile` / `convertTreeToDrafts`) e só viram oficiais ao sincronizar (que registra a criação no changelog). Descartar um arquivo novo apaga tudo e tira o link do índice. A IA só analisa arquivos oficiais.
+- **Digests e análise** (`services/analysisService.ts`, `review/digest.ts`): depois de sincronizar o app oferece (ou roda, se configurado) a análise: a IA lê cada arquivo **uma vez** e grava um digest em `.system/digests/`; candidatos a contradição são achados **sem IA** (mesmo atributo, valores diferentes) e só eles vão para a verificação da IA, que registra issues. Orçamento de tokens por análise, estimativa antes de gastar e verificações guardadas em `_state.json`. O `3_metadata.md` dos capítulos deixou de existir no modelo (o digest o substitui).
+- **Central do Livro:** nome, modo da IA (`ai_mode` no `config.json`: assistente, co-autor, autônomo; entra no prompt), visão geral, changelog e exclusão (com confirmação digitando o nome da pasta).
+- **Central de IA:** contas de IA (várias por provedor, com apelido e chave; `AiService.accounts()`), fallback de contas, uso por modelo (histórico de 30 dias), análise do livro, depuração (`ai/debugLog.ts`), log de erros e skills do livro (`.system/skills/`). A conta ativa é refletida em `state.aiProvider` e `state.aiSettings.providers[provedor]` (`materialize`), então o resto do app não muda. As Configurações mantêm só o seletor de conta/modelo (sincronizado pelo evento `ai-accounts:changed`).
+- **Fallback e depuração** (`ai/aiGateway.ts`): se a conta ativa falha por limite de uso ou instabilidade (429/5xx) e nenhuma tool alterou arquivos naquela resposta, tenta a próxima conta da lista; a troca vai para o changelog (autor Sistema). `askModel` faz chamadas únicas (sem tools) para as análises.
+

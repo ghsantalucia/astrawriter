@@ -341,10 +341,33 @@ body:not(.dark-mode) #btn-toggle-ai {
 /* Container de Ações Inferior */
 .ai-input-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   padding: 0px;
+}
+
+/* Atalho para a Central de IA (lado esquerdo da barra inferior do input) */
+.btn-ai-central {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--radius-control, 4px);
+  background: transparent;
+  color: var(--text-muted, var(--text-subtle));
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+.btn-ai-central:hover {
+  background-color: var(--line-soft);
+  color: var(--text-file-active, inherit);
 }
 
 /* Botão Redondo Perfeito */
@@ -356,8 +379,8 @@ body:not(.dark-mode) #btn-toggle-ai {
   border-radius: 30%;
   border: none;
   background-color: #3677b3;
-  color: #0d0e15;
-  /* Cor da seta para contraste */
+  color: var(--text-on-accent);
+  /* Cor da seta para contraste (branca no tema claro, escura no escuro) */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,7 +395,7 @@ body:not(.dark-mode) #btn-toggle-ai {
 .btn-send-round svg {
   width: 20px;
   height: 20px;
-  stroke: #0d0e15;
+  stroke: var(--text-on-accent);
   display: block;
 }
 
@@ -961,4 +984,31 @@ body.dark-theme
 .ai-assistant-header.kb-focus {
   outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   outline-offset: -2px;
+}
+
+/* Modelo em uso (acima da contagem de tokens) */
+.ai-usage-model {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--text-dim);
+}
+.ai-usage-model[hidden] {
+  display: none;
+}
+.ai-usage-model i {
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+.ai-usage-model strong {
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-usage-model span {
+  flex: none;
+  color: var(--text-muted, var(--text-dim));
 }

@@ -44,7 +44,7 @@
   /* Permite o GSAP mover o gradiente suavemente */
   color: #ffffff;
   border: 1px solid rgba(112, 161, 255, 0.25);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;

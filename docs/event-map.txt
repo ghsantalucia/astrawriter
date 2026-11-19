@@ -1,5 +1,5 @@
 ==================================================
- MAPA DE ARQUITETURA DE EVENTOS DO ASTRA WRITTER
+ MAPA DE ARQUITETURA DE EVENTOS DO ASTRA WRITER
 ==================================================
 
 [uiBus] - Eventos da Interface Gráfica
@@ -8,689 +8,781 @@
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [ai-accounts:changed]
+    * Emissores:
+      ├── mutate (src\renderer\services\aiService.ts)
+      └── saveExtraSettings (src\renderer\services\aiService.ts)
+    * Escutadores:
+      ├── constructor (src\renderer\components\Central\panels\aiPanel.ts)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [ai-chat:toggle]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
-
-⚙️ [ai-errors:open-modal]
-    * Emissores:
-      └── ---
-    * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [ai-review:open]
     * Emissores:
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [ai-settings:changed]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [ai-settings:models-loaded]
     * Emissores:
-      └── onAiModelsRequested (src\renderer\controllers\handlers\configHandler.js)
+      └── onAiModelsRequested (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [ai-settings:models-requested]
     * Emissores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [ai-settings:save-requested]
     * Emissores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [analysis:changed]
+    * Emissores:
+      └── run (src\renderer\services\analysisService.ts)
+    * Escutadores:
+      └── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+
+⚙️ [analysis:progress]
+    * Emissores:
+      └── setProgress (src\renderer\services\analysisService.ts)
+    * Escutadores:
+      └── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
 
 ⚙️ [app:ready]
     * Emissores:
-      └── async (src\renderer\core\appContainer.js)
+      └── async (src\renderer\core\appContainer.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [autolink:run]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:ai-locked]
     * Emissores:
-      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.js)
+      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:ai-unlocked]
     * Emissores:
-      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.js)
+      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:changed]
     * Emissores:
-      └── clearBook (src\renderer\controllers\handlers\bookHandler.js)
+      └── clearBook (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Central\CentralComponent.ts)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── listen (src\renderer\services\issueService.ts)
+      └── constructor (src\renderer\services\skillService.ts)
 
 ⚙️ [book:cleared]
     * Emissores:
-      └── clearBook (src\renderer\controllers\handlers\bookHandler.js)
+      └── clearBook (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── listen (src\renderer\services\issueService.ts)
+      └── constructor (src\renderer\services\skillService.ts)
 
 ⚙️ [book:create]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:created]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [book:edit]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:selected]
     * Emissores:
-      ├── selectLastBook (src\renderer\components\Sidebar\SidebarComponent.js)
-      ├── openCreated (src\renderer\controllers\handlers\creationHandler.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── selectLastBook (src\renderer\components\Sidebar\SidebarComponent.ts)
+      ├── openCreated (src\renderer\controllers\handlers\creationHandler.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:structure-changed]
     * Emissores:
-      └── announceStructureChange (src\renderer\ai\tools\structureTools.js)
+      └── announceStructureChange (src\renderer\ai\tools\structureTools.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:title]
     * Emissores:
-      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.js)
+      ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
+      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [books:refresh-list]
     * Emissores:
-      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.js)
+      ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
+      └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [books:updated]
     * Emissores:
-      ├── refreshBookList (src\renderer\controllers\handlers\bookHandler.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── refreshBookList (src\renderer\controllers\handlers\bookHandler.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Sidebar\SidebarComponent.js)
+      └── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
 
-⚙️ [changelog:open-viewer]
+⚙️ [central:close]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
+
+⚙️ [central:open]
+    * Emissores:
+      ├── count (src\renderer\components\Central\panels\bookPanel.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
+
+⚙️ [central:refresh]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
 
 ⚙️ [chapter:create]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [chapter:created]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [chapter:delete]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [chat-bg:apply]
     * Emissores:
-      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.js)
+      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat-bg:changed]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [chat:append-history]
     * Emissores:
-      └── fetchMoreHistory (src\renderer\controllers\handlers\chatHandler.js)
+      └── fetchMoreHistory (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:clear]
     * Emissores:
-      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      └── setInterval (src\renderer\components\Chat\ChatComponent.js)
+      └── setInterval (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:fetch-more-history]
     * Emissores:
-      └── setupScrollListener (src\renderer\components\Chat\ChatComponent.js)
+      └── setupScrollListener (src\renderer\components\Chat\ChatComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [chat:open]
+    * Emissores:
+      └── onConfirm (src\renderer\components\Central\panels\issuesPanel.ts)
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:quick-reply]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [chat:render-history]
     * Emissores:
-      └── loadHistory (src\renderer\controllers\handlers\chatHandler.js)
+      └── loadHistory (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:render-message]
     * Emissores:
-      ├── onSystemNotice (src\renderer\controllers\handlers\chatHandler.js)
-      └── onSendMessage (src\renderer\controllers\handlers\chatHandler.js)
+      ├── onSystemNotice (src\renderer\controllers\handlers\chatHandler.ts)
+      └── onSendMessage (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:send-message]
     * Emissores:
-      └── triggerSendMessage (src\renderer\components\Chat\ChatComponent.js)
+      ├── onConfirm (src\renderer\components\Central\panels\issuesPanel.ts)
+      └── triggerSendMessage (src\renderer\components\Chat\ChatComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [chat:set-loading]
     * Emissores:
-      └── onSendMessage (src\renderer\controllers\handlers\chatHandler.js)
+      └── onSendMessage (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:system-notice]
     * Emissores:
-      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.js)
-      └── notice (src\renderer\services\aiService.js)
+      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      └── notice (src\renderer\services\aiService.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [config:changed]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [editor-overlay:close]
     * Emissores:
-      ├── renderFileContent (src\renderer\components\Editor\EditorComponent.js)
-      └── onAiLock (src\renderer\controllers\handlers\bookHandler.js)
+      ├── renderFileContent (src\renderer\components\Editor\EditorComponent.ts)
+      └── onAiLock (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\EditorOverlay\EditorOverlayComponent.js)
+      └── setupListeners (src\renderer\components\EditorOverlay\EditorOverlayComponent.ts)
 
 ⚙️ [editor-overlay:open]
     * Emissores:
-      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.js)
-      └── onAiLock (src\renderer\controllers\handlers\bookHandler.js)
+      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.ts)
+      └── onAiLock (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\EditorOverlay\EditorOverlayComponent.js)
+      └── setupListeners (src\renderer\components\EditorOverlay\EditorOverlayComponent.ts)
 
 ⚙️ [editor:apply-autolinks]
     * Emissores:
-      └── onAutoLink (src\renderer\controllers\handlers\linkHandler.js)
+      └── onAutoLink (src\renderer\controllers\handlers\linkHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [editor:lock]
     * Emissores:
-      └── onAiLock (src\renderer\controllers\handlers\bookHandler.js)
+      └── onAiLock (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [editor:open-file]
     * Emissores:
-      ├── saveDraft (src\renderer\ai\tools\bookTools.js)
-      ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.js)
-      ├── onclick (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.js)
-      ├── openCreated (src\renderer\controllers\handlers\creationHandler.js)
-      ├── remap (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── updateListState (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onTempDeleted (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onFileMove (src\renderer\controllers\handlers\folderHandler.js)
-      ├── performRestore (src\renderer\controllers\handlers\historyHandler.js)
-      ├── registerEvents (src\renderer\controllers\uiController.js)
-      └── stripAutoLinkMarks (src\renderer\services\fileService.js)
+      ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
+      ├── more (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── goTo (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── goToFile (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
+      ├── onclick (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.ts)
+      ├── openCreated (src\renderer\controllers\handlers\creationHandler.ts)
+      ├── remap (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── updateListState (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onTempDeleted (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onFileMove (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── stripAutoLinkMarks (src\renderer\services\fileService.ts)
+      ├── writeTimeline (src\renderer\services\issueService.ts)
+      └── fix (src\renderer\services\issueService.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+
+⚙️ [editor:refresh-stats]
+    * Emissores:
+      ├── addToDictionary (src\renderer\services\issueService.ts)
+      └── removeFromDictionary (src\renderer\services\issueService.ts)
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [editor:reset]
     * Emissores:
-      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.js)
-      ├── afterDeletion (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── closeIfInside (src\renderer\controllers\handlers\folderHandler.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── onBookChange (src\renderer\controllers\handlers\bookHandler.ts)
+      ├── afterDeletion (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── closeIfInside (src\renderer\controllers\handlers\folderHandler.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [editor:reseted]
     * Emissores:
-      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [editor:set-body]
     * Emissores:
-      └── setVariableContent (src\renderer\controllers\handlers\variablesHandler.js)
+      └── setVariableContent (src\renderer\controllers\handlers\variablesHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [editor:unlock]
     * Emissores:
-      └── onAiLock (src\renderer\controllers\handlers\bookHandler.js)
+      └── onAiLock (src\renderer\controllers\handlers\bookHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [entity:create]
     * Emissores:
-      └── ---
+      └── more (src\renderer\components\Central\panels\issuesPanel.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [explorer:advanced-changed]
     * Emissores:
-      └── execute (src\renderer\ai\tools\projectTools.js)
+      └── execute (src\renderer\ai\tools\projectTools.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+
+⚙️ [explorer:keyboard-restore]
+    * Emissores:
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [export:file]
     * Emissores:
       └── ---
     * Escutadores:
-      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [export:toggle-menu]
     * Emissores:
       └── ---
     * Escutadores:
-      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
+      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
 
 ⚙️ [file-data:edit]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file-data:toggle]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
 ⚙️ [file:created]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file:delete]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file:move]
     * Emissores:
-      └── invalidForFolder (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── invalidForFolder (src\renderer\components\Explorer\ExplorerComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file:opened]
     * Emissores:
-      └── renderFileContent (src\renderer\components\Editor\EditorComponent.js)
+      └── renderFileContent (src\renderer\components\Editor\EditorComponent.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file:restored]
     * Emissores:
-      └── performRestore (src\renderer\controllers\handlers\historyHandler.js)
+      └── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [file:save-temp]
     * Emissores:
-      └── triggerAutoSave (src\renderer\components\Editor\EditorComponent.js)
+      └── triggerAutoSave (src\renderer\components\Editor\EditorComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [file:variables-changed]
     * Emissores:
-      ├── stringifyFrontmatter (src\renderer\ai\tools\variableTools.js)
-      └── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.js)
+      ├── stringifyFrontmatter (src\renderer\ai\tools\variableTools.ts)
+      └── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Editor\EditorComponent.js)
-      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folder:create]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folder:delete]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folder:move]
     * Emissores:
-      └── invalidForFolder (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── invalidForFolder (src\renderer\components\Explorer\ExplorerComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folder:rename]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folder:toggle]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [folders:toggle-all]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [history:open-modal]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [issues:changed]
+    * Emissores:
+      └── publish (src\renderer\services\issueService.ts)
+    * Escutadores:
+      ├── setupListeners (src\renderer\components\Central\CentralComponent.ts)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [language:changed]
     * Emissores:
-      └── ---
+      └── more (src\renderer\components\Central\panels\issuesPanel.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [modal:open]
     * Emissores:
-      ├── resolve (src\renderer\ai\tools\historyTools.js)
-      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.js)
-      ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onSyncOpenModal (src\renderer\controllers\handlers\fileHandler.js)
-      ├── handleDiscardTemp (src\renderer\controllers\handlers\fileHandler.js)
-      ├── askName (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.js)
-      ├── openCompare (src\renderer\controllers\handlers\historyHandler.js)
-      ├── onChangelogViewerOpen (src\renderer\controllers\handlers\logViewerHandler.js)
-      └── onAiErrorLogOpen (src\renderer\controllers\handlers\logViewerHandler.js)
+      ├── resolve (src\renderer\ai\tools\historyTools.ts)
+      ├── confirmModal (src\renderer\components\Central\panels\panelKit.ts)
+      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onSyncOpenModal (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── handleDiscardTemp (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── askName (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
+      └── offerAfterSync (src\renderer\services\analysisService.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Modal\ModalManager.js)
+      └── setupListeners (src\renderer\components\Modal\ModalManager.ts)
 
 ⚙️ [note:create]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [notes:toggle-ai-lock]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [search:changed]
     * Emissores:
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [search:clear]
     * Emissores:
       └── ---
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [search:cleared]
     * Emissores:
-      └── cancelPending (src\renderer\controllers\handlers\searchHandler.js)
+      └── cancelPending (src\renderer\controllers\handlers\searchHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [search:results]
     * Emissores:
-      └── cancelPending (src\renderer\controllers\handlers\searchHandler.js)
+      └── cancelPending (src\renderer\controllers\handlers\searchHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [settings:close]
     * Emissores:
-      ├── onChangelogViewerOpen (src\renderer\controllers\handlers\logViewerHandler.js)
-      └── onAiErrorLogOpen (src\renderer\controllers\handlers\logViewerHandler.js)
+      └── open (src\renderer\components\Central\CentralComponent.ts)
     * Escutadores:
-      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.js)
+      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [settings:open]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\components\Settings\SettingsComponent.js)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [spellcheck:changed]
     * Emissores:
-      ├── onSpellcheckToggled (src\renderer\controllers\handlers\configHandler.js)
-      └── onSpellLanguageChanged (src\renderer\controllers\handlers\configHandler.js)
+      ├── onSpellcheckToggled (src\renderer\controllers\handlers\configHandler.ts)
+      └── onSpellLanguageChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Editor\EditorComponent.js)
+      ├── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [spellcheck:toggle]
     * Emissores:
-      └── ---
+      └── more (src\renderer\components\Central\panels\issuesPanel.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [sync:completed]
+    * Emissores:
+      └── syncMultipleFiles (src\renderer\controllers\handlers\fileHandler.ts)
+    * Escutadores:
+      ├── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+      └── constructor (src\renderer\services\analysisService.ts)
 
 ⚙️ [sync:open-modal]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [sync:require-all]
     * Emissores:
-      └── requireFullSync (src\renderer\services\aiService.js)
+      └── requireFullSync (src\renderer\services\aiService.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [temp-file:deleted]
     * Emissores:
-      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.js)
-      └── onClick (src\renderer\controllers\handlers\fileHandler.js)
+      ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      └── onClick (src\renderer\controllers\handlers\fileHandler.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [temp-file:saved]
     * Emissores:
-      ├── saveDraft (src\renderer\ai\tools\bookTools.js)
-      ├── onSaveTemp (src\renderer\controllers\handlers\fileHandler.js)
-      └── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.js)
+      ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
+      ├── onSaveTemp (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.ts)
+      ├── writeTimeline (src\renderer\services\issueService.ts)
+      └── fix (src\renderer\services\issueService.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Editor\EditorComponent.js)
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [temp-file:saving-error]
     * Emissores:
-      └── onSaveTemp (src\renderer\controllers\handlers\fileHandler.js)
+      └── onSaveTemp (src\renderer\controllers\handlers\fileHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [temp-file:synced]
     * Emissores:
-      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.js)
-      ├── syncFile (src\renderer\controllers\handlers\fileHandler.js)
-      └── syncFile (src\renderer\services\fileService.js)
+      ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── syncFile (src\renderer\controllers\handlers\fileHandler.ts)
+      └── syncFile (src\renderer\services\fileService.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [temp-files:pending-list]
     * Emissores:
-      └── handlePendingTempFiles (src\renderer\controllers\handlers\fileHandler.js)
+      └── handlePendingTempFiles (src\renderer\controllers\handlers\fileHandler.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
-      └── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.js)
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      └── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
 
 ⚙️ [theme:changed]
     * Emissores:
-      └── applyTheme (src\renderer\core\themeManager.js)
+      └── applyTheme (src\renderer\core\themeManager.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Chat\ChatComponent.js)
-      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.js)
+      ├── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [theme:toggle]
     * Emissores:
       └── ---
     * Escutadores:
-      └── setupListeners (src\renderer\core\themeManager.js)
+      └── setupListeners (src\renderer\core\themeManager.ts)
 
 ⚙️ [toast:show]
     * Emissores:
-      ├── saveDraft (src\renderer\ai\tools\bookTools.js)
-      ├── assertValuesFromAuthor (src\renderer\ai\tools\creationTools.js)
-      ├── runAutoLinks (src\renderer\components\Editor\EditorComponent.js)
-      ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.js)
-      ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.js)
-      ├── onSendMessage (src\renderer\controllers\handlers\chatHandler.js)
-      ├── onAiSettingsSave (src\renderer\controllers\handlers\configHandler.js)
-      ├── onSpellLanguageChanged (src\renderer\controllers\handlers\configHandler.js)
-      ├── onCreateRequested (src\renderer\controllers\handlers\creationHandler.js)
-      ├── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.js)
-      ├── ensureUnlocked (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onExportFile (src\renderer\controllers\handlers\exportHandler.js)
-      ├── syncMultipleFiles (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onSyncOpenModal (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\fileHandler.js)
-      ├── updateListState (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onSyncRequireAll (src\renderer\controllers\handlers\fileHandler.js)
-      ├── onFolderCreate (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onConfirm (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onFileMove (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onFolderMove (src\renderer\controllers\handlers\folderHandler.js)
-      ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.js)
-      ├── openCompare (src\renderer\controllers\handlers\historyHandler.js)
-      ├── performRestore (src\renderer\controllers\handlers\historyHandler.js)
-      ├── onAutoLink (src\renderer\controllers\handlers\linkHandler.js)
-      ├── onChangelogViewerOpen (src\renderer\controllers\handlers\logViewerHandler.js)
-      ├── onClick (src\renderer\controllers\handlers\logViewerHandler.js)
-      ├── onVariablesOpen (src\renderer\controllers\handlers\variablesHandler.js)
-      └── onVariablesInlineSave (src\renderer\controllers\handlers\variablesHandler.js)
+      ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
+      ├── assertValuesFromAuthor (src\renderer\ai\tools\creationTools.ts)
+      ├── toast (src\renderer\components\Central\CentralComponent.ts)
+      ├── runAutoLinks (src\renderer\components\Editor\EditorComponent.ts)
+      ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
+      ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── onSendMessage (src\renderer\controllers\handlers\chatHandler.ts)
+      ├── onAiSettingsSave (src\renderer\controllers\handlers\configHandler.ts)
+      ├── onSpellLanguageChanged (src\renderer\controllers\handlers\configHandler.ts)
+      ├── onCreateRequested (src\renderer\controllers\handlers\creationHandler.ts)
+      ├── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.ts)
+      ├── ensureUnlocked (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onExportFile (src\renderer\controllers\handlers\exportHandler.ts)
+      ├── syncMultipleFiles (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onSyncOpenModal (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── updateListState (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onSyncRequireAll (src\renderer\controllers\handlers\fileHandler.ts)
+      ├── onFolderCreate (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onConfirm (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onFileMove (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onFolderMove (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onToggleNotesAiWrite (src\renderer\controllers\handlers\folderHandler.ts)
+      ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── onAutoLink (src\renderer\controllers\handlers\linkHandler.ts)
+      ├── onVariablesOpen (src\renderer\controllers\handlers\variablesHandler.ts)
+      ├── onVariablesInlineSave (src\renderer\controllers\handlers\variablesHandler.ts)
+      ├── notifyError (src\renderer\services\analysisService.ts)
+      └── runWithToasts (src\renderer\services\analysisService.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Toast\ToastComponent.js)
+      └── setupListeners (src\renderer\components\Toast\ToastComponent.ts)
 
 ⚙️ [toolbar:open-sync-modal]
     * Emissores:
-      └── handleSyncClick (src\renderer\components\Toolbar\ToolbarComponent.js)
+      └── handleSyncClick (src\renderer\components\Toolbar\ToolbarComponent.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [toolbar:save-status]
     * Emissores:
-      ├── setupListeners (src\renderer\components\Editor\EditorComponent.js)
-      ├── handleEditorChange (src\renderer\components\Editor\EditorComponent.js)
-      ├── triggerAutoSave (src\renderer\components\Editor\EditorComponent.js)
-      ├── renderFileContent (src\renderer\components\Editor\EditorComponent.js)
-      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.js)
-      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.js)
-      ├── onTempDeleted (src\renderer\controllers\handlers\fileHandler.js)
-      └── performRestore (src\renderer\controllers\handlers\historyHandler.js)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      ├── handleEditorChange (src\renderer\components\Editor\EditorComponent.ts)
+      ├── triggerAutoSave (src\renderer\components\Editor\EditorComponent.ts)
+      ├── renderFileContent (src\renderer\components\Editor\EditorComponent.ts)
+      ├── resetEditorState (src\renderer\components\Editor\EditorComponent.ts)
+      ├── onStructureChanged (src\renderer\controllers\handlers\deleteHandler.ts)
+      ├── onTempDeleted (src\renderer\controllers\handlers\fileHandler.ts)
+      └── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
     * Escutadores:
-      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.js)
+      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
 
 ⚙️ [tree:updated]
     * Emissores:
-      ├── normalizePath (src\renderer\controllers\handlers\creationHandler.js)
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      ├── normalizePath (src\renderer\controllers\handlers\creationHandler.ts)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
-      ├── setupListeners (src\renderer\components\Editor\EditorComponent.js)
-      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.js)
+      ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
+      └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
 ⚙️ [variables:inline-save]
     * Emissores:
-      └── getKnownTags (src\renderer\components\Editor\EditorComponent.js)
+      └── getKnownTags (src\renderer\components\Editor\EditorComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [variables:open-modal]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [wizard:completed]
     * Emissores:
-      └── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.js)
+      └── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [wizard:failed]
     * Emissores:
-      └── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.js)
+      └── onWizardSubmit (src\renderer\controllers\handlers\creationHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [wizard:open]
     * Emissores:
-      ├── onCreateRequested (src\renderer\controllers\handlers\creationHandler.js)
-      └── onVariablesOpen (src\renderer\controllers\handlers\variablesHandler.js)
+      ├── onCreateRequested (src\renderer\controllers\handlers\creationHandler.ts)
+      └── onVariablesOpen (src\renderer\controllers\handlers\variablesHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Modal\ModalManager.js)
+      └── setupListeners (src\renderer\components\Modal\ModalManager.ts)
 
 ⚙️ [wizard:submit]
     * Emissores:
-      └── submit (src\renderer\components\Wizard\WizardComponent.js)
+      └── submit (src\renderer\components\Wizard\WizardComponent.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\uiController.js)
+      └── registerEvents (src\renderer\controllers\uiController.ts)
 
 
 [domainBus] - Eventos de Domínio e Negócio
@@ -699,61 +791,67 @@
     * Emissores:
       └── ---
     * Escutadores:
-      └── escopo global (src\renderer\events\domainBus.js)
+      └── escopo global (src\renderer\events\domainBus.ts)
 
 ⚙️ [ai-lock:changed]
     * Emissores:
-      └── checkAILock (src\renderer\services\bookService.js)
+      └── checkAILock (src\renderer\services\bookService.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [ai:edit-finished]
     * Emissores:
-      └── notice (src\renderer\services\aiService.js)
+      └── notice (src\renderer\services\aiService.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
 
 ⚙️ [ai:edit-started]
     * Emissores:
-      └── beginEdit (src\renderer\services\aiService.js)
+      └── beginEdit (src\renderer\services\aiService.ts)
     * Escutadores:
-      ├── setInterval (src\renderer\components\Chat\ChatComponent.js)
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      ├── setInterval (src\renderer\components\Chat\ChatComponent.ts)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
 
 ⚙️ [ai:usage-updated]
     * Emissores:
-      └── publishUsage (src\renderer\services\aiService.js)
+      └── publishUsage (src\renderer\services\aiService.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.js)
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+
+⚙️ [analysis:changed]
+    * Emissores:
+      └── run (src\renderer\services\analysisService.ts)
+    * Escutadores:
+      └── ---
 
 ⚙️ [app:ready]
     * Emissores:
-      └── async (src\renderer\core\appContainer.js)
+      └── async (src\renderer\core\appContainer.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [book:selected]
     * Emissores:
-      └── selectBook (src\renderer\services\bookService.js)
+      └── selectBook (src\renderer\services\bookService.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [file:restored]
     * Emissores:
-      └── performRestore (src\renderer\controllers\handlers\historyHandler.js)
+      └── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
     * Escutadores:
       └── ---
 
 ⚙️ [file:variables-changed]
     * Emissores:
-      ├── stringifyFrontmatter (src\renderer\ai\tools\variableTools.js)
-      └── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.js)
+      ├── stringifyFrontmatter (src\renderer\ai\tools\variableTools.ts)
+      └── stringifyFrontmatter (src\renderer\controllers\handlers\variablesHandler.ts)
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
 
 ⚙️ [fs:${eventType}]
     * Emissores:
-      └── escopo global (src\renderer\renderer.js)
+      └── escopo global (src\renderer\renderer.ts)
     * Escutadores:
       └── ---
 
@@ -761,11 +859,17 @@
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
 
 ⚙️ [fs:temp-changed]
     * Emissores:
       └── ---
     * Escutadores:
-      └── registerEvents (src\renderer\controllers\domainController.js)
+      └── registerEvents (src\renderer\controllers\domainController.ts)
+
+⚙️ [issues:changed]
+    * Emissores:
+      └── publish (src\renderer\services\issueService.ts)
+    * Escutadores:
+      └── ---
 

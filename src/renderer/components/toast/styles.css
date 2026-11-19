@@ -31,7 +31,7 @@
   background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
   color: var(--text);
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-window);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.35),
     0 1px 0 var(--hover) inset;

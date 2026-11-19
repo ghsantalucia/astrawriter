@@ -92,6 +92,18 @@
   </button>
   <button
     type="button"
+    class="mini-btn mini-ai-lock"
+    id="btn-notes-ai-lock"
+    data-tab="notes"
+    data-tooltip="Bloquear ou liberar a escrita da IA nas anotações"
+    aria-label="Bloquear ou liberar a escrita da IA nas anotações"
+    event-click="notes:toggle-ai-lock"
+  >
+    <i class="fa-solid fa-lock mini-locked"></i>
+    <i class="fa-solid fa-lock-open mini-unlocked"></i>
+  </button>
+  <button
+    type="button"
     class="mini-btn"
     data-tab="notes"
     data-tooltip="Nova anotação"

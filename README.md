@@ -1,4 +1,4 @@
-# Astra Writter
+# Astra Writer
 
 <p align="left">
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js"></a>
@@ -15,7 +15,7 @@
 
 ## Visão Geral
 
-O **Astra Writter** é uma aplicação desktop nativa desenvolvida para resolver os desafios de gerenciamento de dados e continuidade textual em grandes projetos literários. A ferramenta utiliza uma arquitetura baseada no sistema de arquivos local (_file-driven_), eliminando a necessidade de bancos de dados tradicionais, e implementa um modelo flexível de integração com APIs de IA (_Bring-Your-Key_).
+O **Astra Writer** é uma aplicação desktop nativa desenvolvida para resolver os desafios de gerenciamento de dados e continuidade textual em grandes projetos literários. A ferramenta utiliza uma arquitetura baseada no sistema de arquivos local (_file-driven_), eliminando a necessidade de bancos de dados tradicionais, e implementa um modelo flexível de integração com APIs de IA (_Bring-Your-Key_).
 
 ### Modos de Operação
 
@@ -28,7 +28,7 @@ O **Astra Writter** é uma aplicação desktop nativa desenvolvida para resolver
 O projeto foi construído seguindo rigorosos padrões de arquitetura de software para garantir escalabilidade, desacoplamento e segurança:
 
 - **Separação de Processos (Electron):** Isolamento estrito entre o Processo Principal (_Main_), a ponte segura de comunicação (_Preload_ com _context isolation_) e a camada visual (_Renderer_).
-- **Tipagem Estrita (TypeScript):** Utilização de interfaces e tipos robustos para garantir contratos seguros entre o fluxo de dados do sistema de arquivos e os componentes visuais.
+- **TypeScript:** todo o código de `src/` está em `.ts` (migração incremental: os arquivos ainda não estão tipados e começam com `// @ts-nocheck`; `npm run typecheck` verifica o projeto).
 - **Arquitetura Orientada a Eventos (Pub-Sub):** Utilização da biblioteca `Mitt` dividida em dois barramentos independentes (`domainBus` para regras de negócio e sistema de arquivos, e `uiBus` para intenções de interface e animações).
 - **Padrão de Co-locação de Componentes:** Estruturação modular da interface onde cada componente encapsula sua lógica, templates e estilos isolados, instanciados centralmente via Inversão de Controle (IoC).
 - **Estilização Moderna (Tailwind CSS):** Aplicação de classes utilitárias performáticas para consistência visual e design responsivo.
@@ -110,6 +110,7 @@ npm start
 ## Documentação
 
 - [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo.
+- [Guia de Instalação e Release](docs/guia-de-instalacao.md): como gerar o instalador do Windows (`npm run release`).
 - [Memória de arquitetura](docs/project.md): decisões e padrões do projeto.
 - [Tools da IA](docs/ai-tools.md): o que a IA pode fazer e as regras de permissão.
 

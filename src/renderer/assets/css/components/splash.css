@@ -126,19 +126,23 @@
 /* Estrela cadente cruzando a tela junto da entrada de "Astra" */
 .splash-comet {
   position: absolute;
-  top: 18%;
-  left: -10%;
-  width: 120px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--splash-ink));
-  border-radius: 2px;
+  /* Nasce no alto (a ~24% da largura) e desce na diagonal para a direita, cruzando o texto (fica por cima dele) */
+  top: -2%;
+  left: 24%;
+  width: 230px;
+  height: 4px;
+  z-index: 2;
+  /* Traço chapado, da mesma cor das letras: só o movimento diz que é uma estrela cadente */
+  background: var(--splash-ink);
+  border-radius: 4px;
   opacity: 0;
-  transform: rotate(24deg);
+  transform: rotate(48deg);
+  transform-origin: 100% 50%;
   animation-play-state: paused;
 }
 
 #splash.stage-astra .splash-comet {
-  animation: splash-comet 1.275s ease-out forwards;
+  animation: splash-comet 0.85s ease-out forwards;
   animation-play-state: running;
 }
 
@@ -168,13 +172,13 @@
 @keyframes splash-comet {
   0% {
     opacity: 0;
-    transform: translate(0, 0) rotate(24deg);
+    transform: translate(0, 0) rotate(48deg);
   }
-  15% {
-    opacity: 0.9;
+  12% {
+    opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: translate(120vw, 54vw) rotate(24deg);
+    transform: translate(58vw, 64vw) rotate(48deg);
   }
 }

@@ -4,6 +4,17 @@
 <!-- Rodapé discreto: estatísticas do texto e status do salvamento automático -->
 <footer class="editor-footer">
   <div class="editor-stats" id="editor-stats">
+    <button
+      type="button"
+      class="review-pill hidden"
+      id="btn-review"
+      title="Abrir a Central de Revisões"
+      event-click="central:open"
+      data-central="issues"
+    >
+      <span class="review-dot"></span>
+      <span class="review-text">Tudo certo</span>
+    </button>
     <span id="stat-words">0 palavras</span>
     <span class="stat-sep">·</span>
     <span id="stat-read">~0 min de leitura</span>

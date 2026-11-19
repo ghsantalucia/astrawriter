@@ -54,7 +54,7 @@
 }
 
 .wizard-progress-item.active .wizard-progress-dot {
-  color: #11111b;
+  color: var(--text-on-accent);
   background: var(--accent-color, var(--accent));
   border-color: var(--accent-color, var(--accent));
 }

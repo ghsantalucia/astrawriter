@@ -11,13 +11,15 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
+    "typecheck": "tsc --noEmit",
     "g": "node scripts/create-component.js",
     "docs:web": "jsdoc -c jsdoc.json",
     "file-map": "node scripts/project-map.js > docs/project-map.txt",
     "code-map": "node scripts/code-map.js > docs/code-map.txt",
     "event-map": "node scripts/event-map.js > docs/event-map.txt",
     "docs": "npm run file-map && npm run code-map && npm run event-map && npm run docs:web",
-    "format": "prettier --write \"src/**/*.{js,ts,json,css,md}\""
+    "format": "prettier --write \"src/**/*.{js,ts,json,css,md}\"",
+    "release": "node scripts/release.js"
   },
   "keywords": [],
   "author": {
@@ -35,9 +37,12 @@
     "@electron-forge/plugin-fuses": "^7.11.2",
     "@electron-forge/plugin-vite": "^7.11.2",
     "@electron/fuses": "^1.8.0",
+    "@types/node": "^26.6.6",
     "electron": "44.2.0",
+    "electron-builder": "^26.18.0",
     "jsdoc": "^4.0.5",
     "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
     "vite": "^5.4.21"
   },
   "dependencies": {
@@ -57,6 +62,7 @@
     "html-to-docx": "^1.8.0",
     "hunspell-asm": "^4.0.2",
     "js-yaml": "^3.15.2",
+    "jszip": "^3.10.1",
     "marked": "^18.2.0",
     "mitt": "^3.0.1"
   }

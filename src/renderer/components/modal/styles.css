@@ -42,7 +42,7 @@
   max-height: calc(100vh - 40px);
   background: var(--bg-sidebar, #1e1e2e);
   border: 1px solid var(--border-app, var(--line));
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-window);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
@@ -153,9 +153,10 @@
   opacity: 0.9;
 }
 
+/* Texto dos botões coloridos: branco no tema claro e escuro-profundo no tema escuro (tokens em variables.css) */
 .btn-modal.btn-primary {
   background-color: var(--accent-color, var(--accent));
-  color: #11111b;
+  color: var(--text-on-accent);
 }
 
 .btn-modal.btn-secondary {
@@ -165,7 +166,7 @@
 
 .btn-modal.btn-danger {
   background-color: var(--danger);
-  color: #11111b;
+  color: var(--text-on-danger);
 }
 
 /* ==========================================================================
@@ -310,7 +311,7 @@
   content: "";
   width: 4px;
   height: 8px;
-  border: solid #11111b;
+  border: solid var(--text-on-accent);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) scale(0.8);
   opacity: 0;
@@ -465,8 +466,7 @@
 }
 
 .history-modal,
-.changelog-viewer,
-.ai-error-log {
+.changelog-viewer {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -609,6 +609,14 @@ body:not(.dark-theme) .log-tag-autosave {
 .log-tag-move {
   background: rgba(250, 179, 135, 0.16);
   color: #fab387;
+}
+
+.log-tag-review {
+  background: rgba(137, 220, 235, 0.16);
+  color: #74c7ec;
+}
+body:not(.dark-theme) .log-tag-review {
+  color: #1d7a99;
 }
 
 .log-tag-setting {

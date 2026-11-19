@@ -9,7 +9,8 @@
       {{#each items}}
       <li class="dropdown-item {{#if selected}}selected{{/if}}" role="option" aria-selected="{{#if selected}}true{{else}}false{{/if}}" data-value="{{value}}" title="{{label}}" {{#unless selected}}event-click="{{../selectEvent}}"{{/unless}}>
         <span class="dropdown-item-label">{{label}}</span>
-        {{#if selected}}<i class="fa-solid fa-check dropdown-item-check"></i>{{/if}}
+        {{!-- {{#if selected}}<i class="fa-solid fa-check dropdown-item-check"></i>{{/if}} --}}
+        {{#if ../itemEditEvent}}<button type="button" class="dropdown-item-edit" event-click="{{../itemEditEvent}}" data-value="{{value}}" title="{{../itemEditTitle}}" aria-label="{{../itemEditTitle}}"><i class="fa-solid fa-pen"></i></button>{{/if}}
       </li>
       {{else}}
       <li class="dropdown-empty">{{emptyLabel}}</li>

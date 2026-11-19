@@ -79,7 +79,7 @@
   background: transparent;
   color: var(--text-editor);
   border: 1px solid var(--border-app);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -145,17 +145,42 @@
 }
 
 /* Corpo da guia: trapézio com cantos arredondados */
-.file-tab::before {
+/* Duas camadas com o mesmo recorte: a de trás vira a borda, a da frente (1px menor) é o fundo.
+   A inclinação das laterais é fixa em px, então não muda com a largura da guia. */
+.file-tab::before,
+.file-tab::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
+}
+
+.file-tab::before {
+  background: var(--line-strong, var(--line));
+  clip-path: polygon(
+    0 100%,
+    13px 5px,
+    16px 1.5px,
+    20px 0,
+    calc(100% - 20px) 0,
+    calc(100% - 16px) 1.5px,
+    calc(100% - 13px) 5px,
+    100% 100%
+  );
+}
+
+.file-tab::after {
   background: var(--bg-editor);
-  border: 1px solid var(--line-strong, var(--line));
-  border-bottom: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  transform: perspective(34px) rotateX(6deg);
-  transform-origin: bottom;
+  clip-path: polygon(
+    1px 100%,
+    14px 5.5px,
+    17px 2.5px,
+    20.5px 1px,
+    calc(100% - 20.5px) 1px,
+    calc(100% - 17px) 2.5px,
+    calc(100% - 14px) 5.5px,
+    calc(100% - 1px) 100%
+  );
 }
 
 .file-tab-name {
@@ -291,4 +316,94 @@
 
 .export-item:hover {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* Guias do capítulo: Manuscrito, Esboço e Análise. A ativa mostra o nome (e a caneta); as outras encolhem para o ícone */
+.chapter-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  height: 100%;
+}
+
+/* A ponta esquerda de cada guia fica por trás da guia da esquerda (a mais à esquerda fica por cima) */
+.chapter-tab + .chapter-tab {
+  margin-left: -14px;
+}
+
+.chapter-tab:nth-child(1) {
+  z-index: 3;
+}
+
+.chapter-tab:nth-child(2) {
+  z-index: 2;
+}
+
+.chapter-tab:nth-child(3) {
+  z-index: 1;
+}
+
+.chapter-tabs.hidden {
+  display: none;
+}
+
+.chapter-tab {
+  width: 78px;
+  padding: 0;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    padding 0.2s ease,
+    opacity 0.15s ease;
+}
+
+.chapter-tab .chapter-tab-icon {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+
+.chapter-tab.active {
+  width: 220px;
+  padding: 0 24px;
+  justify-content: flex-start;
+}
+
+/* Com o nome visível o ícone é dispensável: ele só identifica a guia quando ela está compacta */
+.chapter-tab.active .chapter-tab-icon {
+  display: none;
+}
+
+/* Guias inativas: só o ícone, um pouco mais baixas e discretas para a ativa se destacar */
+.chapter-tab:not(.active) {
+  opacity: 1;
+}
+
+.chapter-tab:not(.active):hover {
+  opacity: 1;
+}
+
+.chapter-tab:not(.active)::after {
+  background: color-mix(
+    in srgb,
+    var(--bg-editor) 55%,
+    var(--bg-app, var(--bg-editor))
+  );
+}
+
+.chapter-tab:not(.active) .file-tab-name,
+.chapter-tab:not(.active) .chapter-tab-edit {
+  display: none;
+}
+
+/* O asterisco de rascunho de uma guia compacta vira um pontinho sobre o ícone */
+.chapter-tab:not(.active) .file-tab-dirty {
+  position: absolute;
+  top: 3px;
+  right: 8px;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1;
 }

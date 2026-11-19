@@ -1,0 +1,35 @@
+<li
+  class="chapter-item {{#if isTemp}}has-temp{{/if}}"
+  data-path="{{relativePath}}"
+  data-absolute-path="{{absolutePath}}"
+  data-chapter-dir="{{chapterDir}}"
+>
+  <span
+    class="file-name chapter-name"
+    data-path="{{relativePath}}"
+    data-absolute-path="{{absolutePath}}"
+    data-chapter-dir="{{chapterDir}}"
+    event-click="editor:open-file"
+  >
+    <i class="fa-solid fa-book-bookmark icon-chapter"></i>
+    <span class="file-text">
+      <span class="file-title-wrapper">
+        <span class="file-title">{{title}}</span>
+        {{#if isTemp}}<span class="dirty-asterisk">*</span>{{/if}}
+      </span>
+    </span>
+  </span>
+  {{#if canDelete}}
+  <button
+    type="button"
+    class="item-delete-btn"
+    title="Excluir capítulo"
+    aria-label="Excluir {{title}}"
+    event-click="chapter:delete"
+    data-folder="{{chapterFolder}}"
+    data-title="{{title}}"
+  >
+    <i class="fa-regular fa-trash-can"></i>
+  </button>
+  {{/if}}
+</li>

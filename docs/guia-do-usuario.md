@@ -1,6 +1,6 @@
-# Guia do Usuário — Astra Writter
+# Guia do Usuário — Astra Writer
 
-Este guia ensina, passo a passo, a usar o Astra Writter para escrever e organizar um livro. Ele foi escrito para quem **usa** o
+Este guia ensina, passo a passo, a usar o Astra Writer para escrever e organizar um livro. Ele foi escrito para quem **usa** o
 aplicativo (autores), não para quem desenvolve. Para a parte técnica, veja [`project.md`](project.md) e
 [`ai-tools.md`](ai-tools.md).
 
@@ -38,7 +38,7 @@ carregada, já no último livro em que você trabalhou.
 2. Escolha **"Criar novo livro"**.
 3. Responda às perguntas da janela (título e demais informações) e confirme.
 
-O Astra Writter cria uma pasta para o livro com a estrutura padrão (capítulo 1, personagens, lugares, anotações...), abre o livro e já mostra a **Sinopse** no editor.
+O Astra Writer cria uma pasta para o livro com a estrutura padrão (capítulo 1, personagens, lugares, anotações...), abre o livro e já mostra a **Sinopse** no editor.
 
 > **Seus dados ficam no seu computador.** O livro é uma pasta de arquivos Markdown (`.md`). Não há banco de dados nem conta online:
 > você pode copiar, versionar ou fazer backup da pasta como qualquer outra.
@@ -82,13 +82,14 @@ Clique em qualquer ponto do explorer e use o teclado:
 | **→ / ←** | Percorre as **opções** do item destacado (criar, renomear, editar, excluir...). |
 | **Enter** | Em uma pasta: abre/fecha. Em um arquivo: abre no editor. Com uma opção escolhida: aciona essa opção. |
 | **↓ no último item** | Seleciona o **Assistente de Escrita**; **Enter** abre a gaveta e já coloca o cursor no campo de mensagem. |
-| **Esc** | Limpa o destaque. |
+| **Esc** | Limpa o destaque. No chat, **Esc** fecha a gaveta e devolve as setas ao explorer. |
 
 ### Mini barra do explorer
 
 Logo abaixo da pesquisa:
 
 - **Olho** — mostra ou oculta os *arquivos avançados* (índices e arquivos técnicos).
+- **Cadeado** (aba Anotações) — bloqueia ou libera a escrita da IA em **todas** as anotações de uma vez (arquivos e pastas herdam a regra).
 - **Árvore de pastas** — abre todas as pastas da aba; se já estiverem todas abertas, fecha todas.
 - **Novo capítulo** (aba Escrita), **Nova pasta** e **Nova anotação** (aba Anotações).
 
@@ -106,11 +107,14 @@ O explorer tem três abas, que correspondem às três pastas principais do livro
 
 ### Capítulos
 
-Cada capítulo é uma pasta `content/chapter_001/`, `chapter_002/`... com arquivos de apoio:
+Cada capítulo é uma pasta `content/chapter_001/`, `chapter_002/`... com **três arquivos**:
 
 - **Manuscrito** (`2_draft.md`) — o texto do capítulo em si.
-- **Roteiro** (`1_script.md`) e **Metadados** (`3_metadata.md`).
-- **Backlog** — análise, pistas de foreshadowing e roadmap do capítulo.
+- **Esboço** (`1_outline.md`) — o plano do capítulo, escrito antes de pôr a mão na massa (serve de prompt para a IA gerar o capítulo).
+- **Análise** (`3_analysis.md`) — gerada depois da escrita, com sugestões da IA: análise, planejamento dos próximos capítulos e pistas (foreshadowing).
+
+No explorer cada capítulo aparece como **um único item** (ícone de livro aberto); clicar abre o manuscrito. Acima do editor há três guias — **Manuscrito**, **Esboço** e **Análise**: a do arquivo aberto mostra o nome e as outras encolhem para só o ícone; clicar em uma delas abre o arquivo.
+Livros antigos são migrados sozinhos (o backlog vira a Análise; nada que você escreveu é perdido e tudo fica no changelog).
 
 Para criar um, use **Novo capítulo** na aba Escrita. Ao excluir um capítulo, os seguintes são **renumerados** automaticamente para não
 sobrar buracos.
@@ -130,7 +134,7 @@ editá-lo:** quando uma ficha é criada, o link dela entra no índice; quando é
 
 ## 4. Escrevendo: rascunho e sincronização
 
-Este é o conceito mais importante do Astra Writter.
+Este é o conceito mais importante do Astra Writer.
 
 ### Dois estados para cada arquivo
 
@@ -168,6 +172,15 @@ O botão **Exportar** (barra superior, ao lado de Histórico) salva o arquivo ab
 
 Depois de escolher, o aplicativo pergunta **onde salvar**. O texto exportado inclui o que você acabou de digitar, mesmo sem sincronizar.
 Os links entre arquivos do livro viram texto simples (eles só funcionam dentro do aplicativo); links da web continuam links.
+
+### Exportar o livro
+
+Na **Central do Livro → Exportar** (abra pela caneta ao lado do livro no seletor, ou pelo menu) escolha:
+
+- **O que exportar:** o livro em **um único arquivo** (capítulos na ordem, cada um em página nova), os **capítulos separados** (um arquivo por capítulo, em um zip) ou o **projeto completo** (zip com todos os arquivos, útil como cópia de segurança).
+- **O formato** (para os dois primeiros): Markdown, Word ou PDF. O projeto completo mantém os arquivos como estão.
+
+Entram o manuscrito de cada capítulo (com o que você digitou, mesmo sem sincronizar); esboço e análise não. No zip do projeto ficam de fora os dados internos do app (`.system`) e os rascunhos não sincronizados.
 
 ### Arquivos somente leitura
 
@@ -226,7 +239,7 @@ Links ligam suas fichas e capítulos entre si (como uma wiki).
 - **Inserir um link:** botão de **link** na barra do editor. Procure o arquivo do livro pelo nome ou informe um endereço da web.
 - **Auto-link:** o botão **Auto-link** (barra superior) transforma automaticamente em links as menções a **nomes e apelidos das
   fichas** que aparecem no texto. É útil depois de escrever um capítulo inteiro. Os links criados pelo auto-link aparecem em **rosa**
-  até a sincronização, quando passam a azul. Títulos, código e textos que já são links são ignorados.
+  até a sincronização, quando passam a azul. Código e textos que já são links são ignorados; títulos são linkados normalmente.
 - **Apelidos:** preencha a variável de apelidos da ficha (separados por vírgula) para que o auto-link também reconheça esses nomes.
 - **Remover um link:** clique com o botão direito sobre ele e escolha **Remover link**.
 - **Link quebrado:** se o arquivo de destino for excluído, o link fica **cinza**.
@@ -327,7 +340,7 @@ capítulo (apague o capítulo inteiro), índices e modelos.
 
 ## 10. Histórico e changelog
 
-O Astra Writter registra **tudo** o que acontece no livro: quem fez (você, a IA ou o próprio sistema), o quê e quando.
+O Astra Writer registra **tudo** o que acontece no livro: quem fez (você, a IA ou o próprio sistema), o quê e quando.
 
 ### Histórico de um arquivo
 
@@ -337,8 +350,8 @@ ela. Restaurar não apaga o registro das versões seguintes, mas elas deixam de 
 
 ### Changelog do livro
 
-**Configurações → Registros → Changelog do livro** mostra todas as ações do livro. Há ainda o **Log de erros da IA**, com falhas de
-conexão ou limite de uso dos provedores.
+A **Central do Livro → Changelog** mostra todas as ações do livro e o espaço em disco que o histórico (com o conteúdo guardado para
+rollback) ocupa. O **Log de erros da IA**, com falhas de conexão ou limite de uso dos provedores, fica na **Central de IA → Log de erros**.
 
 ---
 
@@ -461,3 +474,30 @@ Copie a pasta do livro (dentro de `books/`). Tudo — texto, permissões, histó
 | **Auto-link** | Criação automática de links para fichas citadas no texto. |
 | **Changelog** | Registro de tudo o que foi feito no livro, com autor e data. |
 | **Tool (ferramenta)** | Ação que a IA pode executar no livro, sempre respeitando as permissões. |
+
+
+## Centrais
+
+As **centrais** são janelas grandes com abas à esquerda. Abra-as pelo botão do rodapé do editor (Revisões) ou pela gaveta de **Configurações > Centrais**. **Esc** ou o **X** fecham.
+
+### Central de Revisões
+
+O botão no rodapé mostra **Tudo certo** (verde) ou o número de **pendências** (amarelo: só sugestões e possíveis erros; vermelho: há erros confirmados). Dentro dela:
+
+- **Resumo:** números, os erros mais graves, a **análise da IA**, o pedido para a **IA corrigir sozinha** (não recomendado; a IA pode errar), os **tipos dispensados** (dá para reativar) e o **dicionário do livro**.
+- **Links, Ortografia e gramática, Linha do tempo, Contradições e Dicas de melhoria:** cada pendência é um cartão com a tag do tipo, o arquivo e a linha, o trecho, a solução recomendada e as ações **Ir para o trecho** (abre o arquivo com o cursor no ponto exato), **Corrigir** (vai para o rascunho; sincronize para salvar), **Dispensar**, **Adicionar ao dicionário** (erros de digitação) e **Dispensar todos desse tipo**.
+- Ao passar o mouse sobre um arquivo no explorer aparecem as marcas de pendências (vermelha: erros; amarela: sugestões).
+
+### Eventos e linha do tempo
+
+Em **Mundo > Eventos** cada fato é um arquivo com **quando ocorreu**, **depois de** e **antes de**. A aba Linha do tempo da central sugere a ordem (sem usar IA) e avisa de ordem circular ou datas contraditórias. A linha do tempo oficial **ninguém edita à mão**: você a aprova ali ou a IA a atualiza.
+
+### Arquivos novos e sincronização
+
+Personagens, locais, anotações, eventos e capítulos novos nascem como **rascunho** e entram na lista de sincronização. Ao sincronizar eles viram oficiais e o app oferece a **análise da IA** (com estimativa de tokens), que cria um resumo de metadados de cada arquivo atualizado e confere contradições.
+
+### Central do Livro e Central de IA
+
+- **Livro:** nome, modo da IA (assistente, co-autor ou autônomo), visão geral (total de arquivos e espaço em disco, sem o changelog e o chat), changelog (com o espaço que ele ocupa) e exclusão do livro. Também abre pela **caneta** que aparece ao lado de cada livro no seletor de livros.
+- **IA:** várias contas com apelido e chave, fallback automático, uso por modelo, **perfil de uso** (Mínimo, Econômico, Equilibrado, Completo, Ultra ou Personalizado, com uma opção ligável por etapa), depuração (os 10 últimos turnos com o texto completo enviado, tools e tokens; o alfinete fixa um turno no livro), log de erros e skills próprias. Abre também pelo botão **Central de IA** abaixo do campo de texto do chat. Nas **Configurações** ficam só o seletor de conta/modelo e os atalhos do dia a dia.
+- **Provedores:** Claude, Gemini, ChatGPT (OpenAI), Groq, Puter, **Ollama** (modelos locais, sem chave) e qualquer **servidor compatível com a API da OpenAI** (LM Studio, llama.cpp, vLLM...). Modelos sem suporte a tools funcionam em **modo simulado**: o app ensina o formato no prompt, lê os pedidos de tool na resposta e executa o mesmo laço. No modo automático ele tenta o nativo e, se o modelo recusar, simula.

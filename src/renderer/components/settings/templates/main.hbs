@@ -6,6 +6,25 @@
 <div class="settings-content">
 
     <section class="settings-card">
+        <h4 class="settings-card-title"><i class="fa-solid fa-table-columns"></i> Centrais</h4>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="issues">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Central de Revisões</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="book">
+            <i class="fa-solid fa-book"></i>
+            <span>Central do Livro</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="ai">
+            <i class="fa-solid fa-robot"></i>
+            <span>Central de IA</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+    </section>
+
+    <section class="settings-card">
         <h4 class="settings-card-title"><i class="fa-solid fa-palette"></i> Aparência</h4>
         <div class="settings-row">
             <span class="settings-row-text">
@@ -91,18 +110,15 @@
         <details class="settings-details" id="ai-details">
             <summary>
                 <span class="settings-row-text">
-                    <strong>Provedor e modelo</strong>
+                    <strong>Conta e modelo</strong>
                     <small id="ai-summary-value">—</small>
                 </span>
                 <i class="fa-solid fa-chevron-down settings-chevron"></i>
             </summary>
             <div class="settings-form">
-                <label class="settings-label" for="ai-provider-select">Provedor de IA</label>
+                <label class="settings-label" for="ai-provider-select">Conta de IA</label>
                 <select id="ai-provider-select" class="settings-input" event-change="ai-settings:changed"
-                    data-field="provider">
-                    {{#each providers}}
-                    <option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
+                    data-field="account">
                 </select>
 
                 <label class="settings-label" for="ai-model-select">Modelo</label>
@@ -110,27 +126,12 @@
                     data-field="model">
                 </select>
 
-                <div id="ai-key-group" class="settings-key-group">
-                    <label class="settings-label" for="ai-api-key">Chave de API</label>
-                    <input id="ai-api-key" class="settings-input" type="password" autocomplete="off"
-                        spellcheck="false" placeholder="Cole sua chave de API" event-change="ai-settings:changed"
-                        data-field="key">
-                </div>
+                <button type="button" class="settings-btn" event-click="central:open" data-central="ai">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Contas e chaves de API (Central de IA)</span>
+                    <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+                </button>
             </div>
         </details>
-    </section>
-
-    <section class="settings-card">
-        <h4 class="settings-card-title"><i class="fa-solid fa-clipboard-list"></i> Registros</h4>
-        <button type="button" class="settings-btn" event-click="changelog:open-viewer">
-            <i class="fa-solid fa-list-ul"></i>
-            <span>Changelog do livro</span>
-            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
-        </button>
-        <button type="button" class="settings-btn" event-click="ai-errors:open-modal">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>Log de erros da IA</span>
-            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
-        </button>
     </section>
 </div>
