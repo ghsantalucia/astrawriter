@@ -14,7 +14,7 @@ export const CHAT_BG_MODES = [
 ];
 
 /** Fundo padrão de cada tema (o que o app sempre usou). */
-const DEFAULT_MODE = { dark: "stars", light: "nebula" };
+const DEFAULT_MODE = { dark: "stars", light: "orbits" };
 
 /** Cor padrão por tipo e tema (`stars`, `solid` e `orbits` usam cor). */
 const DEFAULT_COLOR = {
