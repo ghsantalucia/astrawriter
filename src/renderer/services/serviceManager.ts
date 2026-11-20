@@ -16,6 +16,14 @@ import { FolderService } from "./folderService.js";
 import { IssueService } from "./issueService.js";
 import { AnalysisService } from "./analysisService.js";
 import { SkillService } from "./skillService.js";
+import { AiChangeService } from "./aiChangeService.js";
+import { AppearanceService } from "./appearanceService.js";
+import { NarratorService } from "./narratorService.js";
+import { ProductivityService } from "./productivityService.js";
+import { ShortcutService } from "./shortcutService.js";
+import { BackupService } from "./backupService.js";
+import { StartupService } from "./startupService.js";
+import { SkillRunnerService } from "./skillRunnerService.js";
 
 /**
  * Gerencia todas as classes de serviços.
@@ -40,6 +48,8 @@ export class ServiceManager {
     this.search = new SearchService();
     this.issues = new IssueService(this.state, this.changelog, this.file);
     this.skills = new SkillService(this.state);
+    this.templates = this.creation.templates;
+    this.aiChanges = new AiChangeService(this.state);
     this.analysis = new AnalysisService(this.state, this.changelog, this.file, this.issues);
     this.ai = new AiService(
       this.state,
@@ -54,6 +64,20 @@ export class ServiceManager {
         analysis: this.analysis,
       },
     );
+
+    // Skills: execução (manual, por gatilho ou a pedido da IA)
+    this.skillRunner = new SkillRunnerService(this, this.state);
+    this.ai.skillLibrary = this.skills;
+    this.ai.skillRunner = this.skillRunner;
+    // Central do Sistema: aparência, narrador, cronômetro, atalhos, backup e rotina de inicialização
+    this.appearance = new AppearanceService();
+    this.narrator = new NarratorService(this.state);
+    this.productivity = new ProductivityService();
+    this.shortcuts = new ShortcutService();
+    this.backup = new BackupService();
+    this.startup = new StartupService(this);
+    this.ai.backupService = this.backup;
+    this.ai.productivityService = this.productivity;
   }
 }
 

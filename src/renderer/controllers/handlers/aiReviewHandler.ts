@@ -34,6 +34,53 @@ export async function onAiReviewOpen({ files }, fileService, state) {
 }
 
 /**
+ * Modo autônomo: grava direto o que a IA escreveu, sem abrir a janela de revisão. Rascunhos em que a IA não mudou nada
+ * são descartados. O changelog atribui a alteração à IA (o rascunho é dela) e permite o rollback.
+ * @param {{files: string[]}} payload - Caminhos absolutos dos arquivos originais (.md).
+ * @param {Object} fileService - Instância do FileService.
+ * @param {Object} state - Estado global.
+ * @returns {Promise<string[]>} Arquivos efetivamente gravados.
+ */
+export async function autoApplyAiEdits({ files }, fileService, state) {
+  const applied = [];
+  for (const originalPath of files) {
+    const tempPath = fileService.getTempPath(originalPath);
+    const [original, draft] = await Promise.all([
+      window.electronAPI.readFile(originalPath),
+      window.electronAPI.readFile(tempPath),
+    ]);
+    if (draft === null) continue;
+
+    const normPath = normalizePath(originalPath);
+    const { metadata } = parseMarkdown(draft);
+    const title = metadata.title || normPath.split("/").pop();
+    const unchanged =
+      splitFrontmatter(original ?? "").body === splitFrontmatter(draft).body &&
+      JSON.stringify(parseMarkdown(original ?? "").metadata) === JSON.stringify(metadata);
+    if (unchanged) {
+      await fileService.deleteFile(tempPath);
+      uiBus.emit("temp-file:deleted", normPath);
+      uiBus.emit("chat:system-notice", { text: `A IA não alterou o arquivo "${title}".` });
+      continue;
+    }
+
+    const res = await fileService.saveFile(originalPath, draft);
+    if (!res.success) {
+      toastError(res.error);
+      continue;
+    }
+    uiBus.emit("temp-file:synced", normPath);
+    uiBus.emit("chat:system-notice", { text: `A IA gravou o arquivo "${title}" (modo autônomo).` });
+    // O arquivo aberto no editor é recarregado com a versão nova
+    if (normalizePath(state.currentFilePath || "").replace(/\.temp$/, "") === normPath) {
+      uiBus.emit("editor:open-file", { path: normPath });
+    }
+    applied.push(originalPath);
+  }
+  return applied;
+}
+
+/**
  * Texto de um bloco, sem espaços (comparação de blocos independente da formatação).
  * @param {string} text - Texto do bloco.
  * @returns {string}

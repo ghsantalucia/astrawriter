@@ -17,6 +17,31 @@
   </button>
 </nav>
 
+<!-- Cronômetro de produtividade (tempo de escrita da sessão) -->
+<div class="productivity-bar" id="productivity-bar" data-status="paused">
+  <button
+    type="button"
+    class="prod-icon-btn"
+    event-click="central:open"
+    data-central="system"
+    data-tab="productivity"
+    title="Abrir Produtividade (gráfico e registros)"
+    aria-label="Abrir Produtividade"
+  >
+    <i class="fa-regular fa-clock prod-icon"></i>
+  </button>
+  <span class="prod-time" id="prod-time">00:00:00</span>
+  <span class="prod-status" id="prod-status">pausado</span>
+  <span class="prod-spacer"></span>
+  <button type="button" class="prod-btn" id="prod-toggle" event-click="productivity:toggle" title="Iniciar o cronômetro">
+    <i class="fa-solid fa-play"></i>
+  </button>
+  <button type="button" class="prod-btn" id="prod-reset" event-click="productivity:reset" title="Zerar: encerra o registro atual e recomeça">
+    <i class="fa-solid fa-rotate-left"></i>
+  </button>
+  <button type="button" class="prod-auto" id="prod-auto" event-click="productivity:auto">Auto</button>
+</div>
+
 <!-- Barra de pesquisa (título e conteúdo dos arquivos) -->
 <div class="explorer-search">
   <i class="fa-solid fa-magnifying-glass explorer-search-icon"></i>

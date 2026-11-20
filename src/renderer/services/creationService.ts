@@ -12,6 +12,9 @@ import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
 import { addEntityToIndex } from "./indexService.js";
 import { normalizePath } from "../utils/helpers.js";
+import { collectEventNames } from "../utils/eventNames.js";
+import { TemplateService, mergeTemplate } from "./templateService.js";
+import { flattenBookTree } from "../utils/bookFiles.js";
 import {
   parseMarkdown,
   stringifyFrontmatter,
@@ -120,6 +123,8 @@ export class CreationService {
     this.changelog = changelog;
     /** @type {{booksDir: string, templatesDir: string}|null} */
     this._paths = null;
+    /** Perfis de template (corpo dos templates de fichas e capítulos). */
+    this.templates = new TemplateService();
   }
 
   // ========== Infraestrutura ========== //
@@ -225,13 +230,31 @@ export class CreationService {
     const { templatesDir } = await this.getPaths();
     const template = await this.loadTemplate(`${templatesDir}/content/plot.md`);
 
+    const steps = buildTemplateSteps(template);
+    // Perfil dos templates: acompanha o modo da IA escolhido, mas o autor pode trocar (perfis fixos ou os dele)
+    const profiles = await this.templates.profiles().catch(() => []);
+    const first = steps[0];
+    if (first && profiles.length) {
+      const modeField = first.fields.find((f) => f.id === "ai_mode");
+      first.fields.push({
+        id: "template_profile",
+        label: "Perfil dos templates",
+        type: "select",
+        options: profiles.map((p) => ({ value: p.id, label: p.builtin ? p.label : `${p.label} (seu)` })),
+        value: this.templates.profileForMode(modeField?.value),
+        hint: "Define o modelo de cada ficha e capítulo. Escolhido automaticamente pelo modo da IA; mude se quiser. Dá para editar os templates em Central do Sistema → Templates.",
+        required: false,
+        follows: { field: "ai_mode", map: { assistant: "assistant", coauthor: "coauthor", autonomous: "autonomous" } },
+      });
+    }
+
     return {
       kind: "book",
       title: "Novo livro",
       submitLabel: "Criar livro",
       allowSkip: false,
       context: {},
-      steps: buildTemplateSteps(template),
+      steps,
     };
   }
 
@@ -292,15 +315,26 @@ export class CreationService {
       folder: cleanFolder,
     } = await this.loadEntityTemplate(folder);
 
+    const steps = buildTemplateSteps(template, {
+      variablesTitle: "Dados principais",
+    });
+    // Eventos já citados em "antes"/"depois" de outras fichas, mas que ainda não têm ficha, viram sugestão de nome
+    if (cleanFolder === "assets/events" && this.state.currentBookMap) {
+      const { pending } = collectEventNames(flattenBookTree(this.state.currentBookMap, this.requireBookPath()));
+      const titleField = steps[0]?.fields?.find((f) => f.id === "title");
+      if (titleField && pending.length) {
+        titleField.suggestions = pending;
+        titleField.hint = "Eventos já citados em outras fichas e ainda sem ficha aparecem como sugestão ao digitar.";
+      }
+    }
+
     return {
       kind: "entity",
       title: folderTitle ? `Nova ficha — ${folderTitle}` : "Nova ficha",
       submitLabel: "Criar",
       allowSkip: true,
       context: { folder: cleanFolder },
-      steps: buildTemplateSteps(template, {
-        variablesTitle: "Dados principais",
-      }),
+      steps,
     };
   }
 
@@ -642,6 +676,10 @@ export class CreationService {
       renderTemplateFile(plot),
     );
 
+    // Perfil dos templates: o corpo das fichas do livro passa a ser o do perfil escolhido (as variáveis não mudam)
+    const profileId = String(values.template_profile || "").trim() || this.templates.profileForMode(values.ai_mode);
+    await this.templates.applyToBook(bookPath, profileId).catch((e) => console.error("[CREATION] Falha ao aplicar o perfil de templates:", e));
+
     // config.json do novo livro
     const title = resolveTitle(template, values) || "Novo livro";
     let config = {};
@@ -654,6 +692,10 @@ export class CreationService {
     }
     config.book_title = title;
     config.ai_lock = false;
+    config.template_profile = profileId;
+    // Modo da IA escolhido no wizard (uma lista de opções: assistant, coauthor ou autonomous)
+    const aiMode = String(values.ai_mode || "").trim();
+    if (["assistant", "coauthor", "autonomous"].includes(aiMode)) config.ai_mode = aiMode;
     config.explorer_state = {
       // O livro novo já abre na Sinopse (o app abre o último arquivo ao selecionar o livro)
       open_file: `${bookPath}/content/plot.md`,
@@ -704,6 +746,16 @@ export class CreationService {
     );
     if (!copy?.success)
       throw new Error(`Falha ao criar o capítulo: ${copy?.error}`);
+
+    // Perfil de templates do livro: esboço e análise do capítulo nascem com o corpo do perfil (as variáveis não mudam)
+    const profileId = await this.templates.profileOfBook(book);
+    for (const [kind, pattern] of [["chapter-outline", /outline\.md$/i], ["chapter-analysis", /analysis\.md$/i]]) {
+      const name = (await this.listDir(folderPath)).find((e) => !e.isDirectory && pattern.test(e.name))?.name;
+      const body = await this.templates.body(profileId, kind);
+      if (!name || body === null) continue;
+      const file = `${folderPath}/${name}`;
+      await this.writeText(file, mergeTemplate((await this.readText(file)) || "", body));
+    }
 
     // folder.yml: título da pasta no explorer ("Capítulo 02")
     const folderLabel = `Capítulo ${pad(number, 2)}`;

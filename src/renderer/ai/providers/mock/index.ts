@@ -1,8 +1,11 @@
 // @ts-nocheck
 // Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
- * @file Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma
- * determinística e permite exercitar tool calling, travas e revisão de rascunhos por comandos.
+ * @file Assistente embutido do Astra (provedor interno "mock"). Não é uma IA: não chama nenhuma API e responde de forma
+ * determinística, por comandos. É o provedor que sempre existe (não pode ser removido), para o chat nunca ficar sem resposta:
+ * na primeira mensagem de cada sessão ele se apresenta com uma citação de escritor, explica que não é uma IA de verdade e
+ * oferece instalar uma IA real ou ver o que sabe fazer. Também permite exercitar tool calling, travas e revisão de
+ * rascunhos por comandos.
  *
  * Comandos (digite no chat):
  *   /ajuda                                 lista os comandos
@@ -24,11 +27,15 @@
  */
 
 import { runToolLoop } from "../../toolLoop.js";
+import { randomQuote } from "./quotes.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const HELP = `**Provedor Mock** — comandos disponíveis:
+const HELP = `**Assistente Astra (sem IA)** — eu não sou uma IA de verdade: respondo a comandos. Para conversar de verdade, conecte uma IA na **Central de IA → Contas e modelo**.
 
+Comandos que eu entendo:
+
+- \`/ajuda\`: esta lista
 - \`/listar\`
 - \`/ler <caminho>\`
 - \`/anexar <caminho> | <texto>\`
@@ -38,7 +45,36 @@ const HELP = `**Provedor Mock** — comandos disponíveis:
 - \`/iniciar <tipo> [| <pasta>]\` (book, chapter, entity, note)
 - \`/criar <tipo> | <pasta> | campo=valor;campo=valor\`
 - \`/tool <nome> | <json>\` (chama qualquer tool; args em JSON)
-- \`/lento\` e \`/erro\``;
+- \`/lento\` e \`/erro\`
+
+Mesmo sem IA você pode mexer no livro por estes comandos (ficam mais trabalhosos que pedir em português a uma IA de verdade).`;
+
+/** Botões da apresentação: instalar uma IA de verdade ou ver o que o assistente sabe fazer. */
+const WELCOME_BUTTONS = [
+  { label: "Conectar uma IA de verdade", action: "open-central", central: "ai", tab: "model" },
+  { label: "Ver o que você sabe fazer", reply: "/ajuda" },
+];
+
+/**
+ * Apresentação do assistente (primeira mensagem de cada sessão): uma citação sorteada e o aviso de que não é uma IA.
+ * @returns {string}
+ */
+function welcomeText() {
+  const quote = randomQuote();
+  return [
+    `> “${quote.text}”`,
+    `> — *${quote.author}*`,
+    "",
+    "Olá! Eu sou o **assistente embutido do Astra Writer**. Ainda **não sou uma IA de verdade**: não converso nem escrevo textos, só respondo a comandos simples (digite \`/ajuda\` para vê-los).",
+    "",
+    "Para ter uma IA que lê o seu livro, sugere e escreve com você, conecte uma na **Central de IA** (Gemini, Claude, ChatGPT, Groq ou um modelo local no seu computador).",
+  ].join("\n");
+}
+
+/** @returns {boolean} A conversa ainda não tem nenhuma resposta do assistente (primeira mensagem da sessão)? */
+function isFirstOfSession(history) {
+  return !(history || []).some((m) => m.role === "assistant" && !m.error);
+}
 
 /** Estima tokens (~4 caracteres por token). */
 const estimateTokens = (text) => Math.ceil((text || "").length / 4);
@@ -140,17 +176,11 @@ function parseCommand(prompt) {
       return { fail: true };
     default:
       return {
+        tool: { name: "show_buttons", args: { buttons: WELCOME_BUTTONS } },
         reply: [
-          "## Resposta simulada",
+          "Não entendi. Eu **não sou uma IA de verdade**, só respondo a comandos (como `/ajuda`).",
           "",
-          `Você disse: _"${prompt.trim()}"_`,
-          "",
-          "Este provedor **não** usa IA de verdade. Exemplos de formatação:",
-          "",
-          "- item com **negrito**",
-          "- item com *itálico* e `código`",
-          "",
-          "> Digite `/ajuda` para ver os comandos de teste.",
+          "Para conversar em português, conecte uma IA na **Central de IA**.",
         ].join("\n"),
       };
   }
@@ -178,7 +208,7 @@ function formatResults(results) {
  * @param {Object} params.toolContext
  * @returns {Promise<{text: string, usage: import("../../toolLoop.js").TokenUsage}>}
  */
-export async function sendRequest({ prompt, systemPrompt = "", toolContext }) {
+export async function sendRequest({ prompt, systemPrompt = "", history = [], toolContext }) {
   await sleep(600);
 
   // Análises do livro (sem ferramentas): respostas JSON determinísticas para testar o fluxo
@@ -198,7 +228,11 @@ export async function sendRequest({ prompt, systemPrompt = "", toolContext }) {
     return { text, usage: { inputTokens: estimateTokens(prompt), outputTokens: estimateTokens(text), contextTokens: 0, requests: 1 } };
   }
 
-  const plan = parseCommand(prompt);
+  let plan = parseCommand(prompt);
+  // Primeira mensagem da sessão (e não é um comando): apresentação com a citação e os botões
+  if (!prompt.trim().startsWith("/") && isFirstOfSession(history)) {
+    plan = { tool: { name: "show_buttons", args: { buttons: WELCOME_BUTTONS } }, reply: welcomeText() };
+  }
   if (plan.fail) throw new Error("Erro simulado pelo provedor Mock.");
   if (plan.delay) await sleep(plan.delay);
 

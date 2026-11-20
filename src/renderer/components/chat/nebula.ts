@@ -42,9 +42,12 @@ float fbm(vec3 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*noise3(p);p=p*2.07+v
 float fbm3(vec3 p){float s=0.,a=.5;for(int i=0;i<3;i++){s+=a*noise3(p);p=p*2.03+vec3(13.1,7.7,3.3);a*=.5;}return s;}
 float billow(vec3 p){float s=0.,a=.5;for(int i=0;i<3;i++){s+=a*abs(2.*noise3(p)-1.);p=p*2.15+vec3(3.3,9.1,5.5);a*=.5;}return s;}
 float ridged(vec3 p){float s=0.,a=.55;for(int i=0;i<3;i++){float n=1.-abs(2.*noise3(p)-1.);s+=a*n*n;p=p*2.1+vec3(5.2,1.3,8.8);a*=.5;}return s;}
-const vec3 VIOLET=vec3(0.50,0.17,0.92);
-const vec3 LILAC =vec3(0.80,0.62,0.98);
-const vec3 PINK  =vec3(1.00,0.48,0.80);
+uniform vec3 uViolet;
+uniform vec3 uLilac;
+uniform vec3 uPink;
+#define VIOLET uViolet
+#define LILAC uLilac
+#define PINK uPink
 const vec3 YELLOW=vec3(1.00,0.92,0.50);
 const vec3 LIME  =vec3(0.72,1.00,0.45);
 const vec3 CYAN  =vec3(0.45,0.96,1.00);
@@ -190,6 +193,15 @@ const DEFAULTS = {
  */
 export function mountNebula(el, options = {}) {
   const o = { ...DEFAULTS, ...options };
+  /** Paleta (0 a 1 por canal): cores principal, clara e de destaque. */
+  const palette = { violet: [0.5, 0.17, 0.92], lilac: [0.8, 0.62, 0.98], pink: [1, 0.48, 0.8] };
+  const setPalette = (colors) => {
+    for (const key of Object.keys(palette)) {
+      const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(colors?.[key] || "");
+      if (m) palette[key] = [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255];
+    }
+  };
+  setPalette(options.colors);
   if (o.seed === null || o.seed === undefined) o.seed = 1 + Math.random() * 60;
   const canvas = document.createElement("canvas");
   canvas.className = "nebula-bg-canvas";
@@ -227,6 +239,9 @@ export function mountNebula(el, options = {}) {
     aspect: loc(pNeb, "uAspect"),
     time: loc(pNeb, "uTime"),
     seed: loc(pNeb, "uSeed"),
+    violet: loc(pNeb, "uViolet"),
+    lilac: loc(pNeb, "uLilac"),
+    pink: loc(pNeb, "uPink"),
   };
   const uS = {
     aspect: loc(pStar, "uAspect"),
@@ -313,6 +328,9 @@ export function mountNebula(el, options = {}) {
     gl.uniform2f(uN.aspect, aspect[0], aspect[1]);
     gl.uniform1f(uN.time, time);
     gl.uniform1f(uN.seed, o.seed);
+    gl.uniform3f(uN.violet, palette.violet[0], palette.violet[1], palette.violet[2]);
+    gl.uniform3f(uN.lilac, palette.lilac[0], palette.lilac[1], palette.lilac[2]);
+    gl.uniform3f(uN.pink, palette.pink[0], palette.pink[1], palette.pink[2]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -351,6 +369,10 @@ export function mountNebula(el, options = {}) {
 
   return {
     canvas,
+    setColors(colors) {
+      setPalette(colors);
+      if (!running) render();
+    },
     pause() {
       running = false;
     },

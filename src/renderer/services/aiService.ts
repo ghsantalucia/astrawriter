@@ -4,6 +4,7 @@
  * @file Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
  */
 
+import { setActiveSignal } from "../ai/abort.js";
 import { normalizePath } from "../utils/helpers.js";
 import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
@@ -69,6 +70,9 @@ export class AiService {
     this.saveQueue = Promise.resolve();
     /** Contador de mensagens enviadas (identifica em qual mensagem uma criação foi iniciada). */
     this.messageSeq = 0;
+    /** Resposta em andamento (para o botão de parar do chat). */
+    this.abortController = null;
+    uiBus.on("ai:stop", () => this.abortCurrent());
   }
 
   /**
@@ -88,7 +92,8 @@ export class AiService {
       const wanted = getProviderInfo(base.provider) ? base.provider : DEFAULT_AI_PROVIDER;
       for (const info of AI_PROVIDERS) {
         const config = base.providers?.[info.id];
-        if (config?.apiKey || info.id === wanted) {
+        // Instalação nova (nada salvo): só o assistente embutido; as contas de IA de verdade o autor conecta depois
+        if (config?.apiKey || (info.id === wanted && Object.keys(base).length > 0)) {
           accounts.push({
             id: `acc-${info.id}`,
             provider: info.id,
@@ -99,6 +104,12 @@ export class AiService {
         }
       }
       activeAccount = `acc-${wanted}`;
+    }
+    // O assistente embutido (provedor "mock") sempre existe: o chat nunca fica sem provedor. Na primeira abertura (sem
+    // nenhuma configuração salva) ele é a conta ativa, até o autor conectar uma IA de verdade.
+    if (!accounts.some((a) => a.provider === "mock")) {
+      accounts.unshift({ id: "acc-mock", provider: "mock", nickname: "Assistente Astra", apiKey: "", model: "mock-1" });
+      if (migrated && Object.keys(base).length === 0) activeAccount = "acc-mock";
     }
     if (!accounts.some((a) => a.id === activeAccount)) activeAccount = accounts[0]?.id ?? null;
 
@@ -234,6 +245,8 @@ export class AiService {
    * @returns {Promise<void>}
    */
   async removeAccount(id) {
+    // O assistente embutido não pode ser removido
+    if (this.state.aiSettings.accounts.find((a) => a.id === id)?.provider === "mock") return;
     await this.applyAccountChange(() => {
       const settings = this.state.aiSettings;
       settings.accounts = settings.accounts.filter((a) => a.id !== id);
@@ -424,6 +437,16 @@ export class AiService {
   }
 
   /**
+   * Interrompe a resposta da IA em andamento (botão de parar do chat).
+   * @returns {boolean} Havia algo em andamento?
+   */
+  abortCurrent() {
+    if (!this.abortController) return false;
+    this.abortController.abort();
+    return true;
+  }
+
+  /**
    * Zera o consumo de tokens (nova sessão de chat).
    */
   resetUsage() {
@@ -456,14 +479,21 @@ export class AiService {
    * @param {Object} params
    * @param {string} params.prompt - Texto simples enviado pelo usuário.
    * @param {Array} [params.history=[]] - Histórico de mensagens anteriores (se houver).
-   * @returns {Promise<{text: string, buttons: Array<{label: string, event: string, data: Object}>}>}
+   * @param {Object|null} [params.skill=null] - Execução de uma skill: a IA só pode usar as tools que ela declara.
+   * @returns {Promise<{text: string, tokens: number, buttons: Array<{label: string, event: string, data: Object}>}>}
    * Texto da resposta do provedor ativo e os botões (ferramenta `show_buttons`) a exibir junto dela.
    */
-  async sendMessage({ prompt, history = [] }) {
+  async sendMessage({ prompt, history = [], skill = null }) {
     const bookPath = this.state.currentBookPath;
     const session = { locked: false, syncDenied: false, files: new Set() };
 
+    // Cancelamento: o botão de parar do chat aciona `abortCurrent()`
+    const controller = new AbortController();
+    this.abortController = controller;
+    setActiveSignal(controller.signal);
+
     const toolContext = {
+      signal: controller.signal,
       state: this.state,
       fileService: this.fileService,
       creation: this.creationService,
@@ -474,6 +504,12 @@ export class AiService {
       issues: this.issues,
       /** Análise do livro (digests e fatos). */
       analysis: this.analysis,
+      /** Biblioteca de skills e executor (tools `list_skills` e `run_skill`). */
+      skills: this.skillLibrary,
+      skillRunner: this.skillRunner,
+      /** Backup e cronômetro (tools `backup_now` e `get_productivity`). */
+      backup: this.backupService,
+      productivity: this.productivityService,
       /** Registra leituras e identifica o autor das alterações no changelog. */
       changelog: this.changelogService,
       /** Identifica esta mensagem do usuário. */
@@ -482,6 +518,8 @@ export class AiService {
       conversation: { prompt, history },
       /** Botões registrados pela IA para esta resposta. */
       buttons: [],
+      /** Execução de skill: só estas tools (mais as do chat). */
+      allowedTools: skill ? skill.tools : undefined,
 
       beginEdit: async () => {
         if (session.locked) return;
@@ -534,8 +572,10 @@ export class AiService {
       );
       this.publishUsage();
 
-      return { text, buttons: toolContext.buttons };
+      return { text, buttons: toolContext.buttons, tokens: usage.inputTokens + usage.outputTokens };
     } catch (error) {
+      // Interrupção pelo autor não é falha: não entra no log de erros nem muda o estado dos provedores
+      if (error?.name === "AbortError") throw error;
       console.error(
         "[AiService] Erro ao enviar mensagem para o gateway:",
         error,
@@ -543,6 +583,12 @@ export class AiService {
       await this.handleError(error);
       throw error;
     } finally {
+      if (this.abortController === controller) {
+        this.abortController = null;
+        setActiveSignal(null);
+      }
+      // A resposta terminou: skills que a IA pediu para executar entram na fila (execuções de skill não repetem isso)
+      if (!skill) domainBus.emit("ai:turn-finished", {});
       if (session.locked) {
         domainBus.emit("ai:edit-finished", {
           bookPath,
@@ -592,6 +638,8 @@ export class AiService {
     if (Array.isArray(message.buttons) && message.buttons.length > 0) {
       logEntry.buttons = message.buttons;
     }
+    // Mensagem de erro da IA: aparece no chat, mas não vai de contexto nas próximas mensagens
+    if (message.error) logEntry.error = true;
 
     let messages = [];
     const rawData = await window.electronAPI.readFile(filePath);

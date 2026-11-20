@@ -18,10 +18,12 @@ data:
     content: ""
   after:
     placeholder: "Aconteceu depois de (nomes de outros eventos, separados por vírgula)"
+    type: events # lista de eventos: sugere os cadastrados e aceita nomes novos
     required: false
     content: ""
   before:
     placeholder: "Aconteceu antes de (nomes de outros eventos, separados por vírgula)"
+    type: events # lista de eventos: sugere os cadastrados e aceita nomes novos
     required: false
     content: ""
   aliases:

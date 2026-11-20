@@ -213,6 +213,70 @@ export async function ensureAliasVariable(bookPath) {
 }
 
 /**
+ * Marca as variáveis "after" e "before" de uma ficha de evento como lista de eventos (`type: events`), para o editor
+ * mostrar a caixa com sugestões dos eventos cadastrados.
+ * @param {string} text - Conteúdo da ficha.
+ * @returns {string} Conteúdo atualizado (o mesmo texto se não houve alteração).
+ */
+export function insertEventsType(text) {
+  const front = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!front) return text;
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = front[1].split(/\r?\n/);
+  let changed = false;
+  for (const name of ["after", "before"]) {
+    const start = lines.findIndex((l) => l === `  ${name}:`);
+    if (start < 0) continue;
+    let end = start + 1;
+    while (end < lines.length && /^ {3,}/.test(lines[end])) end++;
+    const block = lines.slice(start + 1, end);
+    if (block.some((l) => /^ {4}type:/.test(l))) continue;
+    // O tipo entra logo depois do texto de ajuda (ou no começo do bloco)
+    const at = block.findIndex((l) => /^ {4}placeholder:/.test(l));
+    lines.splice(start + 1 + (at >= 0 ? at + 1 : 0), 0, "    type: events");
+    changed = true;
+  }
+  return changed ? text.replace(front[1], () => lines.join(nl)) : text;
+}
+
+/**
+ * Garante o tipo `events` nas variáveis "antes" e "depois" das fichas de eventos existentes.
+ * @param {string} bookPath - Caminho do livro.
+ * @returns {Promise<number>} Quantidade de arquivos atualizados.
+ */
+export async function ensureEventsType(bookPath) {
+  const dir = path.join(bookPath, "assets", "events");
+  let names = [];
+  try {
+    names = await fs.promises.readdir(dir);
+  } catch {
+    return 0;
+  }
+  const hasChangelog = fs.existsSync(path.join(bookPath, ...CHANGELOG_DIR.split("/")));
+  let updated = 0;
+  for (const name of names) {
+    if (!/\.md(\.temp)?$/.test(name) || /^(index|timeline)\.md/.test(name)) continue;
+    const file = path.join(dir, name);
+    const before = await fs.promises.readFile(file, "utf8");
+    const after = insertEventsType(before);
+    if (after === before) continue;
+    await fs.promises.writeFile(file, after, "utf8");
+    updated += 1;
+    if (hasChangelog) {
+      await recordChange(bookPath, {
+        action: "update",
+        filePath: file,
+        before,
+        after,
+        actor: { type: "system" },
+        meta: { reason: 'Campos "antes" e "depois" do evento passam a ser uma lista de eventos' },
+      });
+    }
+  }
+  return updated;
+}
+
+/**
  * Lista (recursivamente) os arquivos folder.yml de uma pasta, ignorando pastas ocultas.
  * @param {string} dir - Pasta.
  * @returns {Promise<string[]>}
@@ -346,6 +410,54 @@ export async function ensureNotesInheritAiWrite(bookPath) {
 }
 
 /**
+ * O "Índice de Eventos" e a "Linha do Tempo" são a mesma coisa: a linha do tempo é o índice da categoria. Livros antigos
+ * têm os dois arquivos: os eventos que só o índice listava passam para a linha do tempo (o sistema a reordena depois) e o
+ * índice é removido; os links para ele passam a apontar para a linha do tempo.
+ * @param {string} bookPath - Caminho do livro.
+ * @returns {Promise<void>}
+ */
+export async function mergeEventsIndexIntoTimeline(bookPath) {
+  const events = path.join(bookPath, "assets", "events");
+  const indexFile = path.join(events, "index.md");
+  const indexDraft = `${indexFile}.temp`;
+  if (!fs.existsSync(indexFile) && !fs.existsSync(indexDraft)) return;
+  const timeline = path.join(events, "timeline.md");
+
+  if (fs.existsSync(timeline)) {
+    try {
+      const indexText = await fs.promises.readFile(fs.existsSync(indexFile) ? indexFile : indexDraft, "utf8");
+      let text = await fs.promises.readFile(timeline, "utf8");
+      const missing = [];
+      for (const line of indexText.split(/\r?\n/)) {
+        const m = line.match(/^\s*[-*]\s*\[([^\]]*)\]\(\/?(assets\/events\/[^)\s]+\.md)\)/i);
+        if (!m || /timeline\.md$|index\.md$|template\.md$/i.test(m[2])) continue;
+        if (!text.toLowerCase().includes(m[2].toLowerCase())) missing.push(`- [${m[1]}](/${m[2]})`);
+      }
+      if (missing.length) {
+        text = `${text.replace(/\s+$/, "")}\n\n${missing.join("\n")}\n`;
+        await fs.promises.writeFile(timeline, text, "utf8");
+      }
+    } catch {
+      // sem o conteúdo do índice, só remove o arquivo
+    }
+  }
+  fs.rmSync(indexFile, { force: true });
+  fs.rmSync(indexDraft, { force: true });
+  await recordChange(bookPath, {
+    action: "delete",
+    filePath: indexFile,
+    actor: { type: "system" },
+    meta: { reason: "Índice de Eventos unificado com a Linha do Tempo" },
+  }).catch(() => null);
+
+  for (const file of await listMarkdown(bookPath)) {
+    const before = await fs.promises.readFile(file, "utf8");
+    const after = before.replace(/(\]\(\/?)assets\/events\/index\.md/g, "$1assets/events/timeline.md");
+    if (after !== before) await fs.promises.writeFile(file, after, "utf8");
+  }
+}
+
+/**
  * Migração 6: categoria de eventos (`assets/events`) e linha do tempo dentro dela. Cria a pasta com os arquivos do modelo
  * (se faltarem), move `assets/timeline.md` (e o rascunho) para `assets/events/timeline.md` e corrige os links para ele.
  * @param {string} bookPath - Caminho do livro.
@@ -358,13 +470,15 @@ export async function ensureEventsCategory(bookPath) {
   const model = path.join(templatesDir(), "assets", "events");
 
   await fs.promises.mkdir(events, { recursive: true });
-  for (const name of ["folder.yml", "index.md", "template.md"]) {
+  for (const name of ["folder.yml", "template.md"]) {
     const target = path.join(events, name);
     const source = path.join(model, name);
     if (!fs.existsSync(target) && fs.existsSync(source)) {
       await fs.promises.copyFile(source, target);
     }
   }
+
+  await mergeEventsIndexIntoTimeline(bookPath);
 
   let moved = false;
   for (const suffix of ["", ".temp"]) {
@@ -614,6 +728,7 @@ export async function migrateBook(bookPath, { pause = (task) => task() } = {}) {
   await ensureDeleteFlags(bookPath);
   await ensureChapterLayout(bookPath);
   await ensureAliasVariable(bookPath);
+  await ensureEventsType(bookPath);
   await ensureFolderFlags(bookPath);
   return { renamed };
 }

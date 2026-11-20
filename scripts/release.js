@@ -1,10 +1,12 @@
 /**
  * @file scripts/release.js
- * @description Gera o instalador do Windows (NSIS) do app:
- *   1. empacota o app com o Electron Forge (pasta `out/` ou a de FORGE_OUT_DIR);
- *   2. remove a pasta `books/` do pacote (se alguém abriu o app empacotado antes, ela existiria com livros de teste);
- *   3. gera o instalador com o electron-builder em `release/`.
- * Uso: npm run release
+ * @description Gera as duas versões do app para Windows, já auditadas:
+ *   1. regenera o livro padrão "Manual de Uso" (a partir do guia do usuário);
+ *   2. `electron-forge make`: empacota e gera o INSTALADOR (Setup.exe + nupkg + RELEASES, usados na atualização automática) e
+ *      o ZIP PORTÁTIL (descompacte e execute "Astra Writer.exe");
+ *   3. audita o pacote (nenhuma chave de API, nenhum livro, nenhum dado de teste, nenhum caminho do computador de quem gerou);
+ *   4. copia o resultado para `release/` com nomes limpos.
+ * Uso: npm run release      (feche o app antes: ele trava a pasta `out/`)
  */
 
 const { spawnSync } = require('child_process');
@@ -12,15 +14,9 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const outDir = process.env.FORGE_OUT_DIR || 'out';
-const packaged = path.join(root, outDir, 'draftweaver-v2-win32-x64');
+const outDir = path.join(root, process.env.FORGE_OUT_DIR || 'out');
+const version = require(path.join(root, 'package.json')).version;
 
-/**
- * Executa um comando mostrando a saída e interrompe tudo se ele falhar.
- * @param {string} command - Comando.
- * @param {string[]} args - Argumentos.
- * @returns {void}
- */
 function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', shell: true });
   if (result.status !== 0) {
@@ -29,13 +25,39 @@ function run(command, args) {
   }
 }
 
-console.log('\n📦 1/3 Empacotando o app (Electron Forge)...');
-run('npx', ['electron-forge', 'package']);
+if (!process.env.SKIP_MAKE) {
+console.log('\n📖 1/4 Gerando o livro padrão "Manual de Uso"...');
+run('node', ['scripts/build-manual.js']);
 
-console.log('\n🧹 2/3 Garantindo que o pacote não leve livros de teste...');
-fs.rmSync(path.join(packaged, 'books'), { recursive: true, force: true });
+console.log('\n📦 2/4 Empacotando e gerando instalador + versão portátil (Electron Forge)...');
+fs.rmSync(path.join(outDir, 'make'), { recursive: true, force: true });
+run('npx', ['electron-forge', 'make']);
+}
 
-console.log('\n🛠️  3/3 Gerando o instalador (electron-builder)...');
-run('npx', ['electron-builder', '--prepackaged', `"${path.join(outDir, 'draftweaver-v2-win32-x64')}"`, '--win', 'nsis']);
+console.log('\n🔎 3/4 Auditando o pacote (vazamento de dados)...');
+run('node', ['scripts/audit-package.js']);
 
-console.log('\n✅ Pronto! O instalador está na pasta release/ ("Astra Writer Setup 1.0.0.exe").');
+console.log('\n📁 4/4 Copiando para release/ ...');
+const releaseDir = path.join(root, 'release');
+fs.rmSync(releaseDir, { recursive: true, force: true });
+fs.mkdirSync(releaseDir, { recursive: true });
+const make = path.join(outDir, 'make');
+const squirrel = path.join(make, 'squirrel.windows', 'x64');
+const copies = [];
+if (fs.existsSync(squirrel)) {
+  for (const name of fs.readdirSync(squirrel)) {
+    // Setup.exe (instalador), .nupkg e RELEASES (atualização automática)
+    if (/\.(exe|nupkg)$/i.test(name) || name === 'RELEASES') copies.push([path.join(squirrel, name), name]);
+  }
+}
+const zipDir = path.join(make, 'zip', 'win32', 'x64');
+if (fs.existsSync(zipDir)) {
+  for (const name of fs.readdirSync(zipDir)) {
+    if (name.endsWith('.zip')) copies.push([path.join(zipDir, name), `AstraWriter-portable-${version}-win-x64.zip`]);
+  }
+}
+for (const [from, name] of copies) {
+  fs.copyFileSync(from, path.join(releaseDir, name));
+  console.log(`   ${name}  (${(fs.statSync(from).size / 1048576).toFixed(0)} MB)`);
+}
+console.log('\n✅ Pronto! Os arquivos estão em release/. Instale o Setup.exe numa máquina limpa para testar.');

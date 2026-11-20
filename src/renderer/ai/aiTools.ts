@@ -18,6 +18,7 @@ import { registerProjectTools } from "./tools/projectTools.js";
 import { registerIssueTools } from "./tools/issueTools.js";
 import { registerEventTools } from "./tools/eventTools.js";
 import { registerDigestTools } from "./tools/digestTools.js";
+import { registerSystemTools } from "./tools/systemTools.js";
 
 export const toolRegistry = new ToolRegistry();
 
@@ -32,6 +33,7 @@ registerProjectTools(toolRegistry);
 registerIssueTools(toolRegistry);
 registerEventTools(toolRegistry);
 registerDigestTools(toolRegistry);
+registerSystemTools(toolRegistry);
 
 /** Modo "apenas conversa": só as tools internas do chat (botões de resposta pronta), sem acesso aos arquivos do livro. */
 export const chatOnlyRegistry = new ToolRegistry();

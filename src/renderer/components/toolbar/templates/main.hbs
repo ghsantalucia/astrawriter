@@ -42,6 +42,7 @@
       <i class="fa-solid fa-feather-pointed chapter-tab-icon"></i>
       <span class="file-tab-name">Manuscrito</span>
       <span class="file-tab-dirty hidden">*</span>
+      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
@@ -67,6 +68,7 @@
       <i class="fa-solid fa-lightbulb chapter-tab-icon"></i>
       <span class="file-tab-name">Esboço</span>
       <span class="file-tab-dirty hidden">*</span>
+      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
@@ -92,6 +94,7 @@
       <i class="fa-solid fa-magnifying-glass-chart chapter-tab-icon"></i>
       <span class="file-tab-name">Análise</span>
       <span class="file-tab-dirty hidden">*</span>
+      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
@@ -105,6 +108,36 @@
   </div>
 </div>
 <div class="toolbar-actions">
+  <button
+    id="btn-narrator"
+    class="btn-toolbar-icon"
+    event-click="narrator:toggle"
+    title="Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)"
+    aria-label="Ouvir o arquivo em voz alta"
+    disabled
+  >
+    <i class="fa-solid fa-volume-high" id="narrator-icon"></i>
+  </button>
+  <button
+    id="btn-narrator-stop"
+    class="btn-toolbar-icon hidden"
+    event-click="narrator:stop"
+    title="Parar a leitura"
+    aria-label="Parar a leitura"
+  >
+    <i class="fa-solid fa-stop"></i>
+  </button>
+  <button
+    id="btn-spelling"
+    class="btn-toolbar-icon"
+    event-click="central:open"
+    data-central="issues"
+    data-tab="spelling"
+    title="Correção ortográfica: abre a aba Ortografia da Central de Revisões"
+    aria-label="Correção ortográfica"
+  >
+    <i class="fa-solid fa-spell-check"></i>
+  </button>
   <button
     id="btn-autolink"
     class="btn-toolbar-icon"

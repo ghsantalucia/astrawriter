@@ -6,6 +6,7 @@
  */
 
 import { AiApiError, formatDuration } from "../apiError.js";
+import { activeSignal } from "../abort.js";
 import { normalizeHistory, runToolLoop } from "../toolLoop.js";
 import {
   buildSimulatedToolsPrompt,
@@ -40,8 +41,11 @@ export async function requestJson({ provider, label, url, body, apiKey, model = 
       method: body ? "POST" : "GET",
       headers: { "content-type": "application/json", ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}) },
       body: body ? JSON.stringify(body) : undefined,
+      // Só as chamadas do chat (com corpo) podem ser interrompidas pelo autor
+      signal: body ? activeSignal() : undefined,
     });
   } catch (error) {
+    if (error?.name === "AbortError") throw error;
     throw new AiApiError(
       `${label}: não foi possível conectar a ${new URL(url).origin}. Confira se o serviço está em execução e o endereço está correto.`,
       { provider, model, details: String(error?.message || error) },

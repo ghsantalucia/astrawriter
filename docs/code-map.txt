@@ -8,12 +8,18 @@
 │   │   ├── ⚙️ appendAiError(userDataDir, error) — Acrescenta um erro ao log.
 │   │   ├── ⚙️ readAiErrors(userDataDir) — Lê os registros do log, do mais recente para o mais antigo.
 │   │   └── ⚙️ clearAiErrors(userDataDir) — Apaga todo o log de erros.
+│   ├── book-import.ts — [Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é]
+│   │   ├── ⚙️ nextBookFolder(dir) — Próximo nome livre de pasta de livro (`book_NNN`).
+│   │   ├── ⚙️ safeRelative(rel) — Caminho relativo seguro (sem `..`, sem raiz, sem letra de unidade) ou null.
+│   │   └── ⚙️ importBook(parent) — Escolhe um .zip e importa o livro que há dentro.
 │   ├── book-migrations.ts — [Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.]
 │   │   ├── ⚙️ insertFrontmatterFlag(text, key, value) — Insere uma chave booleana no frontmatter (após `advanced`, `aiWrite` ou ao final), se ela ainda não existir.
 │   │   ├── ⚙️ listMarkdown(dir) — Lista (recursivamente) os arquivos .md de uma pasta, ignorando pastas ocultas.
 │   │   ├── ⚙️ ensureDeleteFlags(bookPath, { log = true } = {}) — Garante a permissão de exclusão (`userDelete`) nos arquivos estruturais de um livro (ou do template): - índices, sinopse (`content/plot.md`), linha do tempo e arquivos dos capítulos: `userDelete: false`; - modelos de ficha (`template.md`): `userDelete: true`, herdado pelas fichas criadas a partir deles.
 │   │   ├── ⚙️ insertAliasesVariable(text, label) — Insere a variável `aliases` no frontmatter de uma ficha (logo após a variável `title`), se ainda não existir.
 │   │   ├── ⚙️ ensureAliasVariable(bookPath) — Garante a variável `aliases` nas fichas existentes do livro.
+│   │   ├── ⚙️ insertEventsType(text) — Marca as variáveis "after" e "before" de uma ficha de evento como lista de eventos (`type: events`), para o editor mostrar a caixa com sugestões dos eventos cadastrados.
+│   │   ├── ⚙️ ensureEventsType(bookPath) — Garante o tipo `events` nas variáveis "antes" e "depois" das fichas de eventos existentes.
 │   │   ├── ⚙️ listFolderYml(dir) — Lista (recursivamente) os arquivos folder.yml de uma pasta, ignorando pastas ocultas.
 │   │   ├── ⚙️ ensureFolderFlags(bookPath, { log = true } = {}) — Garante `userDelete: false` e `userRename: false` nos folder.yml que ainda não definem essas permissões.
 │   │   ├── ⚙️ removeAiWriteFlag(text, isYaml = false) — Remove a linha `aiWrite` do frontmatter de um arquivo (ou de um folder.yml), se existir.
@@ -68,7 +74,10 @@
 │   │   ├── ⚙️ safeName(title) — Nome de arquivo seguro a partir do título.
 │   │   ├── ⚙️ escapeHtml(text) — Escapa texto para HTML.
 │   │   ├── ⚙️ buildHtml(title, body) — Documento HTML completo, com estilo de impressão (usado no PDF e no Word).
-│   │   └── ⚙️ renderPdf(html) — Gera o PDF imprimindo o HTML em uma janela invisível (sem JavaScript).
+│   │   ├── ⚙️ renderPdf(html) — Gera o PDF imprimindo o HTML em uma janela invisível (sem JavaScript).
+│   │   ├── ⚙️ renderDocument(format, title, markdown, html) — Gera o conteúdo de um documento no formato pedido.
+│   │   ├── ⚙️ addDirToZip(zip, dir, prefix, options = {}) — Adiciona uma pasta (recursivamente) a um zip.
+│   │   └── ⚙️ exportBook(parent, { kind, format = "md", title, bookPath, chapters = [] }) — Exporta o livro: o projeto inteiro em zip, os capítulos em um zip (um arquivo por capítulo) ou um arquivo único com todos os capítulos. Os capítulos já chegam do renderer com o Markdown e o HTML prontos.
 │   ├── file-watcher.ts — [Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.]
 │   │   ├── ⚙️ setupFileWatcher(mainWindow) — Configura e inicia o observador do sistema de arquivos para a pasta de livros.
 │   │   ├── ⚙️ startWatching() — Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
@@ -81,18 +90,54 @@
 │   ├── paths.ts — [Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta]
 │   │   ├── ⚙️ appRoot() — Pasta-base do app: a do executável quando instalado, ou a raiz do projeto em desenvolvimento.
 │   │   ├── ⚙️ booksDir() — Pasta onde ficam os livros do usuário (criada, vazia, se ainda não existir).
+│   │   ├── ⚙️ legacyBooksDir() — Pasta de livros antiga do app instalado (ao lado do executável), de onde os livros são trazidos na migração.
+│   │   ├── ⚙️ countFiles(dir) — Quantidade de arquivos de uma pasta (recursivo), para conferir a cópia.
+│   │   ├── ⚙️ migrateLegacyBooks() — Traz para a pasta estável os livros que ficavam ao lado do executável (versões anteriores do app instalado). Cada livro é copiado (nunca sobrescreve um livro que já exista no destino) e só conta como migrado depois que a contagem de arquivos confere; a pasta antiga não é apagada por nós.
 │   │   ├── ⚙️ ensureBooksDir() — Garante que a pasta de livros exista (a primeira execução do app instalado começa com ela vazia).
 │   │   ├── ⚙️ templatesDir() — Pasta com o modelo (template) de livro.
 │   │   └── ⚙️ iconPath() — Ícone da janela.
-│   └── spellchecker.ts — [Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os]
-│        ├── ⚙️ packageFor(language) — Pacote de dicionário para um idioma (aceita variações como "pt" ou "pt-PT").
-│        ├── ⚙️ getSpeller(language) — Carrega (uma vez) o corretor do idioma.
-│        ├── ⚙️ customFilePath() — Caminho do arquivo do dicionário personalizado.
-│        ├── ⚙️ loadCustomWords() — Palavras do dicionário personalizado do usuário.
-│        ├── ⚙️ addCustomWord(word) — Adiciona uma palavra ao dicionário personalizado (salvo em disco) e a todos os corretores já carregados.
-│        ├── ⚙️ readySpeller(language) — Corretor do idioma já com as palavras personalizadas aplicadas.
-│        ├── ⚙️ findMisspelled(language, words) — Quais das palavras o dicionário do idioma (mais o dicionário do usuário) não reconhece.
-│        └── ⚙️ suggestWord(language, word) — Sugestões de correção para uma palavra.
+│   ├── skills-store.ts — [Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário]
+│   │   ├── ⚙️ root()
+│   │   ├── ⚙️ listSkillFiles() — Lê todas as skills salvas.
+│   │   ├── ⚙️ saveSkillFile(file, content) — Grava uma skill.
+│   │   └── ⚙️ deleteSkillFile(file) — Apaga uma skill.
+│   ├── spellchecker.ts — [Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os]
+│   │   ├── ⚙️ packageFor(language) — Pacote de dicionário para um idioma (aceita variações como "pt" ou "pt-PT").
+│   │   ├── ⚙️ getSpeller(language) — Carrega (uma vez) o corretor do idioma.
+│   │   ├── ⚙️ customFilePath() — Caminho do arquivo do dicionário personalizado.
+│   │   ├── ⚙️ loadCustomWords() — Palavras do dicionário personalizado do usuário.
+│   │   ├── ⚙️ addCustomWord(word) — Adiciona uma palavra ao dicionário personalizado (salvo em disco) e a todos os corretores já carregados.
+│   │   ├── ⚙️ readySpeller(language) — Corretor do idioma já com as palavras personalizadas aplicadas.
+│   │   ├── ⚙️ findMisspelled(language, words) — Quais das palavras o dicionário do idioma (mais o dicionário do usuário) não reconhece.
+│   │   └── ⚙️ suggestWord(language, word) — Sugestões de correção para uma palavra.
+│   ├── system-tools.ts — [Ferramentas do sistema usadas pela Central do Sistema: versão e verificação de atualização (releases do GitHub),]
+│   │   ├── ⚙️ compareVersions(a, b) — Compara versões `1.2.3` (ignora o `v` e sufixos como `-beta`).
+│   │   ├── ⚙️ checkForUpdate() — Consulta a última versão publicada nas releases do repositório.
+│   │   ├── ⚙️ publishUpdate(next) — Envia o estado da atualização para a interface.
+│   │   ├── ⚙️ configureAutoUpdate(win, enabled) — Liga ou desliga a verificação automática de atualizações (só no app instalado, Windows e macOS).
+│   │   ├── ⚙️ getUpdateState()
+│   │   ├── ⚙️ installUpdate() — Reinicia o app para instalar a atualização já baixada.
+│   │   ├── ⚙️ appDiskUsage() — Espaço ocupado pelo app: livros, histórico e logs dos livros, dados do app e a instalação.
+│   │   ├── ⚙️ safe(text) — Nome seguro de arquivo.
+│   │   ├── ⚙️ stamp() — Carimbo de data e hora para nomes de arquivo (`2026-11-19_0930`).
+│   │   ├── ⚙️ backupBooks(dest, keep = 0) — Cria um zip de cada livro na pasta de destino (os rascunhos não sincronizados entram, para nada se perder) e mantém só as últimas versões de cada livro.
+│   │   ├── ⚙️ exportAllBooks(parent) — Exporta todos os livros (um zip por livro) para uma pasta escolhida.
+│   │   └── ⚙️ uninstallApp() — Aciona o desinstalador do Squirrel (Windows) e fecha o app. Os livros ficam em Documentos/Astra Writer e permanecem.
+│   └── templates-store.ts — [Armazenamento dos perfis de template. Os perfis que vêm com o app ficam em `templates/profiles/<perfil>/<tipo>.md`]
+│        ├── ⚙️ builtinRoot()
+│        ├── ⚙️ userRoot()
+│        ├── ⚙️ customProfiles() — Perfis criados pelo usuário.
+│        ├── ⚙️ saveCustomProfiles(list)
+│        ├── ⚙️ readOrNull(file) — Lê um arquivo ou devolve null.
+│        ├── ⚙️ baseOf(profileId) — Perfil do qual um perfil herda os templates que não editou (o próprio, se for do app).
+│        ├── ⚙️ listProfiles() — Todos os perfis (do app e do usuário), com quantos templates foram editados.
+│        ├── ⚙️ readTemplate(profileId, kind) — Corpo de um template em um perfil: a edição do usuário ou o original (do perfil, ou do perfil-base de um perfil criado).
+│        ├── ⚙️ readOriginal(profileId, kind) — Corpo original (do app) de um template, ignorando edições (para "restaurar" e comparar).
+│        ├── ⚙️ saveTemplate(profileId, kind, body) — Salva a edição de um template.
+│        ├── ⚙️ restoreTemplate(profileId, kind) — Descarta a edição de um template: o original volta a valer.
+│        ├── ⚙️ createProfile({ name, from }) — Cria um perfil novo a partir de uma cópia de outro (com as edições dele).
+│        ├── ⚙️ renameProfile(id, name) — Renomeia um perfil criado pelo usuário.
+│        └── ⚙️ deleteProfile(id) — Exclui um perfil criado pelo usuário (os do app não podem ser excluídos).
 ├── [preload]
 │   └── preload.ts — [Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.]
 ├── [renderer]
@@ -117,6 +162,8 @@
 │   │   │   ├── ⚙️ collectClaudeHeaders(headers) — Reúne os cabeçalhos de limite de uso da Anthropic.
 │   │   │   └── ⚙️ parseClaudeRateLimits(headers) — Extrai os limites de uso informados pela Anthropic nos cabeçalhos de uma resposta bem-sucedida.
 │   │   ├── debugLog.ts — [Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do]
+│   │   │   ├── ⚙️ scheduleSave() — Grava os recentes no livro (com a espera de agrupamento).
+│   │   │   ├── ⚙️ ensureDebugLoaded(bookPath) — Garante que os recentes do livro estão carregados do disco (chamar antes de registrar turnos). Ao trocar de livro, o registro passa a ser o daquele livro.
 │   │   │   ├── ⚙️ clip(value, max) — Corta um texto muito longo para o registro.
 │   │   │   ├── ⚙️ notify() — Avisa quem acompanha o registro.
 │   │   │   ├── ⚙️ startExchange({ kind, provider, model, prompt, system = "", history = [], toolsOffered = 0 }) — Registra o início de uma chamada.
@@ -193,14 +240,26 @@
 │   │   │   ├── ⚙️ needsSimulation(key, mark = false) — Marca (ou consulta) se um modelo precisa do modo simulado.
 │   │   │   └── ⚙️ looksLikeNoToolSupport(error) — Indica se o erro parece ser a recusa do envio de `tools` (modelo sem suporte).
 │   │   ├── [skills]
-│   │   │   └── index.ts — [Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.]
-│   │   │        ├── ⚙️ setCustomSkills(list) — Define as skills do livro atual (chamado pelo SkillService ao trocar de livro ou ao criar/editar/excluir uma skill).
+│   │   │   └── index.ts — [Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.]
+│   │   │        ├── ⚙️ parseSkill(raw, origin) — Converte o texto de um arquivo de skill no objeto da skill.
+│   │   │        ├── ⚙️ setCustomSkills(list) — Define as skills da biblioteca (chamado pelo SkillService ao carregar e a cada mudança).
+│   │   │        ├── ⚙️ builtinSkills()
+│   │   │        ├── ⚙️ marketSkills()
 │   │   │        ├── ⚙️ builtinSkillNames() — Nomes das skills que já vêm com o app.
-│   │   │        ├── ⚙️ listSkills() — Lista as skills disponíveis (sem o corpo): as do app e as criadas pelo autor no livro.
-│   │   │        └── ⚙️ getSkill(name) — Obtém uma skill pelo nome.
+│   │   │        ├── ⚙️ listSkills() — Lista as skills disponíveis para a IA (sem o corpo): as instaladas na biblioteca.
+│   │   │        └── ⚙️ getSkill(name) — Obtém uma skill pelo nome (a instalada; antes da biblioteca carregar, a do app).
 │   │   ├── toolLoop.ts — [Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.]
 │   │   │   ├── ⚙️ setHistoryLimit(n) — Define quantas mensagens anteriores vão junto a cada pedido.
 │   │   │   └── ⚙️ normalizeHistory(prompt, history) — Converte o histórico do chat em turnos alternados user/assistant, garantindo que o prompt atual seja o último (sem duplicá-lo caso já esteja no histórico).
+│   │   ├── toolTiers.ts — [Quantas tools vão para o modelo a cada pedido, definido pelo perfil de uso da IA (`toolsMode`). As definições das]
+│   │   │   ├── ⚙️ oneLine(def) — Resumo de uma linha da tool (a primeira frase da descrição).
+│   │   │   └── 📦 class ToolView — Conjunto de tools oferecido ao modelo (mesma interface do registro de tools que os provedores usam).
+│   │   │       ├── ⚙️ constructor(mode, bookPath, allow = null) — Método Construtor
+│   │   │       ├── ⚙️ fullNames()
+│   │   │       ├── ⚙️ getDefinitions() — Definições completas enviadas ao modelo neste momento.
+│   │   │       ├── ⚙️ specsToolDefinition()
+│   │   │       ├── ⚙️ promptNote() — Texto acrescentado ao prompt de sistema: o sumário das tools que não vão completas.
+│   │   │       └── ⚙️ specs(args) — Especificações pedidas (e liberação das tools).
 │   │   ├── [tools]
 │   │   │   ├── bookTools.ts — [Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.]
 │   │   │   │   ├── ⚙️ readCurrent(located, ctx) — Lê o conteúdo atual (rascunho, se existir) e separa frontmatter e corpo.
@@ -251,6 +310,11 @@
 │   │   │   │   ├── ⚙️ announceStructureChange(payload) — Avisa a interface que a estrutura do livro mudou.
 │   │   │   │   ├── ⚙️ resolveDestination(destination, ctx) — Valida o destino de uma movimentação: pasta existente com escrita permitida à IA.
 │   │   │   │   └── ⚙️ registerStructureTools(registry) — Registra as ferramentas de estrutura (pastas, mover e excluir).
+│   │   │   ├── systemTools.ts — [Tools do app para a IA: abrir telas e arquivos, conhecer e alterar configurações, consultar uso e ajuda, buscar no]
+│   │   │   │   ├── ⚙️ askPermission(title, html) — Pede permissão ao autor (classe b) numa janela de confirmação. Resolve `true` se ele permitir.
+│   │   │   │   ├── ⚙️ openCentral(central, tab) — Abre uma central (e a aba) para o autor.
+│   │   │   │   ├── ⚙️ guideSections() — Seções do guia do usuário (título e texto).
+│   │   │   │   └── ⚙️ registerSystemTools(registry)
 │   │   │   └── variableTools.ts — [Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.]
 │   │   │        └── ⚙️ registerVariableTools(registry) — Registra as ferramentas de variáveis e de link automático.
 │   │   └── usageTracker.ts — [Contador local de uso diário da IA, por provedor e modelo.]
@@ -290,18 +354,20 @@
 │   │   │        │       ├── ⚙️ save({ enabled: fb.enabled, chain: next })
 │   │   │        │       ├── ⚙️ renderUsage(el) — Relatório de uso.
 │   │   │        │       ├── ⚙️ draw()
+│   │   │        │       ├── ⚙️ draw()
 │   │   │        │       └── ⚙️ draw()
 │   │   │        ├── bookPanel.ts — [Central do Livro: dados do livro (nome, modo da IA), visão geral e exclusão. Os dados ficam no `config.json` do livro.]
 │   │   │        │   ├── 📦 class BookPanel — Página "Central do Livro".
 │   │   │        │   │   ├── ⚙️ constructor(ctx) — Método Construtor
 │   │   │        │   │   ├── ⚙️ getTabs() — Abas laterais.
 │   │   │        │   │   ├── ⚙️ getHeader(tab) — Subtítulo e texto de apoio.
-│   │   │        │   │   ├── ⚙️ mount(el, `<div class="cn-empty"><strong>Nenhum livro selecionado.</strong></div>`)
+│   │   │        │   │   ├── ⚙️ renderExport(el) — Exportação do livro: o que exportar (projeto, capítulos ou arquivo único) e em que formato.
 │   │   │        │   │   ├── ⚙️ renderChangelog(el) — Changelog do livro (a mesma lista corrida das Configurações, com rolagem infinita).
 │   │   │        │   │   ├── ⚙️ mountChangelogList(root, this.ctx.services.changelog)
-│   │   │        │   │   ├── ⚙️ renderData(el) — Nome e modo da IA.
 │   │   │        │   │   ├── ⚙️ uiBus_titleChanged(this.ctx, value, book.fullPath)
+│   │   │        │   │   ├── ⚙️ normalizePath(this.book.fullPath)
 │   │   │        │   │   ├── ⚙️ count(node)
+│   │   │        │   │   ├── ⚙️ normalizePath(this.book.fullPath)
 │   │   │        │   │   ├── ⚙️ renderDanger(el) — Exclusão do livro.
 │   │   │        │   │   ├── ⚙️ askDelete(book) — Última confirmação e exclusão do livro.
 │   │   │        │   │   └── ⚙️ clearBook(this.ctx.state)
@@ -312,7 +378,7 @@
 │   │   │        │       ├── ⚙️ getTabs() — Abas laterais: resumo + categorias, cada uma com as bolinhas vermelha/amarela.
 │   │   │        │       ├── ⚙️ getHeader(tab) — Subtítulo e texto de apoio da aba.
 │   │   │        │       ├── ⚙️ render(tab, el) — Desenha a aba.
-│   │   │        │       ├── ⚙️ mount(el, stats + (s.total === 0 ? empty : worstHtml)
+│   │   │        │       ├── ⚙️ mount(el, masterHtml + stats + (s.total === 0 ? empty : worstHtml)
 │   │   │        │       ├── ⚙️ askAnalyze(pending) — Confirmação (com a estimativa de tokens) antes de rodar a análise da IA.
 │   │   │        │       ├── ⚙️ setTimeout(()
 │   │   │        │       ├── ⚙️ askAiFix() — Janela de aviso antes de pedir à IA que corrija os pendentes.
@@ -325,13 +391,64 @@
 │   │   │        │       ├── ⚙️ askDismissType(issue) — Confirmação de "dispensar todos desse tipo".
 │   │   │        │       ├── ⚙️ goToFile(file, excerpt) — Abre outro arquivo citado no issue (contradições entre arquivos).
 │   │   │        │       └── ⚙️ fillSuggestions(el) — Preenche as sugestões de ortografia dos cards de erro de digitação (pedidas ao dicionário sob demanda).
-│   │   │        └── panelKit.ts — [Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de]
-│   │   │             ├── ⚙️ mount(host, html, handlers = {}) — Monta o HTML em um elemento e liga um único ouvinte de clique por delegação: qualquer elemento com `data-act` chama `handlers[act](elemento, evento)`. Também liga `change`/`input` aos elementos com `data-change`/`data-input`.
-│   │   │             ├── ⚙️ confirmModal(uiBus, { title, html, confirmText = "Confirmar", danger = false, onConfirm }) — Abre a janela de confirmação do app (acima da central).
-│   │   │             ├── ⚙️ switchRow({ id = "", checked, title, hint = "", attrs = "", disabled = false }) — Linha com título, descrição e um switch (o mesmo visual das Configurações).
-│   │   │             ├── ⚙️ formatBytes(bytes) — Tamanho em bytes legível (KB, MB, GB).
-│   │   │             ├── ⚙️ plural(n, one, many) — Número com o substantivo no singular ou plural.
-│   │   │             └── ⚙️ shortDate(iso) — Data/hora curta para exibição.
+│   │   │        ├── panelKit.ts — [Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de]
+│   │   │        │   ├── ⚙️ mount(host, html, handlers = {}) — Monta o HTML em um elemento e liga um único ouvinte de clique por delegação: qualquer elemento com `data-act` chama `handlers[act](elemento, evento)`. Também liga `change`/`input` aos elementos com `data-change`/`data-input`.
+│   │   │        │   ├── ⚙️ confirmModal(uiBus, { title, html, confirmText = "Confirmar", danger = false, onConfirm }) — Abre a janela de confirmação do app (acima da central).
+│   │   │        │   ├── ⚙️ switchRow({ id = "", checked, title, hint = "", attrs = "", disabled = false }) — Linha com título, descrição e um switch (o mesmo visual das Configurações).
+│   │   │        │   ├── ⚙️ formatBytes(bytes) — Tamanho em bytes legível (KB, MB, GB).
+│   │   │        │   ├── ⚙️ plural(n, one, many) — Número com o substantivo no singular ou plural.
+│   │   │        │   └── ⚙️ shortDate(iso) — Data/hora curta para exibição.
+│   │   │        ├── [system]
+│   │   │        │   ├── accessibility.ts — [Abas "Acessibilidade" (tamanho da fonte do app, modo noturno e narrador) e "Editor" (tamanho e fontes do texto)]
+│   │   │        │   │   ├── ⚙️ renderAccessibility(ctx, el) — Aba Acessibilidade.
+│   │   │        │   │   ├── ⚙️ renderEditorTab(ctx, el) — Aba Editor.
+│   │   │        │   │   └── ⚙️ useCustomFont(ctx, btn, id) — Usa uma fonte digitada (só letras, números, espaços e hífen) no texto ou nos títulos.
+│   │   │        │   ├── appearance.ts — [Aba "Aparência" da Central do Sistema: tema claro/escuro, temas de cores (predefinidos e do usuário, com editor]
+│   │   │        │   │   └── 📦 class AppearanceTab — Aba Aparência.
+│   │   │        │   │       ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │   │       ├── ⚙️ render(el) — Desenha a aba.
+│   │   │        │   │       ├── ⚙️ deleteCustomTheme(btn.dataset.id)
+│   │   │        │   │       ├── ⚙️ setChatBackgroundMode(select.dataset.theme, select.value)
+│   │   │        │   │       ├── ⚙️ chatThemeHtml(theme) — Controles do fundo do chat para um tema (claro ou escuro).
+│   │   │        │   │       ├── ⚙️ setChatColor(input) — Salva uma cor do fundo do chat e reaplica.
+│   │   │        │   │       ├── ⚙️ startEditing(base, asCopy) — Abre o editor com uma cópia de um tema.
+│   │   │        │   │       ├── ⚙️ previewTheme()
+│   │   │        │   │       ├── ⚙️ renderEditor(el) — Desenha o editor de tema: cada variável de cor, com um seletor para o modo claro e outro para o escuro.
+│   │   │        │   │       ├── ⚙️ stopEditing() — Sai do editor sem salvar (a prévia volta ao tema escolhido).
+│   │   │        │   │       └── ⚙️ dispose() — A central foi fechada: descarta uma edição em andamento.
+│   │   │        │   ├── controls.ts — [Controles compartilhados pelas abas da Central do Sistema: uma linha de configuração para cada tipo de valor]
+│   │   │        │   │   ├── ⚙️ settingRow(id, { hint, disabled = false } = {}) — Linha de uma configuração (texto à esquerda, controle à direita).
+│   │   │        │   │   ├── ⚙️ settingHandlers(ctx, afterChange) — Manipuladores `setting` (mudança) e `setting-live` (arrastar o controle de número) para a função `mount`.
+│   │   │        │   │   └── ⚙️ customRow(title, hint, control) — Linha com um texto e um controle livre à direita.
+│   │   │        │   ├── shortcuts.ts — [Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e]
+│   │   │        │   │   ├── ⚙️ keysHtml(combo) — Teclas de uma combinação como "chips" (`Ctrl` `Shift` `Y`).
+│   │   │        │   │   └── ⚙️ renderShortcuts(ctx, el) — Aba Atalhos.
+│   │   │        │   ├── skillsTab.ts — [Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Mercado", por enquanto]
+│   │   │        │   │   └── 📦 class SkillsTab — Aba Skills.
+│   │   │        │   │       ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │   │       ├── ⚙️ dispose() — Fechou a central.
+│   │   │        │   │       ├── ⚙️ topHtml() — Chips das duas listas, botão de criar e a opção geral de permissão.
+│   │   │        │   │       ├── ⚙️ topHandlers()
+│   │   │        │   │       ├── ⚙️ cardHtml(s, where) — Cartão resumido de uma skill.
+│   │   │        │   │       ├── ⚙️ cardHandlers() — Manipulador do clique no cartão.
+│   │   │        │   │       ├── ⚙️ renderLibrary(el) — Lista "Minhas skills".
+│   │   │        │   │       ├── ⚙️ renderMarket(el) — Mercado (catálogo offline).
+│   │   │        │   │       ├── ⚙️ startEdit(s) — Abre o formulário para editar uma skill.
+│   │   │        │   │       └── ⚙️ renderForm(el) — Formulário de criação e edição.
+│   │   │        │   └── templates.ts — [Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo]
+│   │   │        │        └── 📦 class TemplatesTab — Aba Templates.
+│   │   │        │            ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │            ├── ⚙️ askName(title, label, initial, onOk) — Janela com um campo de nome.
+│   │   │        │            └── ⚙️ dispose() — A central foi fechada.
+│   │   │        └── systemPanel.ts — [Central do Sistema: configurações do app (não do livro): geral, atualização, aparência, acessibilidade, editor,]
+│   │   │             └── 📦 class SystemPanel — Página "Central do Sistema".
+│   │   │                 ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │                 ├── ⚙️ getTabs()
+│   │   │                 ├── ⚙️ getHeader(tab)
+│   │   │                 ├── ⚙️ dispose() — Fechou a central: descarta edições em andamento.
+│   │   │                 ├── ⚙️ askUninstall() — Janela de confirmação da desinstalação (com a opção de exportar os livros antes).
+│   │   │                 ├── ⚙️ renderProductivity(el)
+│   │   │                 └── ⚙️ renderBackup(el)
 │   │   ├── [Chat]
 │   │   │   ├── ChatComponent.ts — [Componente responsável pela renderização estrutural do chat do assistente de IA]
 │   │   │   │   └── 📦 class ChatComponent — Representa o chat do assistente de IA.
@@ -341,6 +458,7 @@
 │   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos específicos do chat.
 │   │   │   │       ├── ⚙️ setInterval(()
 │   │   │   │       ├── ⚙️ applyChatBackground(isDark) — Define o fundo do chat conforme o tema e a preferência do usuário (estrelas, nebulosa, órbitas ou cor sólida).
+│   │   │   │       ├── ⚙️ setStarsPalette(getExtraColors(theme, "stars")
 │   │   │   │       ├── ⚙️ pause()
 │   │   │   │       ├── ⚙️ resume()
 │   │   │   │       ├── ⚙️ destroy()
@@ -376,6 +494,7 @@
 │   │   │   │   ├── ⚙️ spawnShootingStar()
 │   │   │   │   ├── ⚙️ render(_time, deltaMs)
 │   │   │   │   ├── ⚙️ createStars(count, width, height) — Cria e retorna a coleção inicial de objetos de estrelas com animações de brilho via GSAP.
+│   │   │   │   ├── ⚙️ setStarsPalette({ star, shooting } = {}) — Define as cores das estrelas e da estrela cadente (`#rrggbb`; valor inválido mantém a atual).
 │   │   │   │   ├── ⚙️ advanceStar(star, dt, width, height) — Desloca a estrela devagar, da direita para a esquerda e levemente para cima; estrelas mais "próximas" (zFactor maior) andam mais rápido, dando profundidade. Ao sair por uma borda, reaparece na oposta.
 │   │   │   │   ├── ⚙️ drawStar(ctx, star) — Desenha uma estrela individual no canvas.
 │   │   │   │   └── ⚙️ drawShootingStar(ctx, shootingStar) — Renderiza o efeito de estrela cadente com rastro em gradiente no canvas.
@@ -453,6 +572,8 @@
 │   │   │   │       ├── ⚙️ toggleDataBox(force) — Expande ou recolhe a caixa de dados.
 │   │   │   │       ├── ⚙️ focusNameField() — Põe o foco (e seleciona o texto) no campo do nome do arquivo na caixa de dados.
 │   │   │   │       ├── ⚙️ renderDataBox() — Preenche a caixa com os campos do arquivo aberto (título e variáveis). Arquivos somente leitura mostram os campos desabilitados.
+│   │   │   │       ├── ⚙️ dataFieldHtml(f, readonly) — HTML de um campo da caixa de dados, conforme o tipo declarado na variável: texto, lista de opções (`options`) ou lista de eventos (`type: events`).
+│   │   │   │       ├── ⚙️ mountEventInputs(container, readonly) — Monta os campos de eventos ("antes"/"depois"): itens separados por vírgula como as tags, com sugestões dos eventos cadastrados (e dos citados que ainda não têm ficha) e criação de novos nomes ao digitar.
 │   │   │   │       ├── ⚙️ searchByTag(tag) — Coloca `#tag` no campo de pesquisa do explorer e dispara a pesquisa.
 │   │   │   │       ├── ⚙️ getKnownTags() — Tags já usadas nos arquivos do livro atual (sem repetir), para as sugestões do campo de tags.
 │   │   │   │       ├── ⚙️ parseTags(file.metadata?.tags)
@@ -534,7 +655,7 @@
 │   │   │   ├── tagInput.ts — [Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou]
 │   │   │   │   ├── ⚙️ tagChipHtml(tag, clickable = false) — HTML de uma tag colorida (a cor é sempre a mesma para a mesma tag).
 │   │   │   │   └── 📦 class TagInput — Campo de entrada de tags.
-│   │   │   │       ├── ⚙️ constructor(root, { getKnownTags, onChange }) — Método Construtor
+│   │   │   │       ├── ⚙️ constructor(root, { getKnownTags, onChange, normalize, parse, placeholder, label, stripHash = true, colored = true, stopEnter = false }) — O campo serve também para outras listas (ex.: eventos "antes"/"depois"): só muda o que é normalizado e sugerido.
 │   │   │   │       ├── ⚙️ build() — Monta o DOM do campo.
 │   │   │   │       ├── ⚙️ setTimeout(()
 │   │   │   │       ├── ⚙️ setTags(tags) — Define as tags exibidas.
@@ -573,6 +694,7 @@
 │   │   │   │       ├── ⚙️ activateTab(folder) — Ativa uma aba: marca o botão, mostra a pasta raiz correspondente na árvore e atualiza a barra de ações e a mensagem de "sem resultados" da pesquisa.
 │   │   │   │       ├── ⚙️ syncAdvancedModeView() — Sincroniza o estado visual do switch e do container de arquivos avançados com base nas configurações (config.json) do livro atual.
 │   │   │   │       ├── ⚙️ refreshNotesLock() — Atualiza o botão que bloqueia/libera a escrita da IA nas anotações conforme o `aiWrite` do folder.yml de notes.
+│   │   │   │       ├── ⚙️ decorateAiChanges() — Põe a bolinha de "alterado pela IA" (modo autônomo) ao lado do nome dos arquivos que a IA gravou e que o autor ainda não abriu. No capítulo (um único item), a bolinha aparece se qualquer um dos três arquivos foi alterado.
 │   │   │   │       ├── ⚙️ decorateIssues(summary) — Mostra, em cada arquivo com pendências, as bolinhas de aviso (vermelha: erros; amarela: sugestões e possíveis erros). Elas só aparecem ao passar o mouse, junto dos ícones de editar e excluir, com tooltip da quantidade.
 │   │   │   │       ├── ⚙️ getSearchInput() — Retorna o campo de texto da pesquisa.
 │   │   │   │       ├── ⚙️ isAdvancedModeOn() — Indica se o modo "Arquivos Avançados" está ligado.
@@ -675,6 +797,8 @@
 │   │   │   │       ├── ⚙️ onInit() — Inicialização do componente executada após a renderização no DOM.
 │   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos da UI (`uiBus`) e de interações do usuário no DOM.
 │   │   │   │       ├── ⚙️ editableFields(metadata, { title: fileRel.startsWith("notes/")
+│   │   │   │       ├── ⚙️ setNarratorEnabled(enabled) — Habilita ou desabilita o botão do narrador (precisa de um arquivo aberto).
+│   │   │   │       ├── ⚙️ setNarratorStatus(status) — Atualiza o rótulo e o ícone do botão do narrador.
 │   │   │   │       ├── ⚙️ setAutolinkButtonEnabled(enabled) — Habilita ou desabilita o botão de link automático (exige um arquivo editável aberto).
 │   │   │   │       ├── ⚙️ setHistoryButtonEnabled(enabled) — Habilita ou desabilita o botão de histórico de versões.
 │   │   │   │       ├── ⚙️ toggleExportMenu(force) — Abre ou fecha o menu de exportação.
@@ -696,6 +820,7 @@
 │   │   │            ├── ⚙️ getContext() — Fornece os dados do passo atual para o template.
 │   │   │            ├── ⚙️ Boolean(this.config.allowSkip)
 │   │   │            ├── ⚙️ onInit() — Ao montar, foca o primeiro campo do passo.
+│   │   │            ├── ⚙️ mountEventFields() — Monta os campos de eventos ("antes"/"depois") do passo atual: itens separados por vírgula, com sugestões dos eventos cadastrados e criação de nomes novos.
 │   │   │            ├── ⚙️ setupListeners() — Registra os ouvintes de cliques/teclado do formulário e dos resultados enviados pelo controller.
 │   │   │            ├── ⚙️ listen(event, callback) — Registra um ouvinte no uiBus (sem replay) guardando a referência para remoção posterior.
 │   │   │            ├── ⚙️ isLast() — Indica se o passo atual é o último.
@@ -720,6 +845,7 @@
 │   │   ├── [handlers]
 │   │   │   ├── aiReviewHandler.ts — [Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)]
 │   │   │   │   ├── ⚙️ onAiReviewOpen({ files }, fileService, state) — Abre, em sequência, a janela de comparação de cada arquivo alterado pela IA.
+│   │   │   │   ├── ⚙️ autoApplyAiEdits({ files }, fileService, state) — Modo autônomo: grava direto o que a IA escreveu, sem abrir a janela de revisão. Rascunhos em que a IA não mudou nada são descartados. O changelog atribui a alteração à IA (o rascunho é dela) e permite o rollback.
 │   │   │   │   ├── ⚙️ createAddedPlugin(added) — Cria o plugin do editor que marca (decoração `diff-added`) os blocos novos da IA no modo visual.
 │   │   │   │   ├── ⚙️ renderOld(body, removed) — Renderiza a versão antiga (Markdown interpretado e estático), marcando em vermelho os blocos removidos.
 │   │   │   │   ├── ⚙️ describeDataChanges(before, after) — Lista as variáveis do frontmatter (`data`) cujo valor mudou entre duas versões do arquivo.
@@ -765,7 +891,9 @@
 │   │   │   │   └── ⚙️ onStructureChanged(payload, state, services) — Atualiza a interface depois de uma alteração de estrutura feita pela IA (pasta criada, arquivo ou pasta movidos ou excluídos, versão restaurada): explorer, rascunhos e o arquivo aberto no editor.
 │   │   │   ├── exportHandler.ts — [Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.]
 │   │   │   │   ├── ⚙️ toExportHtml(markdown) — HTML do texto para Word e PDF: links internos do livro (que não existem fora do app) viram texto simples.
-│   │   │   │   └── ⚙️ onExportFile({ data }, state) — Exporta o arquivo aberto no formato escolhido (o app pergunta onde salvar).
+│   │   │   │   ├── ⚙️ onExportFile({ data }, state) — Exporta o arquivo aberto no formato escolhido (o app pergunta onde salvar).
+│   │   │   │   ├── ⚙️ collectChapters(bookPath) — Capítulos do livro em ordem, com o texto mais recente (o rascunho `.temp`, se existir). Esboço e análise não entram.
+│   │   │   │   └── ⚙️ exportBook({ kind, format }, bookPath, title) — Exporta o livro (o app pergunta onde salvar).
 │   │   │   ├── fileHandler.ts — [Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.]
 │   │   │   │   ├── ⚙️ syncFile(filePath, fileService, state) — Persiste as alterações de um único arquivo (socreve original com .temp e limpa estado)
 │   │   │   │   ├── ⚙️ onSyncOpenModal(fileService, state, onDone = null) — Varre o sistema de arquivos via FileService e abre o modal de sincronização.
@@ -798,6 +926,9 @@
 │   │   │   │   ├── ⚙️ cancelPending() — Cancela qualquer pesquisa pendente ou em andamento.
 │   │   │   │   ├── ⚙️ onSearchChanged({ value }, state, searchService) — Trata a alteração do texto da pesquisa. Com texto, pesquisa após o debounce e publica `search:results`; vazio, cancela o modo de pesquisa publicando `search:cleared`.
 │   │   │   │   └── ⚙️ onSearchClear() — Trata o pedido de limpar a pesquisa (botão X): encerra o modo de pesquisa.
+│   │   │   ├── templateEditorHandler.ts — [Janela de edição de templates: uma janela grande com uma instância do editor do app e a lista de todos os templates]
+│   │   │   │   ├── ⚙️ variablesOf(kindId) — Variáveis (campos fixos) de um tipo de template, lidas do template base do livro.
+│   │   │   │   └── ⚙️ openTemplateEditor({ profile }) — Abre a janela de edição dos templates de um perfil.
 │   │   │   └── variablesHandler.ts — [Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo]
 │   │   │        ├── ⚙️ isOpenFile(state, path) — Indica se o caminho é o arquivo aberto no editor.
 │   │   │        ├── ⚙️ loadDocument(state, fileService, path) — Carrega o frontmatter e o corpo de um arquivo (do editor, se aberto; senão do disco, preferindo o rascunho).
@@ -813,6 +944,7 @@
 │   │   ├── appContainer.ts — [Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar]
 │   │   │   └── 📦 class AppContainer — Orquestrador principal da aplicação no processo de renderização. Gerencia a inicialização e injeção de dependências das classes de serviços e UI.
 │   │   │       ├── ⚙️ constructor() — Cria uma instância do AppContainer e inicializa suas dependências. @constructor
+│   │   │       ├── ⚙️ setupEscapeKey({ modalManager: this.modalManager })
 │   │   │       ├── ⚙️ async(component)
 │   │   │       └── ⚙️ setupGlobalEvents() — Configura ouvintes globais de eventos na janela (arrastar arquivos, restrições de TAB, etc.).
 │   │   ├── splash.ts — [Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela]
@@ -896,6 +1028,15 @@
 │   │        ├── ⚙️ analyzeTimeline(events) — Analisa os eventos: monta o grafo de ordem, procura ciclos e contradições e sugere a ordem final.
 │   │        └── ⚙️ timelineMarkdown(ordered) — Texto Markdown do corpo da linha do tempo, a partir da ordem sugerida.
 │   ├── [services]
+│   │   ├── aiChangeService.ts — [Arquivos "alterados pela IA" (modo autônomo): como a IA grava direto, sem a janela de revisão, cada arquivo que]
+│   │   │   └── 📦 class AiChangeService — Serviço dos arquivos alterados pela IA.
+│   │   │       ├── ⚙️ constructor(state) — Método Construtor
+│   │   │       ├── ⚙️ relOf(abs) — Caminho relativo ao livro atual.
+│   │   │       ├── ⚙️ clear() — Esquece tudo (nenhum livro selecionado).
+│   │   │       ├── ⚙️ publish() — Avisa a interface que a lista mudou.
+│   │   │       ├── ⚙️ seen(abs) — O arquivo foi aberto no editor: a bolinha some depois de 3 segundos.
+│   │   │       ├── ⚙️ setTimeout(async ()
+│   │   │       └── ⚙️ list() — Caminhos (relativos ao livro) marcados.
 │   │   ├── aiService.ts — [Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.]
 │   │   │   ├── ⚙️ getTodaySessionDate() — Obtém a data atual formatada como YYYY-MM-DD para nomear a sessão do chat.
 │   │   │   └── 📦 class AiService — Classe de serviço da Inteligência Artificial.
@@ -922,6 +1063,24 @@
 │   │   │       ├── ⚙️ cancel() — Pede para interromper a análise em andamento (termina o arquivo atual).
 │   │   │       ├── ⚙️ setProgress(progress) — Atualiza o progresso exibido na interface.
 │   │   │       └── ⚙️ notifyError(error) — Mostra o erro de uma chamada da análise ao autor.
+│   │   ├── appearanceService.ts — [Aplica as configurações de aparência e acessibilidade do app: zoom (tamanho da fonte do app), tema de cores,]
+│   │   │   ├── ⚙️ minutesOf(hhmm) — Minutos desde a meia-noite de um horário `HH:MM`.
+│   │   │   ├── ⚙️ inNightWindow(from, to, now = new Date() — O horário atual está dentro do intervalo (que pode atravessar a meia-noite)?
+│   │   │   └── 📦 class AppearanceService — Serviço de aparência.
+│   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │       ├── ⚙️ init() — Aplica tudo e passa a acompanhar as mudanças.
+│   │   │       ├── ⚙️ applyZoom() — Zoom de toda a interface.
+│   │   │       ├── ⚙️ applyColorTheme() — Aplica o tema de cores escolhido (ou o padrão).
+│   │   │       ├── ⚙️ applyThemeCss(findTheme(appSettings.get("ui.themePreset")
+│   │   │       ├── ⚙️ requestAnimationFrame(()
+│   │   │       ├── ⚙️ previewTheme(theme) — Prévia de um tema ainda não salvo (editor de temas). `null` volta ao tema escolhido.
+│   │   │       ├── ⚙️ syncTitleBar() — Barra de título nativa (Windows) com as cores do tema atual.
+│   │   │       ├── ⚙️ applyEditorFonts() — Fontes e tamanho do texto do editor (variáveis aplicadas por uma folha de estilo própria).
+│   │   │       ├── ⚙️ refreshNight() — Liga ou desliga o filtro do modo noturno conforme o horário (ou a prévia).
+│   │   │       └── ⚙️ previewNight(on) — Mostra o filtro agora, para o usuário testar a intensidade (sem salvar nada).
+│   │   ├── backupService.ts — [Backup dos livros em uma pasta escolhida (um zip por livro, com os rascunhos não sincronizados). A pasta pode ser a]
+│   │   │   └── 📦 class BackupService — Serviço de backup.
+│   │   │       └── ⚙️ due() — O backup automático está ligado e já passou o intervalo desde o último?
 │   │   ├── bookService.ts — [Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.]
 │   │   │   └── 📦 class BookService
 │   │   │       └── ⚙️ constructor(state, services) — Cria uma instância do BookService.
@@ -990,6 +1149,7 @@
 │   │   │       ├── ⚙️ schedule(rel) — Agenda uma reanálise (de um arquivo ou do livro todo), agrupando pedidos seguidos.
 │   │   │       ├── ⚙️ clearTimeout(this.timer)
 │   │   │       ├── ⚙️ unload() — Esquece tudo (nenhum livro selecionado).
+│   │   │       ├── ⚙️ isEnabled() — As revisões do sistema estão ligadas neste livro? Desligadas, os issues já encontrados continuam na central, mas nada novo é procurado e o rodapé do editor não mostra o contador.
 │   │   │       ├── ⚙️ publish() — Avisa a interface (e a IA) que a lista mudou.
 │   │   │       ├── ⚙️ knownWords() — Palavras que nunca são erro: dicionário do livro e títulos/nomes/apelidos das fichas.
 │   │   │       ├── ⚙️ all() — Todos os issues visíveis (sem os dispensados, os de tipos dispensados e as palavras aceitas no dicionário).
@@ -1000,6 +1160,8 @@
 │   │   │       ├── ⚙️ dismissedTypes() — Tipos dispensados (com a data) e o catálogo para exibir na página inicial.
 │   │   │       ├── ⚙️ dictionaryWords() — Palavras do dicionário do livro.
 │   │   │       ├── ⚙️ rebuildTimeline() — Recalcula a linha do tempo a partir das fichas de eventos em cache: guarda a sugestão de ordem e publica os issues da categoria "linha do tempo" (ordem circular, momento contraditório, referências inexistentes...).
+│   │   │       ├── ⚙️ scheduleTimelineSync() — Agenda a atualização automática do arquivo da linha do tempo (agrupa várias mudanças seguidas).
+│   │   │       ├── ⚙️ clearTimeout(this.timelineTimer)
 │   │   │       ├── ⚙️ timelineSuggestion() — Sugestão de ordem da linha do tempo (calculada pelo sistema, sem IA) e a ficha da linha do tempo.
 │   │   │       ├── ⚙️ describeFile(content, rel) — Metadados guardados no cache de um arquivo: título e palavras que nunca são erro (título, nome e apelidos).
 │   │   │       ├── ⚙️ String(text || "")
@@ -1013,22 +1175,107 @@
 │   │   │       ├── ⚙️ setExternal(key, issues) — Define os issues de uma fonte externa (ex.: `timeline`), substituindo os anteriores dela.
 │   │   │       ├── ⚙️ fileTitle(rel) — Título de um arquivo para exibição (o título do frontmatter ou o nome do arquivo).
 │   │   │       └── ⚙️ category(id) — Categoria e rótulo para exibir (atalho para a interface).
+│   │   ├── narratorService.ts — [Narrador: lê o arquivo aberto no editor em voz alta com as vozes do sistema (síntese de voz do Chromium, sem]
+│   │   │   ├── ⚙️ plainText(markdown) — Texto puro de um trecho de Markdown (sem frontmatter, links, imagens, títulos com # e marcas de ênfase).
+│   │   │   ├── ⚙️ splitSentences(text) — Divide o texto em frases (e em partes menores se a frase for muito longa).
+│   │   │   └── 📦 class NarratorService — Serviço do narrador.
+│   │   │       ├── ⚙️ constructor(state) — Método Construtor
+│   │   │       ├── ⚙️ setTimeout(done, 1500)
+│   │   │       ├── ⚙️ currentText() — Texto do arquivo aberto (a versão que está no editor, mesmo sem sincronizar).
+│   │   │       ├── ⚙️ speakNext(token, voice) — Lê a próxima frase da fila.
+│   │   │       ├── ⚙️ pause() — Pausa a leitura.
+│   │   │       ├── ⚙️ stop() — Para a leitura.
+│   │   │       └── ⚙️ setStatus(status)
+│   │   ├── productivityService.ts — [Cronômetro de produtividade (entre as abas e a busca do explorer): conta o tempo em que o autor está de fato no]
+│   │   │   ├── ⚙️ dayOf(d) — Data local `YYYY-MM-DD`.
+│   │   │   ├── ⚙️ formatClock(ms) — Tempo `HH:MM:SS`.
+│   │   │   └── 📦 class ProductivityService — Serviço do cronômetro.
+│   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │       ├── ⚙️ load()
+│   │   │       ├── ⚙️ save() — Grava os registros.
+│   │   │       ├── ⚙️ start() — Começa a contar e a acompanhar a atividade do autor.
+│   │   │       ├── ⚙️ present()
+│   │   │       ├── ⚙️ status() — Estado do cronômetro: `running`, `paused` (pelo autor), `away` (ausente) ou `idle` (nada contado ainda).
+│   │   │       ├── ⚙️ tick() — Passa um segundo.
+│   │   │       ├── ⚙️ closeRecord() — Fecha o registro atual.
+│   │   │       ├── ⚙️ toggle() — Play/pause do autor.
+│   │   │       ├── ⚙️ reset() — Zera o cronômetro: o registro atual termina e a próxima contagem abre outro.
+│   │   │       ├── ⚙️ setAuto(on) — Liga ou desliga o modo automático.
+│   │   │       ├── ⚙️ deleteRecord(id) — Apaga um registro (se for o atual, o cronômetro recomeça do zero).
+│   │   │       ├── ⚙️ clearRecords() — Apaga todos os registros.
+│   │   │       ├── ⚙️ dailyTotals() — Total por dia, só dos dias de uso (soma dos registros do mesmo dia).
+│   │   │       └── ⚙️ render() — Atualiza a faixa do explorer.
 │   │   ├── searchService.ts — [Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).]
 │   │   │   └── 📦 class SearchService — Serviço que delega a busca de texto ao processo principal (que lê os arquivos do disco).
 │   │   ├── serviceManager.ts — [Agregador central de serviços (Facade). Instancia e gerencia o acesso]
 │   │   │   └── 📦 class ServiceManager — Gerencia todas as classes de serviços.
 │   │   │       └── ⚙️ constructor(state) — Inicializa e agrupa todos os serviços da aplicação. @constructor
-│   │   ├── skillService.ts — [Skills criadas pelo autor. Cada skill é um arquivo Markdown em `<livro>/.system/skills/<nome>.md` (frontmatter com]
-│   │   │   └── 📦 class SkillService — Serviço das skills do livro.
-│   │   │       ├── ⚙️ constructor(state) — Método Construtor
-│   │   │       ├── ⚙️ setCustomSkills([])
-│   │   │       └── ⚙️ setCustomSkills(list)
-│   │   └── spellService.ts — [Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal]
-│   │        └── 📦 class SpellService — Serviço de verificação ortográfica por contagem.
-│   │            ├── ⚙️ constructor() — Método Construtor
-│   │            ├── ⚙️ setBookWords(words) — Define o dicionário do livro (Central de Revisões: "adicionar ao dicionário").
-│   │            └── ⚙️ reset() — Chamado quando o idioma muda (o dicionário novo é carregado no primeiro uso).
+│   │   ├── shortcutService.ts — [Atalhos de teclado do app: as ações que têm atalho (com o padrão de cada uma), a personalização pelo usuário e o]
+│   │   │   ├── ⚙️ keyName(e) — Nome da tecla de um evento (letras e números pelo código físico: não mudam com o layout nem com o Shift).
+│   │   │   ├── ⚙️ comboOf(e) — Combinação de um evento no formato `Ctrl+Alt+Shift+Tecla`.
+│   │   │   ├── ⚙️ checkCombo(combo, actionId, service) — Confere se uma combinação pode ser usada em um atalho personalizado.
+│   │   │   └── 📦 class ShortcutService — Serviço dos atalhos.
+│   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │       ├── ⚙️ init() — Liga o despachante global.
+│   │   │       ├── ⚙️ binding(id) — Atalho atual de uma ação (o personalizado ou o padrão; "" se o usuário o removeu).
+│   │   │       ├── ⚙️ owner(combo, exceptId) — Ação que já usa uma combinação.
+│   │   │       ├── ⚙️ set(id, combo) — Define o atalho de uma ação (validado). @throws {Error} Se a combinação não pode ser usada.
+│   │   │       ├── ⚙️ reset(id) — Volta uma ação ao atalho padrão.
+│   │   │       ├── ⚙️ resetAll() — Volta todos os atalhos ao padrão.
+│   │   │       ├── ⚙️ capture() — Grava o próximo atalho digitado (usado pela tela de atalhos).
+│   │   │       ├── ⚙️ setTimeout(()
+│   │   │       └── ⚙️ resolve(value)
+│   │   ├── skillRunnerService.ts — [Execução de skills: manual ("executar agora"), por gatilho (skills recorrentes) ou a pedido da IA. Toda execução]
+│   │   │   ├── ⚙️ fileTypeOf(path) — Tipo de arquivo (para os gatilhos de ficha) a partir do caminho.
+│   │   │   └── 📦 class SkillRunnerService — Serviço de execução de skills.
+│   │   │       ├── ⚙️ constructor(services, state) — Método Construtor
+│   │   │       ├── ⚙️ init() — Liga os gatilhos aos eventos do app.
+│   │   │       ├── ⚙️ fireFile(when, payload) — Dispara os gatilhos de ficha (criada, atualizada, excluída) para o tipo do arquivo e para "qualquer arquivo".
+│   │   │       ├── ⚙️ fire(id, payload = {}, dedupeMs = 8000) — Um gatilho disparou: pede a execução das skills recorrentes ativas que o usam.
+│   │   │       ├── ⚙️ request(skill, options = {}) — Pede a execução de uma skill (entra na fila; pede permissão se for o caso).
+│   │   │       ├── ⚙️ requestFromAi(skill) — Pedido da IA durante a resposta: a skill só é executada (com a permissão do autor) quando a IA termina de responder.
+│   │   │       └── ⚙️ flushPending() — Executa as skills que a IA pediu.
+│   │   ├── skillService.ts — [Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).]
+│   │   │   ├── 📦 class SkillService — Serviço da biblioteca de skills.
+│   │   │   │   ├── ⚙️ constructor(state) — Método Construtor
+│   │   │   │   ├── ⚙️ setCustomSkills(this.installed()
+│   │   │   │   ├── ⚙️ installed() — Skills instaladas (as do app, as incluídas do catálogo e as do usuário), cada uma já com a versão em uso (a copia editada, se houver) e as preferências do usuário aplicadas.
+│   │   │   │   ├── ⚙️ get(slug) — Skill instalada por identificador.
+│   │   │   │   ├── ⚙️ market() — Catálogo (mercado) com o estado de instalação de cada skill.
+│   │   │   │   ├── ⚙️ prefs(slug) — Preferências do usuário de uma skill.
+│   │   │   │   ├── ⚙️ setPrefs(slug, patch) — Altera preferências de uma skill (gatilhos, tools, permissão, ativa).
+│   │   │   │   ├── ⚙️ setCustomSkills(this.installed()
+│   │   │   │   ├── ⚙️ askAlways() — Todas as skills pedem permissão? (opção geral, ou obrigatório nos perfis Mínimo e Econômico; ao voltar para outro perfil, vale de novo o que o usuário tinha escolhido).
+│   │   │   │   ├── ⚙️ runs(slug) — Execuções registradas de uma skill.
+│   │   │   │   ├── ⚙️ totalTokens(slug) — Total de tokens gastos por uma skill (ou por todas).
+│   │   │   │   ├── ⚙️ recordRun(slug, run) — Registra uma execução.
+│   │   │   │   └── ⚙️ estimate(skill, bookTokens) — Estimativa de tokens de uma execução neste livro. Com execuções suas bem-sucedidas, usa a média do seu gasto por token de livro; sem elas, usa a proporção medida pelo autor da skill (livro de teste × tokens gastos).
+│   │   │   └── ⚙️ compareVersions(a, b) — Compara versões `1.2.3`.
+│   │   ├── spellService.ts — [Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal]
+│   │   │   └── 📦 class SpellService — Serviço de verificação ortográfica por contagem.
+│   │   │       ├── ⚙️ constructor() — Método Construtor
+│   │   │       ├── ⚙️ setBookWords(words) — Define o dicionário do livro (Central de Revisões: "adicionar ao dicionário").
+│   │   │       └── ⚙️ reset() — Chamado quando o idioma muda (o dicionário novo é carregado no primeiro uso).
+│   │   ├── startupService.ts — [Rotina de inicialização: assim que o app abre, em segundo plano e sem travar nada, verifica atualizações e faz o]
+│   │   │   └── 📦 class StartupService — Serviço da rotina de inicialização.
+│   │   │       ├── ⚙️ constructor(services) — Método Construtor
+│   │   │       ├── ⚙️ ask({ title, html, buttons }) — Abre uma janela com botões e espera a escolha (em fila).
+│   │   │       └── ⚙️ resolve(b.value)
+│   │   └── templateService.ts — [Perfis de template: o corpo dos templates de fichas e de capítulos muda conforme o perfil (assistente, co-autor,]
+│   │        ├── ⚙️ mergeTemplate(existing, body) — Junta o frontmatter de um arquivo ao corpo de um template.
+│   │        └── 📦 class TemplateService — Serviço dos perfis de template.
+│   │            ├── ⚙️ profiles() — Perfis disponíveis (do app e do usuário).
+│   │            └── ⚙️ profileForMode(aiMode) — Perfil padrão de um modo da IA.
 │   └── [utils]
+│        ├── appSettings.ts — [Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,]
+│        │   ├── ⚙️ coerceSetting(def, value) — Valida e ajusta um valor ao tipo da definição. @throws {Error} Se o valor não serve.
+│        │   └── 📦 class AppSettingsStore — Armazenamento das configurações do app.
+│        │       ├── ⚙️ constructor() — Método Construtor
+│        │       ├── ⚙️ defs()
+│        │       ├── ⚙️ def(id) — Definição de uma configuração.
+│        │       ├── ⚙️ get(id) — Valor atual (o salvo ou o padrão).
+│        │       ├── ⚙️ set(id, value) — Grava um valor (validado) e avisa quem acompanha.
+│        │       └── ⚙️ save() — Grava tudo no armazenamento local.
 │        ├── autoLinkText.ts — [Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e]
 │        │   ├── ⚙️ linkSegment(text, terms) — Linka os termos em um trecho de texto livre (sem links nem código).
 │        │   └── ⚙️ applyAutoLinksToMarkdown(body, terms) — Cria links internos para as ocorrências dos termos no corpo Markdown. Títulos também são linkados; não mexe em blocos de código, código inline, imagens nem textos que já são links.
@@ -1059,6 +1306,8 @@
 │        ├── chatActions.ts — [Catálogo das ações nativas que um botão do chat pode disparar.]
 │        │   └── ⚙️ isAllowedChatEvent(event) — Indica se um evento pode ser disparado por um botão do chat.
 │        ├── chatBackground.ts — [Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.]
+│        │   ├── ⚙️ getExtraColors(theme, mode) — Cores extras salvas de um tipo de fundo em um tema (só valores `#rrggbb`).
+│        │   ├── ⚙️ setExtraColor(theme, mode, field, color) — Salva uma cor extra de um tipo de fundo em um tema (`null` remove e volta ao padrão).
 │        │   ├── ⚙️ modeUsesColor(mode) — Tipos que aceitam escolher a cor de fundo.
 │        │   ├── ⚙️ getChatBackground(theme) — Preferência salva (ou o padrão) para um tema.
 │        │   ├── ⚙️ hasSavedColor(theme, mode) — Se o usuário já escolheu uma cor para o tipo de fundo (nas estrelas, sem escolha vale o degradê padrão do tema).
@@ -1073,6 +1322,12 @@
 │        │   └── ⚙️ chapterNumber(folderName) — Número de uma pasta de capítulo (`chapter_003` -> 3).
 │        ├── diff.ts — [Comparação linha a linha entre duas versões de um texto.]
 │        │   └── ⚙️ diffLines(oldText, newText) — Compara dois textos e indica quais linhas foram removidas (versão antiga) e adicionadas (versão nova).
+│        ├── escapeKey.ts — [Tecla Esc global: fecha, um por vez, a camada aberta mais acima (gaveta de configurações, janela/modal, central ou]
+│        │   └── ⚙️ setupEscapeKey({ modalManager }) — Liga a tecla Esc global.
+│        ├── eventNames.ts — [Nomes de eventos para os campos "antes" e "depois" das fichas de eventos: normalização dos itens digitados e as]
+│        │   ├── ⚙️ normalizeEventName(raw) — Normaliza um nome de evento digitado: sem espaços sobrando e sem vírgulas (a vírgula separa os itens).
+│        │   ├── ⚙️ parseEventNames(input) — Converte um texto (separado por vírgulas) ou uma lista em nomes de eventos, sem repetir (ignora maiúsculas e acentos).
+│        │   └── ⚙️ collectEventNames(files) — Nomes de eventos conhecidos no livro: os títulos das fichas e os eventos citados em "antes"/"depois" que ainda não têm ficha (cadastrados "no ar").
 │        ├── hash.ts — [Hash de textos no renderer (SHA-1 em hexadecimal, via Web Crypto).]
 │        │   └── ⚙️ sha1(text) — Calcula o SHA-1 de um texto.
 │        ├── helpers.ts — [Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.]
@@ -1093,30 +1348,44 @@
 │        │   ├── ⚙️ parseMarkdown(fileContent, isYmlOnly = false) — Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
 │        │   ├── ⚙️ splitFrontmatter(fileContent) — Separa o bloco de Frontmatter (texto bruto, intacto) do corpo do Markdown.
 │        │   └── ⚙️ stringifyFrontmatter(metadata, body) — Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
-│        └── template.ts — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
-│             ├── ⚙️ slugify(text) — Gera um slug simples (minúsculo, sem acentos, separado por hífen).
-│             ├── ⚙️ isVariableLeaf(node) — Indica se um nó de `data` é uma variável (folha) e não um grupo de variáveis.
-│             ├── ⚙️ flattenVariables(data, prefix = []) — Achata o objeto `data` em uma lista de variáveis, com o caminho completo como id.
-│             ├── ⚙️ editableFields(metadata, { title = false } = {}) — Campos editáveis de um arquivo: as variáveis do frontmatter (`data`) e, quando o arquivo não tem a variável `title` mas aceita renomeação, um campo sintético "Título".
-│             ├── ⚙️ setVariableContent(data, path, value) — Grava o `content` de uma variável (por caminho) dentro de um objeto `data`, criando a variável se faltar.
-│             ├── ⚙️ parseSections(body) — Divide o corpo do modelo em prefácio e seções `##`, ignorando `##` dentro de blocos de código.
-│             ├── ⚙️ parseTemplate(rawContent) — Interpreta o conteúdo bruto de um arquivo-modelo.
-│             ├── ⚙️ allFields(steps) — Lista todos os campos (de todos os passos) em uma só lista.
-│             ├── ⚙️ findMissingRequired(steps, values) — Retorna os campos obrigatórios que estão vazios nos valores informados.
-│             ├── ⚙️ resolveTitle(template, values) — Descobre o título (de interface) do novo arquivo: variável `title`, senão a primeira variável obrigatória preenchida, senão o título do próprio modelo.
-│             ├── ⚙️ applyTemplateValues(template, values) — Aplica as respostas ao modelo, produzindo frontmatter e corpo finais (o modelo original não é alterado). - Variáveis: o `content` recebe o valor informado; `placeholder` e `required` são mantidos. - Seções: a resposta substitui a citação-descrição; se vazia, o texto original da seção é mantido.
-│             ├── ⚙️ renderTemplateFile({ metadata, body }) — Serializa o resultado de {@link applyTemplateValues} em texto de arquivo (frontmatter + corpo).
-│             ├── ⚙️ replaceFirstHeading(body, title) — Substitui o primeiro título de nível 1 do corpo (ou insere um no topo, se não houver).
-│             └── ⚙️ appendToBody(fileContent, line) — Anexa um texto ao final do corpo de um arquivo, preservando o frontmatter intacto.
+│        ├── template.ts — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
+│        │   ├── ⚙️ slugify(text) — Gera um slug simples (minúsculo, sem acentos, separado por hífen).
+│        │   ├── ⚙️ normalizeOptions(raw) — Opções de um `select` a partir do frontmatter: cada item é um texto (valor = rótulo) ou `{value, label}`.
+│        │   ├── ⚙️ variableType(node) — Tipo de campo de uma variável: o `type` declarado, ou `select` se houver `options`, ou texto.
+│        │   ├── ⚙️ isVariableLeaf(node) — Indica se um nó de `data` é uma variável (folha) e não um grupo de variáveis.
+│        │   ├── ⚙️ flattenVariables(data, prefix = []) — Achata o objeto `data` em uma lista de variáveis, com o caminho completo como id.
+│        │   ├── ⚙️ editableFields(metadata, { title = false } = {}) — Campos editáveis de um arquivo: as variáveis do frontmatter (`data`) e, quando o arquivo não tem a variável `title` mas aceita renomeação, um campo sintético "Título".
+│        │   ├── ⚙️ setVariableContent(data, path, value) — Grava o `content` de uma variável (por caminho) dentro de um objeto `data`, criando a variável se faltar.
+│        │   ├── ⚙️ parseSections(body) — Divide o corpo do modelo em prefácio e seções `##`, ignorando `##` dentro de blocos de código.
+│        │   ├── ⚙️ parseTemplate(rawContent) — Interpreta o conteúdo bruto de um arquivo-modelo.
+│        │   ├── ⚙️ allFields(steps) — Lista todos os campos (de todos os passos) em uma só lista.
+│        │   ├── ⚙️ findMissingRequired(steps, values) — Retorna os campos obrigatórios que estão vazios nos valores informados.
+│        │   ├── ⚙️ resolveTitle(template, values) — Descobre o título (de interface) do novo arquivo: variável `title`, senão a primeira variável obrigatória preenchida, senão o título do próprio modelo.
+│        │   ├── ⚙️ applyTemplateValues(template, values) — Aplica as respostas ao modelo, produzindo frontmatter e corpo finais (o modelo original não é alterado). - Variáveis: o `content` recebe o valor informado; `placeholder` e `required` são mantidos. - Seções: a resposta substitui a citação-descrição; se vazia, o texto original da seção é mantido.
+│        │   ├── ⚙️ renderTemplateFile({ metadata, body }) — Serializa o resultado de {@link applyTemplateValues} em texto de arquivo (frontmatter + corpo).
+│        │   ├── ⚙️ replaceFirstHeading(body, title) — Substitui o primeiro título de nível 1 do corpo (ou insere um no topo, se não houver).
+│        │   └── ⚙️ appendToBody(fileContent, line) — Anexa um texto ao final do corpo de um arquivo, preservando o frontmatter intacto.
+│        └── themes.ts — [Temas de cores do app: temas predefinidos e temas criados pelo usuário. Um tema é só um conjunto de]
+│             ├── ⚙️ theme(id, name, description, light, dark) — Cria um tema a partir de poucas cores-chave (o resto herda do Astra).
+│             ├── ⚙️ customThemes()
+│             ├── ⚙️ allThemes()
+│             ├── ⚙️ findTheme(id) — Tema por id.
+│             ├── ⚙️ isHexColor(value) — Cor `#rrggbb` válida?
+│             ├── ⚙️ saveCustomTheme({ id, name, light, dark }) — Salva (cria ou atualiza) um tema do usuário. Só cores `#rrggbb` das variáveis conhecidas são guardadas.
+│             ├── ⚙️ deleteCustomTheme(id) — Apaga um tema do usuário (se estava em uso, volta ao Astra).
+│             ├── ⚙️ declarations(colors) — Declarações CSS de um modo do tema: as cores escolhidas e as variáveis derivadas (linhas, realces e rolagem).
+│             ├── ⚙️ themeCss(t) — CSS de um tema (só variáveis).
+│             └── ⚙️ applyThemeCss(t) — Aplica um tema ao app (ou o prévia temporária de um tema em edição).
 ├── [shared]
 │   ├── looseText.ts — [Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface]
 │   │   ├── ⚙️ foldText(text) — Normaliza um texto (minúsculas e sem acentos) preservando o comprimento, para que os índices valham no original.
 │   │   ├── ⚙️ tokenize(folded) — Divide o texto (já normalizado) em palavras, com a posição de cada uma no original.
 │   │   ├── ⚙️ looseWords(term) — Palavras significativas do termo pesquisado (sem artigos/conjunções/preposições e sem pontuação).
 │   │   └── ⚙️ findMatches(text, term) — Todas as ocorrências do termo no texto, de forma tolerante (ver o topo do arquivo). Também aceita a ocorrência literal (ignorando só maiúsculas/acentos), útil enquanto a palavra ainda está sendo digitada.
-│   └── tags.ts — [Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado]
-│        ├── ⚙️ normalizeTag(raw) — Normaliza uma tag: minúsculas, sem "#", espaços internos viram hífen e só ficam letras (com acento), números e `- _ / .`.
-│        ├── ⚙️ parseTags(input) — Converte uma lista/texto (separado por vírgulas) em tags normalizadas, sem repetição, na ordem digitada.
-│        └── ⚙️ tagColorIndex(tag) — Índice (0 a TAG_COLOR_COUNT-1) da cor da tag: hash FNV-1a das letras, portanto nunca muda para a mesma tag.
+│   ├── tags.ts — [Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado]
+│   │   ├── ⚙️ normalizeTag(raw) — Normaliza uma tag: minúsculas, sem "#", espaços internos viram hífen e só ficam letras (com acento), números e `- _ / .`.
+│   │   ├── ⚙️ parseTags(input) — Converte uma lista/texto (separado por vírgulas) em tags normalizadas, sem repetição, na ordem digitada.
+│   │   └── ⚙️ tagColorIndex(tag) — Índice (0 a TAG_COLOR_COUNT-1) da cor da tag: hash FNV-1a das letras, portanto nunca muda para a mesma tag.
+│   └── templateKinds.ts — [Tipos de arquivo que têm template e perfis de template. Um perfil de template (assistente, co-autor, autônomo ou]
 └── [types]
      └── global.d.ts — [Declarações globais do projeto (módulos de recursos do Vite e as APIs expostas pelo preload).]

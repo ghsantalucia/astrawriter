@@ -10,6 +10,19 @@ const matter = require("gray-matter");
 import { app, ipcMain, dialog, shell, session } from "electron";
 import { searchBook } from "./book-search.js";
 import { exportDocument, exportBook } from "./export.js";
+import { importBook } from "./book-import.js";
+import * as templatesStore from "./templates-store.js";
+import { listSkillFiles, saveSkillFile, deleteSkillFile } from "./skills-store.js";
+import {
+  appDiskUsage,
+  backupBooks,
+  checkForUpdate,
+  configureAutoUpdate,
+  exportAllBooks,
+  getUpdateState,
+  installUpdate,
+  uninstallApp,
+} from "./system-tools.js";
 import {
   booksDir as getBooksDir,
   templatesDir as getTemplatesDir,
@@ -25,6 +38,7 @@ import {
 } from "./changelog.js";
 import { appendAiError, readAiErrors, clearAiErrors } from "./ai-error-log.js";
 import { migrateBook } from "./book-migrations.js";
+import { takeFirstRunBook } from "./first-run.js";
 import { scanBook, bookDiskStats } from "./book-scan.js";
 import { withFileWatcherPaused } from "./file-watcher.js";
 
@@ -36,10 +50,14 @@ const AI_SETTINGS_FILE = "ai-settings.json";
  * @param {import('electron').BrowserWindow} mainWindow - Instância da janela principal da aplicação.
  */
 export function setupIpcHandlers(mainWindow) {
-  ipcMain.on("update-titlebar-theme", (event, isDark) => {
+  ipcMain.on("update-titlebar-theme", (event, isDark, colors) => {
     if (!mainWindow) return;
 
-    if (isDark) {
+    // Cores do tema em uso (só valores de cor simples); sem elas, as cores padrão do app
+    const ok = (v) => typeof v === "string" && /^(#[0-9a-fA-F]{3,8}|rgba?\([0-9\s,.%/]+\))$/.test(v.trim());
+    if (ok(colors?.color) && ok(colors?.symbolColor)) {
+      mainWindow.setTitleBarOverlay({ color: colors.color.trim(), symbolColor: colors.symbolColor.trim() });
+    } else if (isDark) {
       mainWindow.setTitleBarOverlay({
         color: "#0e0f17",
         symbolColor: "#cdd6f4",
@@ -115,6 +133,43 @@ export function setupIpcHandlers(mainWindow) {
       return { success: false, error: err.message };
     }
   });
+
+  // Importar um livro de um zip exportado pelo app
+  ipcMain.handle("import-book", async () => {
+    try {
+      return await importBook(mainWindow);
+    } catch (err) {
+      console.error("[MAIN IPC import-book] Erro:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Skills do usuário (compartilhadas entre os livros)
+  ipcMain.handle("skills-list", () => listSkillFiles());
+  ipcMain.handle("skills-save", (event, file, content) => saveSkillFile(file, content));
+  ipcMain.handle("skills-delete", (event, file) => deleteSkillFile(file));
+
+  // Perfis de template (corpo dos templates de fichas e capítulos)
+  ipcMain.handle("templates-profiles", () => templatesStore.listProfiles());
+  ipcMain.handle("templates-read", (event, profile, kind) => templatesStore.readTemplate(profile, kind));
+  ipcMain.handle("templates-original", (event, profile, kind) => templatesStore.readOriginal(profile, kind));
+  ipcMain.handle("templates-save", (event, profile, kind, body) => templatesStore.saveTemplate(profile, kind, body));
+  ipcMain.handle("templates-restore", (event, profile, kind) => templatesStore.restoreTemplate(profile, kind));
+  ipcMain.handle("templates-create-profile", (event, input) => templatesStore.createProfile(input || {}));
+  ipcMain.handle("templates-rename-profile", (event, id, name) => templatesStore.renameProfile(id, name));
+  ipcMain.handle("templates-delete-profile", (event, id) => templatesStore.deleteProfile(id));
+
+  // Central do Sistema: atualização, tamanho das pastas, backup e desinstalação
+  ipcMain.handle("check-update", () => checkForUpdate());
+  ipcMain.handle("configure-auto-update", (event, enabled) => configureAutoUpdate(mainWindow, Boolean(enabled)));
+  ipcMain.handle("get-update-state", () => getUpdateState());
+  ipcMain.handle("install-update", () => installUpdate());
+  ipcMain.handle("app-disk-usage", () => appDiskUsage());
+  ipcMain.handle("backup-books", (event, { folder, keep }) => backupBooks(folder, Number(keep) || 0));
+  ipcMain.handle("export-all-books", () => exportAllBooks(mainWindow));
+  ipcMain.handle("uninstall-app", () => uninstallApp());
+  // Primeira abertura: caminho do livro "Manual de Uso" recém-instalado (devolvido uma única vez)
+  ipcMain.handle("take-first-run-book", () => takeFirstRunBook());
 
   ipcMain.handle("select-folder", async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -226,6 +281,8 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("get-paths", async () => ({
     booksDir: getBooksDir(),
     templatesDir: getTemplatesDir(),
+    backupsDir: path.join(app.getPath("documents"), "Astra Writer", "backups"),
+    packaged: app.isPackaged,
   }));
 
   // Lista o conteúdo de um diretório (nome e se é pasta). Retorna [] se não existir.

@@ -13,9 +13,14 @@ data:
     required: true
     content: ""
   ai_mode:
-    placeholder: "Modo da IA (assistente, co-autor, autônomo)"
+    placeholder: "Modo da IA"
     required: true
-    content: "assistente" # valor padrão
+    type: select # uma lista de opções vira uma caixa de seleção
+    options:
+      - { value: assistant, label: "Assistente de escrita: você escreve e a IA ajuda quando pedida" }
+      - { value: coauthor, label: "Co-autor: a IA propõe e escreve junto com você, passo a passo" }
+      - { value: autonomous, label: "Autônomo: a IA escreve a partir de um briefing seu" }
+    content: "assistant" # valor padrão
   genres:
     placeholder: "Gêneros literários"
     required: false

@@ -4,6 +4,7 @@
  * @file Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
  */
 
+import { isAppLink, openAppLink } from "../../utils/appLinks.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
@@ -25,6 +26,7 @@ import {
 } from "./writingProblems.js";
 import { WritingMenu } from "./WritingMenu.js";
 import { TagInput, tagChipHtml } from "./tagInput.js";
+import { collectEventNames, normalizeEventName, parseEventNames } from "../../utils/eventNames.js";
 import {
   isInternalHref,
   hrefToRelPath,
@@ -287,6 +289,14 @@ export class EditorComponent extends Component {
 
       let href = link.getAttribute("href");
       if (!href) return;
+
+      // Link do app (app:central/ai/model, app:settings): abre a janela do app em vez de um arquivo
+      if (isAppLink(href)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!openAppLink(href, this.uiBus)) this.uiBus.emit("toast:show", { message: "Este link do app não é válido.", type: "error" });
+        return;
+      }
 
       if (!isInternalHref(href) && !href.startsWith("#")) {
         // Link da web (com ou sem protocolo) ou e-mail: navegador padrão do sistema, nunca dentro do app
@@ -724,6 +734,10 @@ export class EditorComponent extends Component {
     });
     box.querySelector("form").addEventListener("submit", (e) => {
       e.preventDefault();
+      // Campos de eventos: o que ainda está digitado também entra
+      this.eventInputs?.forEach(({ input, hidden }) => {
+        hidden.value = input.getTags().join(", ");
+      });
       const values = {};
       box.querySelectorAll("[data-field]").forEach((input) => {
         values[input.dataset.field] = input.value;
@@ -791,17 +805,75 @@ export class EditorComponent extends Component {
       : "";
     this.tagInput.setTags(tags);
     this.tagInput.setDisabled(readonly);
-    this.dataBox.querySelector(".file-data-fields").innerHTML = fields
-      .map(
-        (f) => `
-        <label class="file-data-field">
-          <span>${escapeHtml(f.label)}${f.required ? " *" : ""}</span>
-          <input type="text" data-field="${escapeHtml(f.id)}" value="${escapeHtml(f.value)}"
-            placeholder="${escapeHtml(f.placeholder || "")}" ${readonly ? "disabled" : ""} autocomplete="off" />
-        </label>`,
-      )
-      .join("");
+    const fieldsEl = this.dataBox.querySelector(".file-data-fields");
+    fieldsEl.innerHTML = fields.map((f) => this.dataFieldHtml(f, readonly)).join("");
+    this.mountEventInputs(fieldsEl, readonly);
     this.dataBox.querySelector(".file-data-save").disabled = readonly;
+  }
+
+  /**
+   * HTML de um campo da caixa de dados, conforme o tipo declarado na variável: texto, lista de opções (`options`) ou
+   * lista de eventos (`type: events`).
+   * @param {Object} f - Campo (de `editableFields`).
+   * @param {boolean} readonly - Se o arquivo é somente leitura.
+   * @returns {string}
+   * @private
+   */
+  dataFieldHtml(f, readonly) {
+    const label = `<span>${escapeHtml(f.label)}${f.required ? " *" : ""}</span>`;
+    const id = escapeHtml(f.id);
+    if (f.type === "select" && f.options?.length) {
+      // O valor atual sempre aparece, mesmo que não esteja mais entre as opções
+      const options = f.options.some((o) => o.value === f.value) || !f.value ? f.options : [{ value: f.value, label: f.value }, ...f.options];
+      return `<label class="file-data-field">${label}
+          <select data-field="${id}" ${readonly ? "disabled" : ""}>${options
+            .map((o) => `<option value="${escapeHtml(o.value)}" ${o.value === f.value ? "selected" : ""}>${escapeHtml(o.label)}</option>`)
+            .join("")}</select></label>`;
+    }
+    if (f.type === "events") {
+      return `<div class="file-data-field">${label}
+          <div class="file-data-events" data-events-for="${id}" data-placeholder="${escapeHtml(f.placeholder || "")}"></div>
+          <input type="hidden" data-field="${id}" value="${escapeHtml(f.value)}" /></div>`;
+    }
+    return `<label class="file-data-field">${label}
+          <input type="text" data-field="${id}" value="${escapeHtml(f.value)}"
+            placeholder="${escapeHtml(f.placeholder || "")}" ${readonly ? "disabled" : ""} autocomplete="off" />
+        </label>`;
+  }
+
+  /**
+   * Monta os campos de eventos ("antes"/"depois"): itens separados por vírgula como as tags, com sugestões dos eventos
+   * cadastrados (e dos citados que ainda não têm ficha) e criação de novos nomes ao digitar.
+   * @param {HTMLElement} container - Contêiner dos campos.
+   * @param {boolean} readonly - Se o arquivo é somente leitura.
+   * @returns {void}
+   * @private
+   */
+  mountEventInputs(container, readonly) {
+    this.eventInputs = [];
+    container.querySelectorAll("[data-events-for]").forEach((host) => {
+      const hidden = host.parentElement.querySelector('input[type="hidden"]');
+      const ownTitle = String(this.state.currentFileMetadata?.title || "").toLowerCase();
+      const input = new TagInput(host, {
+        getKnownTags: () => {
+          const { titles, pending } = collectEventNames(this.getBookFiles());
+          return [...titles, ...pending].filter((t) => t.toLowerCase() !== ownTitle);
+        },
+        normalize: normalizeEventName,
+        parse: parseEventNames,
+        placeholder: host.dataset.placeholder || "Nome do evento (vírgula ou Enter)",
+        label: host.dataset.placeholder || "Eventos",
+        stripHash: false,
+        colored: false,
+        stopEnter: true,
+        onChange: () => {
+          hidden.value = input.getTags().join(", ");
+        },
+      });
+      input.setTags(parseEventNames(hidden.value));
+      input.setDisabled(readonly);
+      this.eventInputs.push({ input, hidden });
+    });
   }
 
   /**

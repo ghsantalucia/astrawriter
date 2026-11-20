@@ -7,6 +7,7 @@
  * links quebrados e bloqueio de edição (somente leitura).
  */
 
+import { uiBus } from "../../events/uiBus.js";
 import Editor from "@toast-ui/editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "@toast-ui/editor/dist/theme/toastui-editor-dark.css";
@@ -178,12 +179,22 @@ export class EditorKit {
       this.toggleViewMode(),
     );
 
+    // À direita da barra: atalho para as configurações do editor (Central do Sistema → Editor)
+    this.settingsButton = button(
+      "dwSettings",
+      "fa-solid fa-gear",
+      "Configurações do editor (fonte e tamanho)",
+      () => uiBus.emit("central:open", { central: "system", tab: "editor" }),
+    );
+    this.settingsButton.el.classList.add("dw-tb-right");
+
     return [
       ["heading", "bold", "italic", "strike"],
       ["hr", "quote"],
       ["ul", "ol", "task", "indent", "outdent"],
       ["table", "image", this.linkButton],
       [this.findButton, this.viewButton],
+      [this.settingsButton],
     ];
   }
 

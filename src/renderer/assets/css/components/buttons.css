@@ -39,11 +39,16 @@
   position: relative;
   width: 120px;
   height: 35px;
-  background: linear-gradient(90deg, #1a3058, #264ea5, #1a3058);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--btn-primary-bg) 62%, #000),
+    var(--btn-primary-bg),
+    color-mix(in srgb, var(--btn-primary-bg) 62%, #000)
+  );
   background-size: 300% 100%;
   /* Permite o GSAP mover o gradiente suavemente */
   color: #ffffff;
-  border: 1px solid rgba(112, 161, 255, 0.25);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: var(--radius-control);
   font-weight: 600;
   font-size: 0.8rem;
@@ -79,11 +84,11 @@
 
 .btn-border-path {
   fill: none;
-  stroke: #60a5fa;
+  stroke: color-mix(in srgb, var(--accent) 70%, #fff);
   stroke-width: 2;
   stroke-dasharray: 400;
   /* Perímetro total do retângulo */
   stroke-dashoffset: 400;
   /* Começa invisível */
-  filter: drop-shadow(0px 0px 4px #60a5fa);
+  filter: drop-shadow(0px 0px 4px var(--accent));
 }

@@ -193,9 +193,10 @@
 }
 
 body.dark-theme .tag-chip {
-  --tag-bg: hsl(var(--tag-h) calc(var(--tag-s) - 28%) 22%);
-  --tag-fg: hsl(var(--tag-h) 85% 82%);
-  --tag-line: hsl(var(--tag-h) calc(var(--tag-s) - 30%) 36%);
+  /* Suave no escuro: pouca saturação (só um tom da cor), fundo quase neutro e texto sem brilho, para não distrair */
+  --tag-bg: hsl(var(--tag-h) 20% 17%);
+  --tag-fg: hsl(var(--tag-h) 28% 70%);
+  --tag-line: hsl(var(--tag-h) 16% 26%);
 }
 
 /* Tags encontradas na pesquisa (no lugar do trecho de texto) */
@@ -204,4 +205,41 @@ body.dark-theme .tag-chip {
   flex-wrap: wrap;
   gap: 3px;
   margin-top: 2px;
+}
+
+/* Itens de listas que não são tags (ex.: eventos "antes"/"depois"): sem o "#" e com cor neutra */
+.tag-chip.tag-plain {
+  --tag-bg: var(--surface-raised, var(--surface));
+  --tag-fg: var(--text);
+  --tag-line: var(--line-strong, var(--line));
+}
+.tag-chip.tag-plain::before {
+  content: none;
+}
+body.dark-theme .tag-chip.tag-plain {
+  --tag-bg: var(--surface-raised, var(--surface));
+  --tag-fg: var(--text);
+  --tag-line: var(--line-strong, var(--line));
+}
+
+/* Bolinha de "alterado pela IA" (modo autônomo): no explorer e nas guias do capítulo; cor própria, diferente do asterisco */
+.ai-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--ai-dot, #22d3ee);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ai-dot, #22d3ee) 28%, transparent);
+  vertical-align: middle;
+}
+.ai-dot.hidden {
+  display: none;
+}
+.chapter-tab .ai-dot {
+  position: absolute;
+  top: 6px;
+  right: 18px;
+  margin: 0;
 }

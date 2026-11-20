@@ -764,3 +764,87 @@ li:not(.folder).kb-focus > .item-edit-btn {
   display: inline-block;
   color: var(--warning, var(--accent));
 }
+
+/* Cronômetro de produtividade, entre as abas de categoria e a pesquisa */
+.productivity-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 12px 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-control);
+  background: var(--sidebar-controls-bg, transparent);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.productivity-bar .prod-icon {
+  color: var(--text-subtle);
+}
+.productivity-bar[data-status="running"] .prod-icon {
+  color: var(--success);
+}
+.productivity-bar .prod-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.productivity-bar .prod-status {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.productivity-bar[data-status="away"] .prod-status {
+  color: var(--warning);
+}
+.productivity-bar[data-status="running"] .prod-status {
+  color: var(--success);
+}
+.productivity-bar .prod-spacer {
+  flex: 1;
+}
+.productivity-bar .prod-btn,
+.productivity-bar .prod-auto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.productivity-bar .prod-btn:hover,
+.productivity-bar .prod-auto:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.productivity-bar .prod-auto {
+  border-color: var(--line);
+}
+.productivity-bar .prod-auto.on {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+}
+
+.productivity-bar[hidden] {
+  display: none;
+}
+
+.productivity-bar .prod-icon-btn {
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.productivity-bar .prod-icon-btn:hover .prod-icon {
+  color: var(--accent);
+}

@@ -48,6 +48,8 @@ export class ExplorerComponent extends Component {
      * @type {{term: string, matches: Map<string, Object>}|null}
      */
     this._search = null;
+    /** Arquivos alterados pela IA no modo autônomo (a bolinha ao lado do nome). */
+    this.aiChanges = context.services?.aiChanges;
   }
 
   /**
@@ -84,6 +86,7 @@ export class ExplorerComponent extends Component {
     // Árvore de arquivos atualizada (ex.: novo capítulo ou ficha): redesenha mantendo a pesquisa ativa
     // Pendências da Central de Revisões por arquivo
     this.uiBus.on("issues:changed", (summary) => this.decorateIssues(summary));
+    this.uiBus.on("ai-changed:updated", () => this.decorateAiChanges());
 
     this.uiBus.on("tree:updated", async () => {
       await this.renderTree();
@@ -328,6 +331,32 @@ export class ExplorerComponent extends Component {
     this.markActiveFile();
     this.refreshSearchUi();
     this.decorateIssues();
+    this.decorateAiChanges();
+  }
+
+  /**
+   * Põe a bolinha de "alterado pela IA" (modo autônomo) ao lado do nome dos arquivos que a IA gravou e que o autor ainda não
+   * abriu. No capítulo (um único item), a bolinha aparece se qualquer um dos três arquivos foi alterado.
+   * @returns {void}
+   */
+  decorateAiChanges() {
+    const changed = this.aiChanges?.list() || [];
+    const book = normalizePath(this.state.currentBookPath || "").replace(/\/+$/, "");
+    this.element?.querySelectorAll("#file-tree li:not(.folder)[data-absolute-path]").forEach((li) => {
+      li.querySelector(".file-title-wrapper > .ai-dot")?.remove();
+      if (changed.length === 0 || !book) return;
+      const abs = normalizePath(li.dataset.absolutePath || "").replace(/\.temp$/, "");
+      if (!abs.startsWith(`${book}/`)) return;
+      const rel = abs.slice(book.length + 1);
+      // Capítulo: o item é o manuscrito, mas representa a pasta inteira (esboço e análise)
+      const dir = li.dataset.chapterDir ? normalizePath(li.dataset.chapterDir).slice(book.length + 1) : null;
+      const hit = dir ? changed.some((p) => p.startsWith(`${dir}/`)) : changed.includes(rel);
+      if (!hit) return;
+      li.querySelector(".file-title-wrapper")?.insertAdjacentHTML(
+        "beforeend",
+        '<span class="ai-dot" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>',
+      );
+    });
   }
 
   /**

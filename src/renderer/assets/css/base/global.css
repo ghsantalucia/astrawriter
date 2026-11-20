@@ -31,3 +31,18 @@
 .hidden {
   display: none !important;
 }
+
+/* Modo noturno: filtro amarelado por cima de todo o app (não bloqueia cliques) */
+#night-filter {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  background: rgb(255 150 30);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+#night-filter.active {
+  opacity: var(--night-alpha, 0.35);
+}

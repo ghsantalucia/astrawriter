@@ -19,6 +19,7 @@ import * as exporter from "./handlers/exportHandler.js";
 import * as links from "./handlers/linkHandler.js";
 import * as del from "./handlers/deleteHandler.js";
 import * as folderHandler from "./handlers/folderHandler.js";
+import * as templateEditor from "./handlers/templateEditorHandler.js";
 
 /**
  * Controller responsável pelas reações visuais da interface.
@@ -47,6 +48,11 @@ export class UiController {
       const bookList = await book.fetchBooks(this.state, this.services.book);
       // Envia para preparar o frontend
       uiBus.emit("books:updated", bookList);
+      // Primeira abertura do app instalado: abre o livro "Manual de Uso"
+      if (!this.state.currentBookPath) {
+        const first = await window.electronAPI.takeFirstRunBook?.();
+        if (first && bookList.some((b) => b.fullPath === first)) this.state.currentBookPath = first;
+      }
       // Restaura o último livro aberto; sem livro, o app fica vazio aguardando a seleção
       if (!this.state.currentBookPath) {
         book.clearBook(this.state);
@@ -238,6 +244,22 @@ export class UiController {
 
     // Intenções de criação (botões do dropdown de livros, do explorer e do chat)
     uiBus.on("book:create", () => this.openCreationWizard("book"));
+    // Janela de edição dos templates de um perfil (Central do Sistema → Templates)
+    uiBus.on("template-editor:open", (payload) => templateEditor.openTemplateEditor(payload?.data ?? payload));
+
+    // Importar um livro de um zip exportado pelo app
+    uiBus.on("book:import", async () => {
+      try {
+        const result = await window.electronAPI.importBook();
+        if (result?.canceled) return;
+        if (!result?.success) throw new Error(result?.error || "Falha ao importar o livro.");
+        await creation.onBookCreated(this.state, this.services.book);
+        uiBus.emit("book:selected", result.bookPath);
+        uiBus.emit("toast:show", { message: `Livro "${result.title}" importado (${result.files} arquivos).`, type: "success" });
+      } catch (error) {
+        uiBus.emit("toast:show", { message: error.message, type: "error" });
+      }
+    });
     uiBus.on("chapter:create", () => this.openCreationWizard("chapter"));
     uiBus.on("note:create", (payload) =>
       this.openCreationWizard("note", payload?.data?.folder),

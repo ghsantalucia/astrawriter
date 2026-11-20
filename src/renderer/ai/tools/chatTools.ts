@@ -64,6 +64,11 @@ async function buildButton(request, ctx) {
         data: { "absolute-path": `${bookPath}/${segments.join("/")}` },
       };
     }
+    case "open-central":
+      if (!["issues", "book", "ai", "system"].includes(String(request.central))) {
+        throw new Error("A ação \"open-central\" aceita central: issues, book, ai ou system.");
+      }
+      return { label, event: action.event, data: { central: String(request.central), ...(request.tab ? { tab: String(request.tab) } : {}) } };
     case "new-entity":
       return {
         label,
@@ -116,6 +121,14 @@ export function registerChatTools(registry) {
                 type: "string",
                 description:
                   "Para action='new-entity': pasta da ficha (ex.: assets/characters).",
+              },
+              central: {
+                type: "string",
+                description: "Para action='open-central': issues, book, ai ou system.",
+              },
+              tab: {
+                type: "string",
+                description: "Para action='open-central': aba da central (opcional, ex.: model).",
               },
             },
             required: ["label"],

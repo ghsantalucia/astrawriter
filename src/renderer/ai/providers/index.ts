@@ -115,7 +115,7 @@ export const AI_PROVIDERS = [
   },
   {
     id: "mock",
-    label: "Mock (apenas testes)",
+    label: "Assistente Astra (embutido, sem IA)",
     models: MOCK_MODELS,
     defaultModel: MOCK_DEFAULT_MODEL,
     requiresKey: false,

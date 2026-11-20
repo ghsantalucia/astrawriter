@@ -5,6 +5,7 @@
  */
 
 import basePrompt from "./systemPrompt.md?raw";
+import compactPrompt from "./systemPromptCompact.md?raw";
 import { listSkills } from "../skills/index.js";
 
 /** Instruções de cada modo da IA (definido na Central do Livro, `ai_mode` no config.json). */
@@ -22,8 +23,8 @@ const MODE_PROMPTS = {
  * @param {Object} state - Estado global da aplicação.
  * @returns {string}
  */
-export function buildSystemPrompt(state) {
-  const lines = [basePrompt.trim(), "", "## Contexto atual"];
+export function buildSystemPrompt(state, compact = false) {
+  const lines = [(compact ? compactPrompt : basePrompt).trim(), "", "## Contexto atual"];
 
   const bookTitle = state.currentBookMetadata?.book_title;
   lines.push(`- Livro: ${bookTitle || "(nenhum livro selecionado)"}`);

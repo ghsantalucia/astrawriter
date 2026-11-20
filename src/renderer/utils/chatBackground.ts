@@ -24,6 +24,70 @@ const DEFAULT_COLOR = {
 };
 
 /**
+ * Cores personalizáveis de cada tipo de fundo. `bg` é a cor de fundo (guardada à parte, como sempre foi); as demais
+ * ficam em `chat_bg_colors`. O valor padrão de cada uma vem do que o app sempre usou.
+ */
+export const CHAT_COLOR_FIELDS = {
+  stars: [
+    { id: "bg", label: "Fundo" },
+    { id: "star", label: "Estrelas", default: { dark: "#ffffff", light: "#ffffff" } },
+    { id: "shooting", label: "Estrela cadente", default: { dark: "#ffffff", light: "#ffffff" } },
+  ],
+  nebula: [
+    { id: "violet", label: "Cor principal", default: { dark: "#802bea", light: "#802bea" } },
+    { id: "lilac", label: "Cor clara", default: { dark: "#cc9efa", light: "#cc9efa" } },
+    { id: "pink", label: "Destaque", default: { dark: "#ff7acc", light: "#ff7acc" } },
+  ],
+  orbits: [
+    { id: "bg", label: "Fundo" },
+    { id: "stroke", label: "Traço", default: { dark: "#e6c7ff", light: null } },
+    { id: "orbitColor", label: "Órbitas", default: { dark: "#7b6aa6", light: null } },
+    { id: "planetColor", label: "Planetas", default: { dark: "#e6c7ff", light: null } },
+    { id: "moonColor", label: "Luas", default: { dark: "#e6c7ff", light: null } },
+    { id: "asteroidColor", label: "Asteroides", default: { dark: "#ffb8d1", light: null } },
+    { id: "starColor", label: "Estrelas", default: { dark: "#ffe9a8", light: null } },
+  ],
+  solid: [{ id: "bg", label: "Fundo" }],
+};
+
+/**
+ * Cores extras salvas de um tipo de fundo em um tema (só valores `#rrggbb`).
+ * @param {"dark"|"light"} theme - Tema.
+ * @param {string} mode - Tipo.
+ * @returns {Object<string, string>}
+ */
+export function getExtraColors(theme, mode) {
+  try {
+    const all = JSON.parse(localStorage.getItem("chat_bg_colors") || "{}");
+    const saved = all?.[`${theme}:${mode}`] || {};
+    return Object.fromEntries(Object.entries(saved).filter(([, v]) => /^#[0-9a-f]{6}$/i.test(v)));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Salva uma cor extra de um tipo de fundo em um tema (`null` remove e volta ao padrão).
+ * @param {"dark"|"light"} theme - Tema.
+ * @param {string} mode - Tipo.
+ * @param {string} field - Id do campo (ver `CHAT_COLOR_FIELDS`).
+ * @param {string|null} color - Cor `#rrggbb`.
+ * @returns {void}
+ */
+export function setExtraColor(theme, mode, field, color) {
+  try {
+    const all = JSON.parse(localStorage.getItem("chat_bg_colors") || "{}") || {};
+    const key = `${theme}:${mode}`;
+    all[key] = { ...(all[key] || {}) };
+    if (color && /^#[0-9a-f]{6}$/i.test(color)) all[key][field] = color;
+    else delete all[key][field];
+    localStorage.setItem("chat_bg_colors", JSON.stringify(all));
+  } catch {
+    /* ignora */
+  }
+}
+
+/**
  * Tipos que aceitam escolher a cor de fundo.
  * @param {string} mode - Tipo de fundo.
  * @returns {boolean}

@@ -6,6 +6,7 @@
 
 import { toolRegistry } from "./aiTools.js";
 import { recordTool } from "./debugLog.js";
+import { abortError, raceAbort } from "./abort.js";
 
 /** Quantidade máxima de mensagens anteriores enviadas como contexto (definida pelo perfil de uso da IA). */
 export let MAX_HISTORY_MESSAGES = 50;
@@ -89,7 +90,8 @@ export async function runToolLoop({
   };
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const turn = await callModel(conversation);
+    if (toolContext?.signal?.aborted) throw abortError();
+    const turn = await raceAbort(callModel(conversation), toolContext?.signal);
 
     usage.requests += 1;
     usage.rateLimits = turn.rateLimits || usage.rateLimits;
@@ -103,6 +105,7 @@ export async function runToolLoop({
 
     const results = [];
     for (const call of turn.toolCalls) {
+      if (toolContext?.signal?.aborted) throw abortError();
       const { output, isError } = await (toolContext?.toolView || toolRegistry).execute(
         call.name,
         call.args,

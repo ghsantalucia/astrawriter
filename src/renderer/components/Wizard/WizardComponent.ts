@@ -9,6 +9,9 @@
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
+import { TagInput } from "../Editor/tagInput.js";
+import { collectEventNames, normalizeEventName, parseEventNames } from "../../utils/eventNames.js";
+import { flattenBookTree } from "../../utils/bookFiles.js";
 
 /**
  * Wizard dinâmico renderizado dentro de um modal.
@@ -41,6 +44,9 @@ export class WizardComponent extends Component {
     this.values = {};
     this.busy = false;
     this.destroyed = false;
+    /** Campos que acompanham outro, e os que o autor já alterou à mão (deixam de acompanhar). */
+    this.followers = new Set(this.steps.flatMap((s) => s.fields).filter((f) => f.follows).map((f) => f.id));
+    this.touched = new Set();
     /** Ouvintes registrados no uiBus (removidos em {@link WizardComponent#destroy}). */
     this.busListeners = [];
 
@@ -64,6 +70,12 @@ export class WizardComponent extends Component {
         fields: step.fields.map((field) => ({
           ...field,
           isTextarea: field.type === "textarea",
+          isSelect: field.type === "select" && (field.options || []).length > 0,
+          isEvents: field.type === "events",
+          options: (field.options || []).map((o) => ({
+            ...o,
+            selected: o.value === (this.values[field.id] ?? ""),
+          })),
           rows: field.rows || 6,
           value: this.values[field.id] ?? "",
         })),
@@ -91,7 +103,41 @@ export class WizardComponent extends Component {
    * @returns {void}
    */
   onInit() {
+    this.mountEventFields();
     this.focusFirstField();
+  }
+
+  /**
+   * Monta os campos de eventos ("antes"/"depois") do passo atual: itens separados por vírgula, com sugestões dos eventos
+   * cadastrados e criação de nomes novos.
+   * @returns {void}
+   * @private
+   */
+  mountEventFields() {
+    this.eventInputs = [];
+    const hosts = this.element?.querySelectorAll("[data-events-host]") || [];
+    if (hosts.length === 0) return;
+    const files = this.state?.currentBookMap && this.state?.currentBookPath ? flattenBookTree(this.state.currentBookMap, this.state.currentBookPath) : [];
+    const { titles, pending } = collectEventNames(files);
+    hosts.forEach((host) => {
+      const hidden = host.parentElement.querySelector('input[type="hidden"]');
+      const input = new TagInput(host, {
+        getKnownTags: () => [...titles, ...pending],
+        normalize: normalizeEventName,
+        parse: parseEventNames,
+        placeholder: host.dataset.placeholder || "Nome do evento (vírgula ou Enter)",
+        label: host.dataset.placeholder || "Eventos",
+        stripHash: false,
+        colored: false,
+        stopEnter: true,
+        onChange: () => {
+          hidden.value = input.getTags().join(", ");
+        },
+      });
+      input.setTags(parseEventNames(hidden.value));
+      input.setDisabled(Boolean(this.config.readOnly));
+      this.eventInputs.push({ input, hidden });
+    });
   }
 
   /**
@@ -110,6 +156,25 @@ export class WizardComponent extends Component {
         return;
       e.preventDefault();
       this.handleAction(this.isLast() ? "submit" : "next");
+    });
+
+    // Campo que acompanha outro (ex.: o perfil de templates acompanha o modo da IA) até o autor mexer nele
+    this.element.addEventListener("change", (e) => {
+      const input = e.target.closest("[data-field-id]");
+      if (!input) return;
+      const id = input.dataset.fieldId;
+      if (this.followers.has(id)) {
+        this.touched.add(id);
+        return;
+      }
+      for (const field of this.steps.flatMap((s) => s.fields)) {
+        if (field.follows?.field !== id || this.touched.has(field.id)) continue;
+        const next = field.follows.map?.[input.value];
+        if (!next) continue;
+        this.values[field.id] = next;
+        const target = this.element.querySelector(`[data-field-id="${field.id}"]`);
+        if (target) target.value = next;
+      }
     });
 
     // Remove o aviso de erro assim que o usuário volta a digitar
@@ -181,6 +246,10 @@ export class WizardComponent extends Component {
    * @private
    */
   collectValues() {
+    // Campos de eventos: o que ainda está digitado também entra
+    this.eventInputs?.forEach(({ input, hidden }) => {
+      hidden.value = input.getTags().join(", ");
+    });
     this.element.querySelectorAll("[data-field-id]").forEach((input) => {
       this.values[input.dataset.fieldId] = input.value;
     });
@@ -195,8 +264,10 @@ export class WizardComponent extends Component {
   goTo(index) {
     if (index < 0 || index >= this.steps.length) return;
     this.index = index;
-    this.render();
-    this.focusFirstField();
+    this.render().then(() => {
+      this.mountEventFields();
+      this.focusFirstField();
+    });
   }
 
   /**

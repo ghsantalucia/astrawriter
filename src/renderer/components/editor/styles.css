@@ -970,3 +970,30 @@ body:not(.dark-theme)
 .toastui-editor-main a[href]:not([href^="http"]):has(.wiki-broken) {
   color: var(--text-subtle) !important;
 }
+
+/* Campos de lista de opções e de eventos da caixa "Dados do arquivo" */
+.file-data-field select {
+  padding: 6px 9px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+.file-data-field select:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.file-data-field select:disabled {
+  opacity: 0.6;
+}
+.file-data-field .tag-input-field {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+/* Botão de configurações: alinhado à direita da barra do editor */
+.toastui-editor-toolbar-group:has(.dw-tb-right) {
+  margin-left: auto;
+}

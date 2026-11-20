@@ -20,6 +20,26 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `complete_creation` | `creationTools.js` | Cria o item com as respostas do autor | **Sim** (arquivos oficiais) |
 | `show_buttons` | `chatTools.js` | Anexa botões clicáveis à resposta no chat | Não |
 | `load_skill` | `skillTools.js` | Carrega as instruções de uma skill sob demanda | Não |
+| `open_central` | `systemTools.ts` | Abre uma central (Revisões, Livro, IA, Sistema) em uma aba | Não |
+| `open_settings` | `systemTools.ts` | Abre a gaveta de configurações | Não |
+| `open_file_in_editor` | `systemTools.ts` | Abre um arquivo do livro no editor | Não |
+| `open_file_history` | `systemTools.ts` | Abre a janela de histórico do arquivo aberto | Não |
+| `open_new_book_wizard` | `systemTools.ts` | Abre o assistente de novo livro | Não |
+| `request_sync` | `systemTools.ts` | Abre a janela de sincronização para o autor aprovar | Não |
+| `list_settings` | `systemTools.ts` | Lista todas as configurações (valor, onde ficam, classe a/b/c) | Não |
+| `set_setting` | `systemTools.ts` | Altera uma configuração (a: direto; b: com permissão; c: só orienta) | Configuração do app |
+| `guide_user` | `systemTools.ts` | Orienta e abre a tela de ações delicadas (classe c) | Não |
+| `get_usage_by_model` | `systemTools.ts` | Uso de tokens por modelo | Não |
+| `get_fallback_info` | `systemTools.ts` | Configuração do fallback entre contas | Não |
+| `get_productivity` | `systemTools.ts` | Cronômetro de produtividade | Não |
+| `search_book` | `systemTools.ts` | Busca texto nos arquivos legíveis do livro | Não |
+| `get_app_help` | `systemTools.ts` | Consulta o guia do usuário | Não |
+| `auto_link_book` | `systemTools.ts` | Link automático em todos os arquivos (com permissão) | Rascunho |
+| `run_analysis` | `systemTools.ts` | Roda a análise do livro (com permissão e estimativa de tokens) | `.system` |
+| `set_review_options` | `systemTools.ts` | Liga/desliga revisões e correção ortográfica (com permissão) | Configuração |
+| `backup_now` | `systemTools.ts` | Backup dos livros agora (com permissão) | Pasta de backup |
+| `list_skills` | `systemTools.ts` | Lista a biblioteca de skills | Não |
+| `run_skill` | `systemTools.ts` | Pede a execução de uma skill (sempre com autorização do autor) | Conforme a skill |
 | `get_tool_specs` | `toolTiers.ts` | Entrega a especificação completa de tools do sumário e as libera (só nos modos Sumário e Mais usadas) | Não |
 | `create_folder` | `structureTools.js` | Cria uma pasta em Anotações ou numa categoria do Mundo | **Sim** (pasta + `folder.yml`) |
 | `move_file` | `structureTools.js` | Move um arquivo para outra pasta da mesma categoria | **Sim** (arquivo oficial) |
@@ -381,6 +401,55 @@ Cada arquivo analisado tem um **digest** (arquivo-sombra) em `.system/digests/<c
 ### `search_facts`
 
 - **Parâmetros:** `entity` e/ou `attribute` (trechos). Devolve até 60 fatos com arquivo e citação.
+
+## Tools do app, centrais e configurações (`systemTools.ts`)
+
+Cada ação tem uma **classe de risco**, que decide o que a IA pode fazer sozinha:
+
+| Classe | Significado | Exemplos |
+| --- | --- | --- |
+| **a** | Sem risco ou com revisão posterior: a IA faz | abrir telas e arquivos, tema claro/escuro, tamanho da fonte, fontes do editor, modo noturno, narrador, buscar, consultar uso e cronômetro |
+| **b** | Pode atrapalhar: **pede permissão** numa janela (Permitir/Negar) | atualização automática, backup, revisões e ortografia, análise (com estimativa de tokens), link automático em todo o livro, intervalo e cópias do backup |
+| **c** | Delicado: a IA **não faz**, orienta e abre a tela | modo da IA do livro, permissões de arquivos, contas e chaves de API, excluir livro, desinstalar, pasta de backup |
+
+As configurações vêm do **registro único** (`src/renderer/utils/appSettings.ts`, `SETTING_DEFS`), o mesmo que a Central do Sistema usa:
+cada uma tem id, nome, ajuda, onde fica, tipo, limites e classe. Para uma configuração nova ficar visível à IA, basta
+declará-la ali com a classe de risco.
+
+### `open_central` / `open_settings`
+
+- **`open_central`:** `central` (`issues`, `book`, `ai`, `system`) e `tab` opcional. Abas: issues (overview, links, spelling, timeline,
+  contradictions, tips); book (data, overview, export, changelog, danger); ai (model, fallback, usage, analysis, debug,
+  errors, skills); system (general, update, appearance, accessibility, editor, productivity, shortcuts, templates, backup).
+- **`open_settings`:** abre a gaveta de configurações.
+
+### `open_file_in_editor` / `open_file_history` / `open_new_book_wizard` / `request_sync`
+
+- **`open_file_in_editor`:** `path` relativo ao livro. Combine com `open_file_history` (abre o histórico do arquivo aberto)
+  para ver o histórico de um arquivo específico.
+- **`open_new_book_wizard`:** abre o assistente de livro novo (só a pedido do autor).
+- **`request_sync`:** abre a janela de sincronização. A IA nunca sincroniza sozinha.
+
+### `list_settings` / `set_setting` / `guide_user`
+
+- **`list_settings`:** todas as configurações, com valor atual, onde ficam e a classe; inclui as que a IA não altera, para orientar.
+- **`set_setting`:** `id` e `value`. Classe a: aplica; b: abre a janela de permissão; c: não altera e abre a tela.
+- **`guide_user`:** `action` (`change-ai-mode`, `change-file-permissions`, `manage-api-keys`, `delete-book`, `uninstall`,
+  `backup-folder`, `change-usage-profile`): abre a tela e devolve o passo a passo.
+
+### Consultas e ações com permissão
+
+- **`get_usage_by_model`** (`days`), **`get_fallback_info`**, **`get_productivity`**, **`search_book`** (`query`; só arquivos com `aiRead`) e
+  **`get_app_help`** (`topic`; lê o guia do usuário sob demanda, sem pesar o prompt).
+- **`auto_link_book`**, **`run_analysis`**, **`set_review_options`** (`reviews`, `spelling`) e **`backup_now`**: abrem uma janela de
+  permissão; se o autor negar, nada é feito.
+
+### Skills: `list_skills` / `run_skill`
+
+- **`list_skills`:** biblioteca do autor (identificador, tipo, gatilhos, se roda sozinha e quantas execuções).
+- **`run_skill`:** `name`. A execução começa quando a IA termina a resposta e **depende da autorização do autor** (janela com
+  as tools que a skill usa e a estimativa de tokens), exceto skills recorrentes que ele configurou para rodar sozinhas.
+  Durante a execução a IA só tem as tools que a skill declara.
 
 ## Como criar uma nova tool
 

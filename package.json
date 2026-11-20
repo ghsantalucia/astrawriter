@@ -1,8 +1,8 @@
 {
   "name": "draftweaver-v2",
-  "productName": "draftweaver-v2",
+  "productName": "Astra Writer",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Astra Writer: editor de livros com assistente de IA, para universos narrativos consistentes",
   "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
@@ -36,6 +36,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
     "@electron-forge/plugin-fuses": "^7.11.2",
     "@electron-forge/plugin-vite": "^7.11.2",
+    "@electron-forge/publisher-github": "^7.11.2",
     "@electron/fuses": "^1.8.0",
     "@types/node": "^26.6.6",
     "electron": "44.2.0",

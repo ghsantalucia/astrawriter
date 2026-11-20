@@ -1,7 +1,7 @@
 /**
  * @file Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta
- * `books/` fica ao lado do executável (a pasta de instalação) e `templates/` e o ícone vão como recursos do pacote
- * (`resources/`).
+ * os livros ficam em `Documentos/Astra Writer/books` (uma pasta estável: o instalador apaga a pasta da versão antiga a cada
+ * atualização e na desinstalação) e `templates/` e o ícone vão como recursos do pacote (`resources/`).
  */
 
 import fs from "node:fs";
@@ -21,7 +21,58 @@ export function appRoot() {
  * @returns {string}
  */
 export function booksDir() {
-  return path.join(appRoot(), "books");
+  return app.isPackaged ? path.join(app.getPath("documents"), "Astra Writer", "books") : path.join(appRoot(), "books");
+}
+
+/** Pasta de livros antiga do app instalado (ao lado do executável), de onde os livros são trazidos na migração. */
+function legacyBooksDir() {
+  return path.join(path.dirname(process.execPath), "books");
+}
+
+/**
+ * Quantidade de arquivos de uma pasta (recursivo), para conferir a cópia.
+ * @param {string} dir - Pasta.
+ * @returns {number}
+ */
+function countFiles(dir) {
+  let n = 0;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    n += entry.isDirectory() ? countFiles(path.join(dir, entry.name)) : 1;
+  }
+  return n;
+}
+
+/**
+ * Traz para a pasta estável os livros que ficavam ao lado do executável (versões anteriores do app instalado). Cada livro
+ * é copiado (nunca sobrescreve um livro que já exista no destino) e só conta como migrado depois que a contagem de
+ * arquivos confere; a pasta antiga não é apagada por nós.
+ * @returns {string[]} Pastas de livros migradas.
+ */
+export function migrateLegacyBooks() {
+  if (!app.isPackaged) return [];
+  const from = legacyBooksDir();
+  const to = booksDir();
+  if (!fs.existsSync(from) || path.resolve(from) === path.resolve(to)) return [];
+  const moved = [];
+  fs.mkdirSync(to, { recursive: true });
+  for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const source = path.join(from, entry.name);
+    const target = path.join(to, entry.name);
+    if (fs.existsSync(target)) continue;
+    try {
+      fs.cpSync(source, target, { recursive: true, errorOnExist: true });
+      if (countFiles(source) !== countFiles(target)) {
+        fs.rmSync(target, { recursive: true, force: true });
+        console.error(`[PATHS] A cópia do livro "${entry.name}" não conferiu; ele continua na pasta antiga.`);
+        continue;
+      }
+      moved.push(entry.name);
+    } catch (error) {
+      console.error(`[PATHS] Falha ao migrar o livro "${entry.name}":`, error);
+    }
+  }
+  return moved;
 }
 
 /**
@@ -30,6 +81,7 @@ export function booksDir() {
  */
 export function ensureBooksDir() {
   fs.mkdirSync(booksDir(), { recursive: true });
+  migrateLegacyBooks();
 }
 
 /**

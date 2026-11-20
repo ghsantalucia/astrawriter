@@ -8,6 +8,7 @@ import { domainBus } from "../events/domainBus.js";
 import { uiBus } from "../events/uiBus.js";
 import { normalizePath } from "../utils/helpers.js";
 import * as config from "./handlers/configHandler.js";
+import * as aiReview from "./handlers/aiReviewHandler.js";
 
 /**
  * Controller responsável pelas regras de negócio, IA e manipulação de dados.
@@ -43,7 +44,14 @@ export class DomainController {
     domainBus.on("ai:edit-finished", async ({ bookPath, files }) => {
       this.services.changelog.endAiSessions();
       await this.services.book.setAiLock(bookPath, false);
-      if (files.length > 0) uiBus.emit("ai-review:open", { files });
+      if (files.length === 0) return;
+      // Modo autônomo: a IA grava direto (sem a janela de revisão) e os arquivos ficam marcados até o autor abri-los
+      if (this.state.currentBookMetadata?.ai_mode === "autonomous") {
+        const applied = await aiReview.autoApplyAiEdits({ files }, this.services.file, this.state);
+        await this.services.aiChanges.mark(applied);
+        return;
+      }
+      uiBus.emit("ai-review:open", { files });
     });
 
     // Variáveis de um arquivo foram alteradas (ex.: nome de um personagem)

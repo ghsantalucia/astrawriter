@@ -13,6 +13,7 @@
  * estado entre pedidos, o sumário (e as definições liberadas) vão em todo pedido; o que muda é o tamanho deles.
  */
 
+import { compactDescription } from "./compact.js";
 import { toolRegistry } from "./aiTools.js";
 
 /** Modos de envio de tools. */
@@ -36,6 +37,9 @@ const POPULAR_TOOLS = [
   "get_file_digest",
   "search_facts",
   "get_file_variables",
+  "open_file_in_editor",
+  "open_central",
+  "search_book",
 ];
 
 /** Nome da tool que entrega as especificações completas das demais. */
@@ -64,8 +68,12 @@ export class ToolView {
    * @param {"minimal"|"summary"|"popular"|"all"} mode - Modo do perfil de uso.
    * @param {string|null} bookPath - Livro aberto (as tools liberadas valem para ele).
    */
-  constructor(mode, bookPath) {
+  constructor(mode, bookPath, allow = null, compact = false) {
+    /** "Otimizar instruções": descrições das tools mais curtas. */
+    this.compact = Boolean(compact);
     this.mode = TOOLS_MODES.includes(mode) ? mode : "all";
+    /** Execução de skill: só as tools que a skill declara (mais as do chat). */
+    this.allow = allow ? new Set(allow) : null;
     if (bookPath !== unlockedBook) {
       unlocked.clear();
       unlockedBook = bookPath;
@@ -75,6 +83,10 @@ export class ToolView {
   /** @returns {Set<string>} Tools cuja especificação completa já pode ir ao modelo. */
   fullNames() {
     const names = new Set(CHAT_TOOLS);
+    if (this.allow) {
+      this.allow.forEach((n) => toolRegistry.tools.has(n) && names.add(n));
+      return names;
+    }
     if (this.mode === "all") toolRegistry.tools.forEach((_, n) => names.add(n));
     else if (this.mode === "minimal") MINIMAL_TOOLS.forEach((n) => names.add(n));
     else {
@@ -86,7 +98,7 @@ export class ToolView {
 
   /** @returns {boolean} O modo usa sumário + `get_tool_specs`? */
   get usesSummary() {
-    return this.mode === "summary" || this.mode === "popular";
+    return !this.allow && (this.mode === "summary" || this.mode === "popular");
   }
 
   /**
@@ -95,7 +107,8 @@ export class ToolView {
    */
   getDefinitions() {
     const full = this.fullNames();
-    const defs = toolRegistry.getDefinitions().filter((d) => full.has(d.name));
+    let defs = toolRegistry.getDefinitions().filter((d) => full.has(d.name));
+    if (this.compact) defs = defs.map((d) => ({ ...d, description: compactDescription(d.description) }));
     if (this.usesSummary) defs.push(this.specsToolDefinition());
     return defs;
   }

@@ -13,6 +13,7 @@ import { DomainController } from "../controllers/domainController.js";
 import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
 
+import { setupEscapeKey } from "../utils/escapeKey.js";
 import * as ComponentClass from "../components/index.js";
 
 /**
@@ -39,6 +40,9 @@ export class AppContainer {
       "#modal-container",
       context,
     );
+
+    // Tecla Esc: fecha, uma por vez, as camadas abertas (configurações, modais, centrais, chat)
+    setupEscapeKey({ modalManager: this.modalManager });
 
     // 2. Centraliza os serviços em um único lugar
     this.services = new ServiceManager(this.state);
@@ -116,6 +120,12 @@ export class AppContainer {
 
     // Inicia o tema depois que todos os elementos UI estão renderizados
     this.themeManager.init();
+    // Aparência (zoom, tema de cores, modo noturno, fontes), cronômetro e atalhos de teclado
+    this.services.appearance.init();
+    this.services.productivity.start();
+    this.services.shortcuts.init();
+    this.services.skillRunner.init();
+    this.setupWindowTitle();
 
     // Define eventos globais
     this.setupGlobalEvents();
@@ -123,6 +133,9 @@ export class AppContainer {
     // Emite eventos globais de que a aplicação está pronta para interações
     uiBus.emit("app:ready");
     domainBus.emit("app:ready");
+
+    // Rotina de inicialização (atualização e backup), em segundo plano
+    this.services.startup.run().catch((error) => console.error("[STARTUP] Falha na rotina de inicialização:", error));
   }
 
   /**
@@ -139,6 +152,22 @@ export class AppContainer {
 
     // Atualiza em segundo plano a lista de modelos (janela de contexto) do provider ativo
     this.services.ai.listModels(this.state.aiProvider).catch(() => {});
+  }
+
+  /**
+   * Título da janela (aparece na barra de tarefas do Windows): "Nome do Livro - Astra Writer"; sem livro, só "Astra Writer".
+   * @returns {void}
+   * @private
+   */
+  setupWindowTitle() {
+    const update = (title) => {
+      const name = String(title ?? this.state.currentBookMetadata?.book_title ?? "").trim();
+      document.title = name ? `${name} - Astra Writer` : "Astra Writer";
+    };
+    uiBus.on("book:changed", () => update());
+    uiBus.on("book:cleared", () => update(""));
+    uiBus.on("book:title", (payload) => update(payload?.title));
+    update();
   }
 
   /**

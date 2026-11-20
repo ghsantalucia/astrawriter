@@ -144,16 +144,17 @@ const ZIP_SKIP_DIRS = new Set([".system", ".git", "node_modules"]);
  * @param {JSZip} zip - Zip de destino.
  * @param {string} dir - Pasta de origem.
  * @param {string} prefix - Prefixo dentro do zip.
+ * @param {{drafts?: boolean}} [options] - `drafts: true` inclui os rascunhos `.temp` (usado no backup).
  * @returns {Promise<void>}
  */
-async function addDirToZip(zip, dir, prefix) {
+export async function addDirToZip(zip, dir, prefix, options = {}) {
   const entries = await fs.promises.readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       if (ZIP_SKIP_DIRS.has(entry.name)) continue;
-      await addDirToZip(zip, full, `${prefix}${entry.name}/`);
-    } else if (!entry.name.endsWith(".temp")) {
+      await addDirToZip(zip, full, `${prefix}${entry.name}/`, options);
+    } else if (options.drafts || !entry.name.endsWith(".temp")) {
       zip.file(`${prefix}${entry.name}`, await fs.promises.readFile(full));
     }
   }

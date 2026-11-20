@@ -17,15 +17,53 @@ module.exports = {
       return !(/^\/\.vite/.test(file) || /^\/node_modules/.test(file) || file === '/package.json');
     },
   },
+  // Enxuga o app empacotado: só os idiomas do Chromium que o app usa (pt-BR e en-US) e a lista de licenças (20 MB), que
+  // já vai no LICENSE. Economiza ~70 MB sem afetar nada (o app só tem interface em português).
+  hooks: {
+    postPackage: async (_config, result) => {
+      const fs = require('fs');
+      const path = require('path');
+      for (const dir of result.outputPaths) {
+        const locales = path.join(dir, 'locales');
+        if (fs.existsSync(locales)) {
+          for (const name of fs.readdirSync(locales)) {
+            if (!/^(pt-BR|en-US)\.pak$/.test(name)) fs.rmSync(path.join(locales, name), { force: true });
+          }
+        }
+        fs.rmSync(path.join(dir, 'LICENSES.chromium.html'), { force: true });
+      }
+    },
+  },
   rebuildConfig: {},
+  // Publicação das versões nas releases do repositório público (npm run publish; precisa de GITHUB_TOKEN).
+  // O app instalado consulta essas releases para se atualizar (update.electronjs.org).
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: { owner: 'ghsantalucia', name: 'draftweaver' },
+        prerelease: false,
+        draft: true,
+      },
+    },
+  ],
   makers: [
     {
+      // Instalador do Windows (Setup.exe: instala só para o usuário atual, sem administrador, e se atualiza pelas releases)
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'AstraWriter',
+        exe: 'Astra Writer.exe',
+        setupExe: 'AstraWriter-Setup.exe',
+        setupIcon: 'public/icon.ico',
+        authors: 'ghsantalucia',
+        description: 'Astra Writer: editor de livros com assistente de IA',
+      },
     },
     {
+      // Zip: no Windows é a versão portátil (descompacte e execute "Astra Writer.exe"; não se atualiza sozinha)
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      platforms: ['darwin', 'win32'],
     },
     {
       name: '@electron-forge/maker-deb',

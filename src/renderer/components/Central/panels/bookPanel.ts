@@ -218,9 +218,12 @@ export class BookPanel {
    * @returns {void}
    * @private
    */
-  renderData(el) {
+  async renderData(el) {
     const book = this.book;
     const mode = book.ai_mode || "assistant";
+    const profiles = await window.electronAPI.templates.profiles().catch(() => []);
+    if (this.ctx.currentTab() !== "data") return;
+    const profileId = book.template_profile || "assistant";
     const modes = AI_MODES.map(
       (m) => `<label class="cn-radio-card">
         <input type="radio" name="ai-mode" value="${m.id}" ${m.id === mode ? "checked" : ""} data-change="mode" />
@@ -242,6 +245,14 @@ export class BookPanel {
          <p class="cn-hint">Define como o assistente trabalha neste livro. A permissão de cada arquivo (leitura e escrita da IA) continua valendo em todos os modos.</p>
          <div class="cn-grid">${modes}</div>
          <div class="cn-row" style="margin-top:12px"><button class="cn-btn" data-act="open-ai"><i class="fa-solid fa-robot"></i> Abrir a Central de IA</button></div>
+       </section>
+       <section class="cn-section">
+         <h4>Perfil dos templates</h4>
+         <p class="cn-hint">Define o modelo de cada ficha e capítulo novo deste livro (assistente, co-autor, autônomo ou um perfil seu). Trocar o perfil não muda o que já foi escrito. Os templates se editam em Central do Sistema → Templates.</p>
+         <div class="cn-row">
+           <select class="cn-select" id="book-template-profile">${profiles.map((p) => `<option value="${esc(p.id)}" ${p.id === profileId ? "selected" : ""}>${esc(p.label)}${p.builtin ? "" : " (seu)"}</option>`).join("")}</select>
+           <button class="cn-btn" data-act="apply-profile"><i class="fa-solid fa-clone"></i> Aplicar ao livro</button>
+         </div>
        </section>`,
       {
         "save-title": async () => {
@@ -254,6 +265,21 @@ export class BookPanel {
           this.ctx.toast("Nome do livro salvo.", "success");
         },
         "open-ai": () => this.ctx.uiBus.emit("central:open", { central: "ai" }),
+        "apply-profile": () => {
+          const id = root.querySelector("#book-template-profile").value;
+          const label = profiles.find((p) => p.id === id)?.label || id;
+          confirmModal(this.ctx.uiBus, {
+            title: "Aplicar o perfil de templates?",
+            confirmText: "Aplicar",
+            html: `<p>Os templates de personagem, ambiente, conceito e evento <strong>deste livro</strong> passam a ser os do perfil <strong>${esc(label)}</strong>, e os próximos capítulos nascem com o esboço e a análise dele. Se você tinha editado os templates deste livro, essas edições serão substituídas. Fichas e capítulos que já existem não mudam.</p>`,
+            onConfirm: async () => {
+              const count = await this.ctx.services.templates.applyToBook(book.fullPath, id);
+              book.template_profile = id;
+              await this.ctx.services.book.updateConfig(book.fullPath);
+              this.ctx.toast(`Perfil “${label}” aplicado (${count} templates atualizados).`, "success");
+            },
+          });
+        },
         mode: async (input) => {
           book.ai_mode = input.value;
           await this.ctx.services.book.updateConfig(book.fullPath);

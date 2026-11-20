@@ -1,48 +1,106 @@
 // @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
- * @file Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.
+ * @file Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
  *
- * Para adicionar uma skill, crie um arquivo `.md` nesta pasta com o frontmatter:
- *   ---
- *   name: nome-da-skill
- *   description: quando usar esta skill
- *   ---
- * O corpo do arquivo são as instruções. O nome e a descrição entram no prompt do
- * sistema; o corpo só é enviado quando a IA chama a ferramenta `load_skill`.
+ * - **do app** (`./*.md`): vêm instaladas e não podem ser excluídas (só editadas, o que cria uma cópia "editada");
+ * - **catálogo** (`./market/*.md`): o "mercado" offline do app; o usuário inclui na biblioteca as que quiser.
+ *
+ * O frontmatter de cada arquivo traz `name` (identificador), `title`, `description`, `author`, `version`, `kind`
+ * (`once` ou `recurring`), `triggers`, `tools`, `tags`, `details` (descrição completa em Markdown) e `tokens`
+ * (`bookTokens` e `spent`: tamanho do livro do teste do autor e tokens gastos nele, para estimar o custo). O corpo é o
+ * texto das instruções. O nome e a descrição das skills instaladas entram no prompt do sistema; o corpo só é enviado
+ * quando a IA chama `load_skill`.
  */
 
 import { parseMarkdown } from "../../utils/markdown.js";
-
-const rawSkills = import.meta.glob("./*.md", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
-
-/** @type {Map<string, {name: string, description: string, body: string}>} */
-const skills = new Map();
-
-for (const raw of Object.values(rawSkills)) {
-  const { metadata, body } = parseMarkdown(raw);
-  if (!metadata.name) continue;
-  skills.set(metadata.name, {
-    name: metadata.name,
-    description: metadata.description || "",
-    body: body.trim(),
-  });
-}
-
-/** Skills criadas pelo autor para o livro atual (`.system/skills/` do livro), pelo nome. */
-let customSkills = new Map();
+import { tagColorIndex } from "../../../shared/tags.js";
 
 /**
- * Define as skills do livro atual (chamado pelo SkillService ao trocar de livro ou ao criar/editar/excluir uma skill).
- * @param {Array<{name: string, description: string, body: string}>} list - Skills do livro.
+ * Cor sugerida para uma skill, calculada do nome (sempre a mesma), com o mesmo método das cores das tags.
+ * @param {string} key - Identificador ou nome da skill.
+ * @returns {string} Cor `#rrggbb`.
+ */
+export function autoSkillColor(key) {
+  const i = tagColorIndex(String(key || "skill"));
+  const h = (4 + 9 * i) % 360;
+  const sat = [68, 82, 54][i % 3] / 100;
+  const l = 0.48;
+  const a = sat * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+const rawBuiltin = import.meta.glob("./*.md", { query: "?raw", import: "default", eager: true });
+const rawMarket = import.meta.glob("./market/*.md", { query: "?raw", import: "default", eager: true });
+
+/**
+ * Converte o texto de um arquivo de skill no objeto da skill.
+ * @param {string} raw - Conteúdo do arquivo.
+ * @param {string} origin - `builtin`, `market` ou `user`.
+ * @returns {Object|null}
+ */
+export function parseSkill(raw, origin) {
+  const { metadata: m, body } = parseMarkdown(raw);
+  if (!m.name) return null;
+  const list = (v) => (Array.isArray(v) ? v.map(String) : []);
+  return {
+    slug: String(m.name),
+    id: String(m.id || m.name),
+    title: String(m.title || m.name),
+    description: String(m.description || ""),
+    details: String(m.details || ""),
+    author: String(m.author || "Desconhecido"),
+    version: String(m.version || "1.0.0"),
+    kind: m.kind === "recurring" ? "recurring" : "once",
+    triggers: list(m.triggers),
+    tools: list(m.tools),
+    tags: list(m.tags),
+    tokens: m.tokens && typeof m.tokens === "object" ? { bookTokens: Number(m.tokens.bookTokens) || 0, spent: Number(m.tokens.spent) || 0 } : null,
+    edited: m.edited === true,
+    sourceSlug: m.sourceSlug ? String(m.sourceSlug) : null,
+    origin: m.origin ? String(m.origin) : origin,
+    body: body.trim(),
+  };
+}
+
+/** Skills que vêm com o app (instaladas). @type {Map<string, Object>} */
+const builtin = new Map();
+for (const raw of Object.values(rawBuiltin)) {
+  const skill = parseSkill(raw, "builtin");
+  if (skill) builtin.set(skill.slug, skill);
+}
+
+/** Skills do catálogo (mercado offline). @type {Map<string, Object>} */
+const market = new Map();
+for (const raw of Object.values(rawMarket)) {
+  const skill = parseSkill(raw, "market");
+  if (skill) market.set(skill.slug, skill);
+}
+
+/** Skills instaladas na biblioteca do usuário (todas as que a IA enxerga), pelo nome. */
+let library = new Map();
+
+/**
+ * Define as skills da biblioteca (chamado pelo SkillService ao carregar e a cada mudança).
+ * @param {Array<Object>} list - Skills instaladas (já com a escolha entre original e cópia editada).
  * @returns {void}
  */
 export function setCustomSkills(list) {
-  customSkills = new Map(list.map((s) => [s.name, s]));
+  library = new Map(list.map((s) => [s.slug, s]));
+}
+
+/** @returns {Object[]} Skills que vêm com o app. */
+export function builtinSkills() {
+  return [...builtin.values()];
+}
+
+/** @returns {Object[]} Skills do catálogo. */
+export function marketSkills() {
+  return [...market.values()];
 }
 
 /**
@@ -50,32 +108,30 @@ export function setCustomSkills(list) {
  * @returns {string[]}
  */
 export function builtinSkillNames() {
-  return [...skills.keys()];
+  return [...builtin.keys()];
 }
 
 /**
- * Lista as skills disponíveis (sem o corpo): as do app e as criadas pelo autor no livro.
+ * Lista as skills disponíveis para a IA (sem o corpo): as instaladas na biblioteca.
  * @returns {Array<{name: string, description: string, custom?: boolean}>}
  */
 export function listSkills() {
-  return [
-    ...[...skills.values()].map(({ name, description }) => ({
-      name,
-      description,
-    })),
-    ...[...customSkills.values()].map(({ name, description }) => ({
-      name,
-      description,
-      custom: true,
-    })),
-  ];
+  const names = new Set([...(library.size ? [] : builtin.keys())]);
+  const out = [];
+  for (const s of library.values()) {
+    out.push({ name: s.slug, description: s.description, custom: s.origin !== "builtin" });
+    names.add(s.slug);
+  }
+  // Antes da biblioteca carregar, valem as do app
+  for (const s of builtin.values()) if (!library.has(s.slug) && !library.size) out.push({ name: s.slug, description: s.description });
+  return out;
 }
 
 /**
- * Obtém uma skill pelo nome.
- * @param {string} name
- * @returns {{name: string, description: string, body: string}|undefined}
+ * Obtém uma skill pelo nome (a instalada; antes da biblioteca carregar, a do app).
+ * @param {string} name - Nome (identificador).
+ * @returns {Object|undefined}
  */
 export function getSkill(name) {
-  return skills.get(name) || customSkills.get(name);
+  return library.get(name) || (library.size ? undefined : builtin.get(name));
 }

@@ -7,7 +7,22 @@
     aria-labelledby="central-title"
   >
     <header class="central-header">
-      <h2 class="central-title" id="central-title"></h2>
+      <div class="central-title-wrap">
+        <h2 class="central-title">
+          <button
+            type="button"
+            class="central-title-btn"
+            id="central-title-btn"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            title="Ir para outra central"
+          >
+            <span id="central-title"></span>
+            <i class="fa-solid fa-chevron-down central-title-caret" aria-hidden="true"></i>
+          </button>
+        </h2>
+        <div class="central-switcher hidden" id="central-switcher" role="menu"></div>
+      </div>
       <button
         type="button"
         class="central-close"

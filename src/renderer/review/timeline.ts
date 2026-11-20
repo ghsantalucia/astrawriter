@@ -200,7 +200,7 @@ export function analyzeTimeline(events) {
   }
   for (const e of events) {
     if (!e.when && !linked.has(e.rel)) {
-      issues.push(timelineIssue("timeline-gap", e.rel, `"${e.title}" não tem momento nem relação de ordem com outros eventos: fica fora da linha do tempo.`));
+      issues.push(timelineIssue("timeline-gap", e.rel, `"${e.title}" não tem momento nem relação de ordem com outros eventos: fica fica na seção "sem data conhecida" da linha do tempo.`));
     }
   }
 
@@ -238,6 +238,8 @@ export function analyzeTimeline(events) {
       when: e.when,
       year: year(e),
       inCycle: cyclic.has(e.rel),
+      // Sem momento e sem relação de ordem com nenhum outro evento: vai para a seção "sem data conhecida"
+      undated: !e.when && !linked.has(e.rel),
     })),
     issues,
   };
@@ -249,6 +251,17 @@ export function analyzeTimeline(events) {
  * @returns {string}
  */
 export function timelineMarkdown(ordered) {
-  const lines = ordered.map((e, i) => `${i + 1}. [${e.title.replace(/[[\]]/g, "")}](/${e.rel})${e.when ? ` — ${e.when}` : ""}`);
-  return `# LINHA DO TEMPO\n\n> Gerada a partir das fichas de eventos. Não é editável pelo autor: quem a preenche é o sistema ou a IA.\n\n${lines.join("\n")}\n`;
+  const line = (e, i) => `${i + 1}. [${e.title.replace(/[[\]]/g, "")}](/${e.rel})${e.when ? ` — ${e.when}` : ""}`;
+  const dated = ordered.filter((e) => !e.undated);
+  const undated = ordered.filter((e) => e.undated);
+  const parts = ["# LINHA DO TEMPO", "> Gerada a partir das fichas de eventos. Não é editável pelo autor: quem a preenche é o sistema ou a IA."];
+  if (dated.length) parts.push(dated.map(line).join("\n"));
+  if (undated.length) {
+    parts.push(
+      "## Sem data conhecida",
+      '> Eventos sem momento e sem relação de ordem com outros eventos. Informe o momento ou ligue-os a outros eventos ("antes" e "depois") para que entrem na ordem.',
+      undated.map(line).join("\n"),
+    );
+  }
+  return `${parts.join("\n\n")}\n`;
 }

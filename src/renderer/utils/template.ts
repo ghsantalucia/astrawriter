@@ -27,6 +27,9 @@ export const SECTION_FIELD_PREFIX = "section-";
  * @property {string} placeholder - Texto de ajuda.
  * @property {boolean} required - Se o preenchimento é obrigatório.
  * @property {string} content - Valor atual/padrão.
+ * @property {"text"|"textarea"|"select"|"events"} type - Tipo do campo. `options` (lista) faz dele um `select`;
+ *   `type: events` é o campo de eventos (vários nomes separados por vírgula, com sugestões dos eventos cadastrados).
+ * @property {Array<{value: string, label: string}>} options - Opções do `select`.
  */
 
 /**
@@ -49,7 +52,9 @@ export const SECTION_FIELD_PREFIX = "section-";
  * @typedef {Object} WizardField
  * @property {string} id - Id do campo (e do input no DOM).
  * @property {string} label - Rótulo exibido.
- * @property {"text"|"textarea"} type - Tipo do campo.
+ * @property {"text"|"textarea"|"select"|"events"} type - Tipo do campo.
+ * @property {Array<{value: string, label: string}>} [options] - Opções (tipo `select`).
+ * @property {string[]} [suggestions] - Sugestões de texto (listadas ao digitar).
  * @property {string} [placeholder] - Placeholder do input.
  * @property {string} [hint] - Texto auxiliar abaixo do campo.
  * @property {boolean} required - Se é obrigatório.
@@ -79,6 +84,37 @@ export function slugify(text) {
     .replace(/^-+|-+$/g, "");
 }
 
+/** Tipos de campo aceitos no `type` de uma variável. */
+const FIELD_TYPES = new Set(["text", "textarea", "select", "events"]);
+
+/**
+ * Opções de um `select` a partir do frontmatter: cada item é um texto (valor = rótulo) ou `{value, label}`.
+ * @param {*} raw - Valor de `options`.
+ * @returns {Array<{value: string, label: string}>}
+ */
+export function normalizeOptions(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((o) =>
+      o && typeof o === "object"
+        ? { value: String(o.value ?? o.label ?? ""), label: String(o.label ?? o.value ?? "") }
+        : { value: String(o ?? ""), label: String(o ?? "") },
+    )
+    .filter((o) => o.value !== "");
+}
+
+/**
+ * Tipo de campo de uma variável: o `type` declarado, ou `select` se houver `options`, ou texto.
+ * @param {Object} node - Nó da variável.
+ * @returns {"text"|"textarea"|"select"|"events"}
+ */
+function variableType(node) {
+  const declared = String(node.type || "").toLowerCase();
+  if (declared === "events") return "events";
+  if (Array.isArray(node.options) && node.options.length > 0) return "select";
+  return FIELD_TYPES.has(declared) ? declared : "text";
+}
+
 /**
  * Indica se um nó de `data` é uma variável (folha) e não um grupo de variáveis.
  * @param {*} node - Nó do objeto `data`.
@@ -88,7 +124,7 @@ function isVariableLeaf(node) {
   return (
     node !== null &&
     typeof node === "object" &&
-    ("placeholder" in node || "required" in node || "content" in node)
+    ("placeholder" in node || "required" in node || "content" in node || typeof node.type === "string" || Array.isArray(node.options))
   );
 }
 
@@ -112,6 +148,8 @@ export function flattenVariables(data, prefix = []) {
         placeholder: node.placeholder != null ? String(node.placeholder) : "",
         required: node.required === true || node.required === "true",
         content: node.content != null ? String(node.content) : "",
+        type: variableType(node),
+        options: normalizeOptions(node.options),
       });
     } else if (node && typeof node === "object") {
       variables.push(...flattenVariables(node, path));
@@ -142,6 +180,8 @@ export function editableFields(metadata, { title = false } = {}) {
     placeholder: v.placeholder,
     required: v.required,
     value: v.content,
+    type: v.type,
+    options: v.options,
   }));
   if (title && !variables.some((v) => v.id === "title") && metadata?.title) {
     fields.unshift({
@@ -256,7 +296,8 @@ export function buildTemplateSteps(
       fields: template.variables.map((variable) => ({
         id: variable.id,
         label: variable.placeholder || variable.id,
-        type: "text",
+        type: variable.type,
+        options: variable.options,
         placeholder: variable.placeholder,
         hint: variable.id,
         required: variable.required,

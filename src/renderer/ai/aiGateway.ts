@@ -3,6 +3,7 @@
  * @file Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.
  */
 
+import { CONCISE_NOTE, compactInstructions } from "./compact.js";
 import { getProviderInfo } from "./providers/index.js";
 import { buildSystemPrompt } from "./prompts/index.js";
 import { chatOnlyRegistry } from "./aiTools.js";
@@ -116,10 +117,12 @@ export async function processPrompt({ prompt, history = [] }, state, toolContext
   const profile = resolveAnalysis(state.aiSettings?.analysis);
   setHistoryLimit(profile.historyLimit);
   // Tools enviadas: nenhuma além das do chat (apenas conversa) ou as do modo do perfil (mínimo, sumário, mais usadas, todas)
-  const tools = profile.chatOnly ? chatOnlyRegistry : new ToolView(profile.toolsMode, state.currentBookPath || null);
+  const tools = profile.chatOnly ? chatOnlyRegistry : new ToolView(profile.toolsMode, state.currentBookPath || null, toolContext?.allowedTools || null, profile.compact);
   toolContext = { ...toolContext, toolView: tools };
+  const baseSystem = buildSystemPrompt(state, profile.compact);
   const systemPrompt =
-    buildSystemPrompt(state) + (profile.chatOnly ? CHAT_ONLY_NOTE : tools.promptNote());
+    (profile.compact ? compactInstructions(baseSystem) + CONCISE_NOTE : baseSystem) +
+    (profile.chatOnly ? CHAT_ONLY_NOTE : tools.promptNote());
   let lastError = null;
 
   for (let i = 0; i < chain.length; i++) {

@@ -10,7 +10,7 @@
  * - `render(tab, el)`: preenche o conteúdo (pode ser assíncrono);
  * - `dispose?()`: chamado ao fechar.
  *
- * Eventos: `central:open` `{ central: "issues"|"book"|"ai", tab? }`, `central:close` e `central:refresh`.
+ * Eventos: `central:open` `{ central: "issues"|"book"|"ai"|"system", tab? }`, `central:close` e `central:refresh`.
  */
 
 import "./styles.css";
@@ -20,9 +20,18 @@ import { Component } from "../Component.js";
 import { IssuesPanel } from "./panels/issuesPanel.js";
 import { BookPanel } from "./panels/bookPanel.js";
 import { AiPanel } from "./panels/aiPanel.js";
+import { SystemPanel } from "./panels/systemPanel.js";
 
 /** Páginas disponíveis, por id. */
-const PANELS = { issues: IssuesPanel, book: BookPanel, ai: AiPanel };
+const PANELS = { issues: IssuesPanel, book: BookPanel, ai: AiPanel, system: SystemPanel };
+
+/** Centrais, na ordem do menu de troca (clique no título). */
+const CENTRALS = [
+  { id: "issues", label: "Central de Revisões", icon: "fa-clipboard-check" },
+  { id: "book", label: "Central do Livro", icon: "fa-book" },
+  { id: "ai", label: "Central de IA", icon: "fa-wand-magic-sparkles" },
+  { id: "system", label: "Central do Sistema", icon: "fa-gear" },
+];
 
 /**
  * Casco das centrais.
@@ -58,6 +67,8 @@ export class CentralComponent extends Component {
       domainBus: this.domainBus,
       refresh: () => this.refresh(),
       isOpen: (id) => this.current?.id === id,
+      /** Aba atual (as páginas com carga lenta conferem se ainda é a que pediram antes de desenhar). */
+      currentTab: () => this.current?.tab ?? null,
       close: () => this.close(),
       selectTab: (tab) => this.selectTab(tab),
       toast: (message, type = "info") => this.uiBus.emit("toast:show", { message, type }),
@@ -87,23 +98,44 @@ export class CentralComponent extends Component {
       if (e.target === overlay) this.close();
     });
     this.element.querySelector("#central-close").addEventListener("click", () => this.close());
+
+    // Troca de central pelo título (discreto: só aparece uma setinha ao passar o mouse)
+    const switcher = this.element.querySelector("#central-switcher");
+    const titleBtn = this.element.querySelector("#central-title-btn");
+    const setSwitcher = (open) => {
+      switcher.classList.toggle("hidden", !open);
+      titleBtn.setAttribute("aria-expanded", String(open));
+    };
+    titleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!switcher.classList.contains("hidden")) return setSwitcher(false);
+      switcher.innerHTML = CENTRALS.map(
+        (c) => `<button type="button" role="menuitem" class="central-switch-item ${c.id === this.current?.id ? "current" : ""}" data-central="${c.id}"><i class="fa-solid ${c.icon}"></i>${c.label}</button>`,
+      ).join("");
+      setSwitcher(true);
+    });
+    switcher.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-central]");
+      if (!item) return;
+      setSwitcher(false);
+      if (item.dataset.central !== this.current?.id) this.open(item.dataset.central);
+    });
+    document.addEventListener("mousedown", (e) => {
+      if (!switcher.classList.contains("hidden") && !e.target.closest(".central-title-wrap")) setSwitcher(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !switcher.classList.contains("hidden")) {
+        setSwitcher(false);
+        titleBtn.focus();
+      }
+    });
+    this.closeSwitcher = () => setSwitcher(false);
     this.element.querySelector("#central-tabs").addEventListener("click", (e) => {
       const tab = e.target.closest("[data-tab]");
       if (tab) this.selectTab(tab.dataset.tab);
     });
 
-    // Esc fecha a central (a não ser que uma janela de confirmação esteja aberta por cima)
-    document.addEventListener(
-      "keydown",
-      (e) => {
-        if (e.key !== "Escape" || !this.current) return;
-        if (document.querySelector("#modal-container:not(.hidden)")) return;
-        e.preventDefault();
-        e.stopPropagation();
-        this.close();
-      },
-      true,
-    );
+    // O Esc que fecha a central é o global (utils/escapeKey.ts), que respeita a ordem das camadas abertas
   }
 
   /**
@@ -132,6 +164,7 @@ export class CentralComponent extends Component {
    * @returns {void}
    */
   close() {
+    this.closeSwitcher?.();
     if (!this.current) return;
     this.panel()?.dispose?.();
     this.current = null;
@@ -159,6 +192,8 @@ export class CentralComponent extends Component {
     if (!this.current) return;
     this.current.tab = tab;
     this.element.querySelector("#central-body").scrollTop = 0;
+    // Mostra já a aba nova (o conteúdo da anterior sai e entra um aviso de carregamento até a página ficar pronta)
+    this.element.querySelector("#central-content").innerHTML = '<div class="cn-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando…</div>';
     this.draw();
   }
 

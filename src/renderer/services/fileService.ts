@@ -300,7 +300,7 @@ export class FileService {
     const res = await this.saveFile(filePath, contentToSave);
 
     if (res.success) {
-      uiBus.emit("temp-file:synced", { filePath });
+      uiBus.emit("temp-file:synced", String(filePath).replace(/\\/g, "/"));
 
       // Se o arquivo aberto tinha links automáticos, recarrega o editor para que passem a aparecer em azul
       if (

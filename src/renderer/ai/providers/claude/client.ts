@@ -4,6 +4,7 @@
  * @file Cliente HTTP da API da Anthropic.
  */
 
+import { activeSignal } from "../../abort.js";
 import {
   CLAUDE_API_URL,
   CLAUDE_API_VERSION,
@@ -72,6 +73,7 @@ export async function createMessage({
     method: "POST",
     headers: buildHeaders(apiKey),
     body: JSON.stringify(body),
+    signal: activeSignal(),
   });
   return parseResponse(response, model);
 }

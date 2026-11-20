@@ -23,6 +23,11 @@ export function entityIndexPath(bookRelPath) {
   if (!ASSET_CATEGORIES.includes(parts[1])) return null;
   if (parts[parts.length - 1].toLowerCase() === "index.md") return null;
   if (!/\.md$/i.test(parts[parts.length - 1])) return null;
+  // Eventos não têm um índice à parte: a linha do tempo é o índice da categoria (ordenado cronologicamente)
+  if (parts[1] === "events") {
+    if (parts[parts.length - 1].toLowerCase() === "timeline.md") return null;
+    return "assets/events/timeline.md";
+  }
   return `assets/${parts[1]}/index.md`;
 }
 

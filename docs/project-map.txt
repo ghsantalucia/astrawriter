@@ -2,11 +2,15 @@ Estrutura do Projeto com Descrições:
 .
 ├── .gitignore
 ├── [.vite]
+├── [.vscode]
+│   └── settings.json
 ├── [books]
 ├── debug.log
 ├── [docs]
 │   ├── [.personal]
 │   │   ├── architeture.md
+│   │   ├── checklist-tarefas.md
+│   │   ├── claude-tasks.md
 │   │   ├── fluxo-events-controllers.md
 │   │   ├── metadata-spec.md
 │   │   ├── project-map.md
@@ -120,6 +124,7 @@ Estrutura do Projeto com Descrições:
 ├── [src]
 │   ├── [main]
 │   │   ├── ai-error-log.ts — Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).
+│   │   ├── book-import.ts — Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é
 │   │   ├── book-migrations.ts — Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.
 │   │   ├── book-scan.ts — Varredura incremental de um livro para a Central de Revisões: lê os arquivos Markdown (o rascunho `.md.temp`
 │   │   ├── book-search.ts — Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal
@@ -129,7 +134,10 @@ Estrutura do Projeto com Descrições:
 │   │   ├── ipc-handlers.ts — Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).
 │   │   ├── main.ts — Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
 │   │   ├── paths.ts — Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta
-│   │   └── spellchecker.ts — Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
+│   │   ├── skills-store.ts — Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário
+│   │   ├── spellchecker.ts — Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
+│   │   ├── system-tools.ts — Ferramentas do sistema usadas pela Central do Sistema: versão e verificação de atualização (releases do GitHub),
+│   │   └── templates-store.ts — Armazenamento dos perfis de template. Os perfis que vêm com o app ficam em `templates/profiles/<perfil>/<tipo>.md`
 │   ├── [preload]
 │   │   └── preload.ts — Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.
 │   ├── [renderer]
@@ -170,7 +178,12 @@ Estrutura do Projeto com Descrições:
 │   │   │   │       └── index.ts — Provedor Puter (API compatível com a OpenAI).
 │   │   │   ├── simulatedTools.ts — Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o
 │   │   │   ├── [skills]
-│   │   │   │   ├── index.ts — Registro de skills: pacotes de instruções em Markdown carregados sob demanda pela IA.
+│   │   │   │   ├── index.ts — Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
+│   │   │   │   ├── [market]
+│   │   │   │   │   ├── completar-ficha-de-personagem.md
+│   │   │   │   │   ├── ortografia-elfica-tolkien.md
+│   │   │   │   │   ├── reescrever-estilo-conan-doyle.md
+│   │   │   │   │   └── revisar-dialogos.md
 │   │   │   │   └── revisao-de-consistencia.md
 │   │   │   ├── toolLoop.ts — Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.
 │   │   │   ├── [tools]
@@ -186,7 +199,9 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   ├── registry.ts — Registro de ferramentas (tool calling) independente de provedor.
 │   │   │   │   ├── skillTools.ts — Ferramenta que carrega skills (instruções) sob demanda.
 │   │   │   │   ├── structureTools.ts — Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo
+│   │   │   │   ├── systemTools.ts — Tools do app para a IA: abrir telas e arquivos, conhecer e alterar configurações, consultar uso e ajuda, buscar no
 │   │   │   │   └── variableTools.ts — Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.
+│   │   │   ├── toolTiers.ts — Quantas tools vão para o modelo a cada pedido, definido pelo perfil de uso da IA (`toolsMode`). As definições das
 │   │   │   └── usageTracker.ts — Contador local de uso diário da IA, por provedor e modelo.
 │   │   ├── app.ts — Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.
 │   │   ├── [assets]
@@ -213,7 +228,15 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   │   ├── aiPanel.ts — Central de IA: modelo ativo, fallback de modelos, relatório de uso, depuração do que é enviado e recebido (com as
 │   │   │   │   │   ├── bookPanel.ts — Central do Livro: dados do livro (nome, modo da IA), visão geral e exclusão. Os dados ficam no `config.json` do livro.
 │   │   │   │   │   ├── issuesPanel.ts — Central de Revisões: página inicial (painel com números, mais graves, correção pela IA, tipos dispensados e
-│   │   │   │   │   └── panelKit.ts — Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de
+│   │   │   │   │   ├── panelKit.ts — Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de
+│   │   │   │   │   ├── [system]
+│   │   │   │   │   │   ├── accessibility.ts — Abas "Acessibilidade" (tamanho da fonte do app, modo noturno e narrador) e "Editor" (tamanho e fontes do texto)
+│   │   │   │   │   │   ├── appearance.ts — Aba "Aparência" da Central do Sistema: tema claro/escuro, temas de cores (predefinidos e do usuário, com editor
+│   │   │   │   │   │   ├── controls.ts — Controles compartilhados pelas abas da Central do Sistema: uma linha de configuração para cada tipo de valor
+│   │   │   │   │   │   ├── shortcuts.ts — Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e
+│   │   │   │   │   │   ├── skillsTab.ts — Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Mercado", por enquanto
+│   │   │   │   │   │   └── templates.ts — Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo
+│   │   │   │   │   └── systemPanel.ts — Central do Sistema: configurações do app (não do livro): geral, atualização, aparência, acessibilidade, editor,
 │   │   │   │   ├── panelStyles.css
 │   │   │   │   ├── styles.css
 │   │   │   │   └── [templates]
@@ -267,6 +290,7 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   ├── ModalComponent.ts — Classe gerenciadora de modais em pilha (Stack).
 │   │   │   │   ├── ModalManager.ts — Classe gerenciadora da pilha de modais dinâmicos da aplicação.
 │   │   │   │   ├── styles.css
+│   │   │   │   ├── templateEditor.css
 │   │   │   │   └── [templates]
 │   │   │   │       ├── aiReview.hbs
 │   │   │   │       ├── changelogRows.hbs
@@ -274,7 +298,8 @@ Estrutura do Projeto com Descrições:
 │   │   │   │       ├── history.hbs
 │   │   │   │       ├── historyCompare.hbs
 │   │   │   │       ├── main.hbs
-│   │   │   │       └── syncForm.hbs
+│   │   │   │       ├── syncForm.hbs
+│   │   │   │       └── templateEditor.hbs
 │   │   │   ├── [Settings]
 │   │   │   │   ├── SettingsComponent.ts — Componente responsável pela renderização estrutural da drawer de configurações
 │   │   │   │   ├── styles.css
@@ -319,6 +344,7 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   ├── linkHandler.ts — Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e
 │   │   │   │   ├── logViewerHandler.ts — Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.
 │   │   │   │   ├── searchHandler.ts — Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.
+│   │   │   │   ├── templateEditorHandler.ts — Janela de edição de templates: uma janela grande com uma instância do editor do app e a lista de todos os templates
 │   │   │   │   └── variablesHandler.ts — Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo
 │   │   │   └── uiController.ts — Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.
 │   │   ├── [core]
@@ -340,8 +366,11 @@ Estrutura do Projeto com Descrições:
 │   │   │   ├── reviewStore.ts — Persistência da Central de Revisões. Tudo fica dentro da pasta do livro, em `.system/review/` (e os digests em
 │   │   │   └── timeline.ts — Lógica (sem IA) da linha do tempo a partir das fichas de eventos (`assets/events/`). Cada evento tem um momento
 │   │   ├── [services]
+│   │   │   ├── aiChangeService.ts — Arquivos "alterados pela IA" (modo autônomo): como a IA grava direto, sem a janela de revisão, cada arquivo que
 │   │   │   ├── aiService.ts — Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
 │   │   │   ├── analysisService.ts — Análise do livro pela IA, pensada para gastar poucos tokens:
+│   │   │   ├── appearanceService.ts — Aplica as configurações de aparência e acessibilidade do app: zoom (tamanho da fonte do app), tema de cores,
+│   │   │   ├── backupService.ts — Backup dos livros em uma pasta escolhida (um zip por livro, com os rascunhos não sincronizados). A pasta pode ser a
 │   │   │   ├── bookService.ts — Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.
 │   │   │   ├── changelogService.ts — Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra
 │   │   │   ├── creationService.ts — Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.
@@ -350,11 +379,18 @@ Estrutura do Projeto com Descrições:
 │   │   │   ├── folderService.ts — Serviço das pastas do usuário e da movimentação de arquivos entre pastas.
 │   │   │   ├── indexService.ts — Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos
 │   │   │   ├── issueService.ts — Serviço da Central de Revisões: mantém a lista de issues do livro (problemas, inconsistências e sugestões),
+│   │   │   ├── narratorService.ts — Narrador: lê o arquivo aberto no editor em voz alta com as vozes do sistema (síntese de voz do Chromium, sem
+│   │   │   ├── productivityService.ts — Cronômetro de produtividade (entre as abas e a busca do explorer): conta o tempo em que o autor está de fato no
 │   │   │   ├── searchService.ts — Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).
 │   │   │   ├── serviceManager.ts — Agregador central de serviços (Facade). Instancia e gerencia o acesso
-│   │   │   ├── skillService.ts — Skills criadas pelo autor. Cada skill é um arquivo Markdown em `<livro>/.system/skills/<nome>.md` (frontmatter com
-│   │   │   └── spellService.ts — Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
+│   │   │   ├── shortcutService.ts — Atalhos de teclado do app: as ações que têm atalho (com o padrão de cada uma), a personalização pelo usuário e o
+│   │   │   ├── skillRunnerService.ts — Execução de skills: manual ("executar agora"), por gatilho (skills recorrentes) ou a pedido da IA. Toda execução
+│   │   │   ├── skillService.ts — Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).
+│   │   │   ├── spellService.ts — Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
+│   │   │   ├── startupService.ts — Rotina de inicialização: assim que o app abre, em segundo plano e sem travar nada, verifica atualizações e faz o
+│   │   │   └── templateService.ts — Perfis de template: o corpo dos templates de fichas e de capítulos muda conforme o perfil (assistente, co-autor,
 │   │   └── [utils]
+│   │       ├── appSettings.ts — Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,
 │   │       ├── autoLinkText.ts — Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e
 │   │       ├── bookFiles.ts — Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos
 │   │       ├── bookIndex.ts — Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual
@@ -364,14 +400,18 @@ Estrutura do Projeto com Descrições:
 │   │       ├── chatMarkdown.ts — Conversão segura de Markdown (respostas da IA) em HTML para o chat.
 │   │       ├── deletePermission.ts — Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.
 │   │       ├── diff.ts — Comparação linha a linha entre duas versões de um texto.
+│   │       ├── escapeKey.ts — Tecla Esc global: fecha, um por vez, a camada aberta mais acima (gaveta de configurações, janela/modal, central ou
+│   │       ├── eventNames.ts — Nomes de eventos para os campos "antes" e "depois" das fichas de eventos: normalização dos itens digitados e as
 │   │       ├── hash.ts — Hash de textos no renderer (SHA-1 em hexadecimal, via Web Crypto).
 │   │       ├── helpers.ts — Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.
 │   │       ├── historyCompare.ts — Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown
 │   │       ├── markdown.ts — Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
-│   │       └── template.ts — Funções puras para interpretar arquivos-modelo (templates) do livro.
+│   │       ├── template.ts — Funções puras para interpretar arquivos-modelo (templates) do livro.
+│   │       └── themes.ts — Temas de cores do app: temas predefinidos e temas criados pelo usuário. Um tema é só um conjunto de **variáveis de
 │   ├── [shared]
 │   │   ├── looseText.ts — Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface
-│   │   └── tags.ts — Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado
+│   │   ├── tags.ts — Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado
+│   │   └── templateKinds.ts — Tipos de arquivo que têm template e perfis de template. Um perfil de template (assistente, co-autor, autônomo ou
 │   └── [types]
 │       └── global.d.ts — Declarações globais do projeto (módulos de recursos do Vite e as APIs expostas pelo preload).
 ├── [templates]
@@ -413,6 +453,28 @@ Estrutura do Projeto com Descrições:
 │   │   ├── index.md
 │   │   └── [notes]
 │   │       └── folder.yml
+│   ├── [profiles]
+│   │   ├── [assistant]
+│   │   │   ├── chapter-analysis.md
+│   │   │   ├── chapter-outline.md
+│   │   │   ├── character.md
+│   │   │   ├── element.md
+│   │   │   ├── event.md
+│   │   │   └── place.md
+│   │   ├── [autonomous]
+│   │   │   ├── chapter-analysis.md
+│   │   │   ├── chapter-outline.md
+│   │   │   ├── character.md
+│   │   │   ├── element.md
+│   │   │   ├── event.md
+│   │   │   └── place.md
+│   │   └── [coauthor]
+│   │       ├── chapter-analysis.md
+│   │       ├── chapter-outline.md
+│   │       ├── character.md
+│   │       ├── element.md
+│   │       ├── event.md
+│   │       └── place.md
 │   └── [system]
 ├── tsconfig.json
 ├── vite.main.config.mjs

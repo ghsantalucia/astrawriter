@@ -147,6 +147,24 @@ function createStars(count, width, height) {
   return stars;
 }
 
+/** Cores das estrelas e da estrela cadente (RGB). */
+let starRGB = [255, 255, 255];
+let shootRGB = [255, 255, 255];
+
+/**
+ * Define as cores das estrelas e da estrela cadente (`#rrggbb`; valor inválido mantém a atual).
+ * @param {{star?: string, shooting?: string}} colors - Cores.
+ * @returns {void}
+ */
+export function setStarsPalette({ star, shooting } = {}) {
+  const rgb = (hex, fallback) => {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || "");
+    return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : fallback;
+  };
+  starRGB = rgb(star, [255, 255, 255]);
+  shootRGB = rgb(shooting, [255, 255, 255]);
+}
+
 /** Velocidade da "viagem espacial" (px/s para uma estrela de profundidade 1), rumo à esquerda (baixa gravidade). */
 const TRAVEL_SPEED = 3.5;
 /** Inclinação do deslocamento: quase horizontal, subindo levemente (fração da velocidade horizontal). */
@@ -179,7 +197,7 @@ function advanceStar(star, dt, width, height) {
 function drawStar(ctx, star) {
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-  ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+  ctx.fillStyle = `rgba(${starRGB[0]}, ${starRGB[1]}, ${starRGB[2]}, ${star.alpha})`;
   ctx.fill();
 }
 
@@ -201,8 +219,8 @@ function drawShootingStar(ctx, shootingStar) {
     tailX,
     tailY,
   );
-  gradient.addColorStop(0, `rgba(255, 255, 255, ${shootingStar.alpha})`);
-  gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+  gradient.addColorStop(0, `rgba(${shootRGB[0]}, ${shootRGB[1]}, ${shootRGB[2]}, ${shootingStar.alpha})`);
+  gradient.addColorStop(1, `rgba(${shootRGB[0]}, ${shootRGB[1]}, ${shootRGB[2]}, 0)`);
 
   ctx.beginPath();
   ctx.moveTo(shootingStar.x, shootingStar.y);

@@ -357,7 +357,9 @@ rollback) ocupa. O **Log de erros da IA**, com falhas de conexão ou limite de u
 
 ## 11. O assistente de IA
 
-O **Assistente de Escrita** fica no rodapé da barra lateral. Clique na seta ▲ para abrir o chat.
+O **Assistente de Escrita** fica no rodapé da barra lateral. Clique na seta ▲ para abrir o chat. Enquanto a IA trabalha, o botão de enviar vira um botão **parar** (quadrado vermelho): ele interrompe a resposta na hora. Passe o mouse sobre uma mensagem para ver o horário em que foi enviada.
+
+**Sem IA conectada?** O app traz o **Assistente Astra**, um assistente embutido que sempre existe (não dá para removê-lo). Ele **não é uma IA de verdade**: na primeira mensagem de cada sessão se apresenta com uma citação de escritor e oferece conectar uma IA de verdade (**Central de IA → Contas e modelo**) ou ver o que sabe fazer; depois responde a comandos como `/ajuda`, `/listar`, `/ler`, `/anexar`, com os quais já dá para mexer no livro, de forma mais trabalhosa. O título da janela do Windows mostra o livro aberto ("Nome do Livro - Astra Writer").
 
 ### Configurar (uma vez)
 
@@ -478,7 +480,7 @@ Copie a pasta do livro (dentro de `books/`). Tudo — texto, permissões, histó
 
 ## Centrais
 
-As **centrais** são janelas grandes com abas à esquerda. Abra-as pelo botão do rodapé do editor (Revisões) ou pela gaveta de **Configurações > Centrais**. **Esc** ou o **X** fecham.
+As **centrais** são janelas grandes com abas à esquerda. Abra-as pelo botão do rodapé do editor (Revisões) ou pela gaveta de **Configurações > Centrais**. **Esc** ou o **X** fecham. O **Esc** fecha, uma de cada vez, a camada aberta mais acima (configurações, janela, central ou gaveta do chat); janelas que exigem uma decisão (sem X) não fecham com Esc.
 
 ### Central de Revisões
 
@@ -490,14 +492,62 @@ O botão no rodapé mostra **Tudo certo** (verde) ou o número de **pendências*
 
 ### Eventos e linha do tempo
 
-Em **Mundo > Eventos** cada fato é um arquivo com **quando ocorreu**, **depois de** e **antes de**. A aba Linha do tempo da central sugere a ordem (sem usar IA) e avisa de ordem circular ou datas contraditórias. A linha do tempo oficial **ninguém edita à mão**: você a aprova ali ou a IA a atualiza.
+Em **Mundo > Eventos** cada fato é um arquivo com **quando ocorreu**, **depois de** e **antes de**. Os campos "depois de" e "antes de" funcionam como as tags: vários eventos separados por vírgula, com uma lista que busca os eventos já cadastrados e aceita nomes novos. Um evento citado que ainda não tem ficha vira sugestão de nome ao criar o próximo evento.
+
+O sistema (sem usar IA) liga os eventos, **atualiza sozinho o arquivo da linha do tempo** na ordem descrita, coloca numa seção "Sem data conhecida" os eventos sem momento nem ligação com outros, e avisa de ordem circular ou datas contraditórias (enquanto houver contradição, o arquivo não é alterado). A linha do tempo oficial **ninguém edita à mão**. Ela é também o **índice dos eventos**: lista o link de todos os eventos registrados (não existe um "Índice de Eventos" à parte), em ordem cronológica quando o sistema consegue deduzi-la.
 
 ### Arquivos novos e sincronização
 
 Personagens, locais, anotações, eventos e capítulos novos nascem como **rascunho** e entram na lista de sincronização. Ao sincronizar eles viram oficiais e o app oferece a **análise da IA** (com estimativa de tokens), que cria um resumo de metadados de cada arquivo atualizado e confere contradições.
 
+### Trocar de central e atalhos da barra do editor
+
+Clique no **nome da central** (no topo da janela) para abrir a lista e ir direto para outra central. Na barra do editor, o botão com o ícone de corretor ortográfico abre a aba **Ortografia** da Central de Revisões.
+
+### Importar e exportar livros
+
+- **Importar:** no seletor de livros, **Importar livro (.zip)** cria um livro novo a partir de um zip exportado pelo app (o zip é validado, e o livro ganha um nome novo se o título já existir).
+- **Exportar:** Central do Livro → **Exportar**: o livro em um único arquivo, os capítulos separados ou o projeto completo (zip), em Markdown, Word ou PDF.
+
+### Modo autônomo da IA
+
+Com o livro em modo **autônomo**, a IA grava direto os arquivos que escreve (sem a janela de revisão; tudo continua no changelog e dá para desfazer). Cada arquivo alterado ganha uma **bolinha azul** no explorer (e, nos capítulos, nas abas Manuscrito, Esboço e Análise). A bolinha some 3 segundos depois que você abre o arquivo.
+
+### Central do Sistema
+
+A **Central do Sistema** (Configurações → Centrais, ou **Ctrl+Shift+Y**) reúne as configurações do app, não do livro:
+
+- **Geral e Atualização:** versão instalada e se é a mais recente, atualização automática, espaço ocupado (livros, histórico, dados do app) e **desinstalar** (com opção de exportar os livros antes; os livros ficam em Documentos/Astra Writer e continuam lá).
+- **Aparência:** claro/escuro, temas de cores prontos (**Netuno**, **Terra**, **Saturno**, **Vênus** em tons pastel e **Pulsar**, synthwave rosa e azul) e **criar o seu** (cor por cor, para o modo claro e o escuro), e o **fundo do chat** (estrelas, nebulosa, órbitas ou cor sólida), cada um com suas cores.
+- **Acessibilidade:** tamanho da fonte do app, **modo noturno** (filtro amarelado em horário agendado) e **narrador** (botão com o ícone de alto-falante na barra do editor, com **pausar** e **parar** durante a leitura; passe o mouse para ver a dica).
+- **Editor:** tamanho da letra e fonte do texto e dos títulos, com uma **pré-visualização ao vivo** em destaque no topo.
+- **Produtividade:** o **cronômetro** vem **desligado**; ative em **Mostrar o cronômetro** e ele aparece entre as abas e a busca do explorer, com play/pause, modo **Auto** (para quando a janela perde o foco ou você fica 2 minutos parado) e **zerar** (para o relógio e espera você dar play de novo). Aqui ficam o gráfico de linha por dia e os registros, agrupados por dia (com média e seta para expandir), que dá para apagar.
+- **Atalhos:** todos os atalhos do app. Dá para trocar os principais (clique em **Alterar** e aperte a nova combinação). Setas, Esc, Tab, Enter, Espaço e as teclas de edição do sistema são reservadas. A navegação do explorer pelo teclado (↑ ↓ → ← Enter Esc) é fixa.
+- **Templates:** veja abaixo.
+- **Backup:** pasta de backup (pode ser a de um serviço de nuvem instalado), backup automático ao abrir o app e quantas cópias manter por livro (padrão: 2). A pasta padrão é Documentos/Astra Writer/backups.
+
+Ao abrir o app, uma **rotina de inicialização** confere se há versão nova e se o backup automático está vencido, sem travar nada; só aparece uma janela quando há decisão a tomar (atualização pronta para instalar).
+
+### Templates
+
+Todo arquivo novo nasce de um template (fichas de personagem, ambiente, conceito e evento; esboço e análise do capítulo). Há três **perfis de template**: **Assistente** (perguntas que estimulam a escrita), **Co-autor** (informações que a IA aproveita, como amostras de diálogo) e **Autônomo** (instruções claras para a IA). Só o **corpo** muda de perfil; os campos (variáveis) são sempre os mesmos. Ao criar um livro o perfil é escolhido pelo modo da IA, mas você pode trocar; depois, na Central do Livro. Em **Central do Sistema → Templates** você edita cada template numa janela com o editor, **duplica** um perfil para criar o seu e **restaura** o original (editar nunca altera os arquivos do app).
+
+### Skills
+
+**Skills** são pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Na **Central de IA → Skills** há a biblioteca (**Minhas skills**) e o **Mercado** (catálogo que já vem com o app). Cada skill tem página própria (autor, versão, descrição, texto completo, gatilhos, tools permitidas, estimativa de tokens e histórico de execuções).
+
+- **Uso único:** roda quando você manda (**Executar agora**), sempre com uma janela de confirmação que mostra o que ela pode fazer e a **estimativa de tokens**.
+- **Recorrente:** roda sozinha nos **gatilhos** escolhidos (ao sincronizar, ao abrir o livro ou um arquivo, ao criar/atualizar/excluir capítulos, personagens, ambientes, conceitos, eventos e anotações, etc.).
+- **Permissão:** cada skill tem "pedir permissão antes de ativar" (ligado por padrão) e há a opção geral "todas as skills pedem permissão" (marcada sozinha nos perfis Mínimo e Econômico).
+- **Busca e cores:** há uma barra de busca na biblioteca e no mercado. Cada skill tem uma **cor** (sugerida a partir do nome, e você pode trocar) que aparece no cartão, junto com o estado **ativa/inativa**. Na página da skill, as tools permitidas aparecem numa grade com caixas de seleção e um filtro.
+- **Editar:** mudar o texto de uma skill do app ou do mercado cria uma cópia marcada como "editado" (dá para restaurar o original). Gatilhos e tools permitidas podem ser ajustados sem criar cópia.
+
+### A IA e o app
+
+A IA conhece o app e pode abrir telas, mudar o tema ou a fonte, consultar o guia e executar skills. Ações que podem atrapalhar pedem a sua **permissão** numa janela; ações delicadas (modo da IA, permissões de arquivos, contas e chaves, excluir livro, desinstalar) a IA **não faz**: ela orienta e abre a tela para você.
+
 ### Central do Livro e Central de IA
 
 - **Livro:** nome, modo da IA (assistente, co-autor ou autônomo), visão geral (total de arquivos e espaço em disco, sem o changelog e o chat), changelog (com o espaço que ele ocupa) e exclusão do livro. Também abre pela **caneta** que aparece ao lado de cada livro no seletor de livros.
-- **IA:** várias contas com apelido e chave, fallback automático, uso por modelo, **perfil de uso** (Mínimo, Econômico, Equilibrado, Completo, Ultra ou Personalizado, com uma opção ligável por etapa), depuração (os 10 últimos turnos com o texto completo enviado, tools e tokens; o alfinete fixa um turno no livro), log de erros e skills próprias. Abre também pelo botão **Central de IA** abaixo do campo de texto do chat. Nas **Configurações** ficam só o seletor de conta/modelo e os atalhos do dia a dia.
+- **IA:** várias contas com apelido e chave, fallback automático, uso por modelo, **perfil de uso** (Mínimo, Econômico, Equilibrado, Completo, Ultra ou Personalizado, com uma opção ligável por etapa; entre elas, **Otimizar instruções**, que envia à IA as instruções do app, as descrições das tools e as skills de forma mais enxuta e pede respostas curtas, e que já vem ligada nos perfis Mínimo e Econômico), depuração (os 10 últimos turnos com o texto completo enviado, tools e tokens; o alfinete fixa um turno no livro), log de erros e as skills (biblioteca compartilhada entre os livros). Abre também pelo botão **Central de IA** abaixo do campo de texto do chat. Nas **Configurações** ficam só o seletor de conta/modelo e os atalhos do dia a dia.
 - **Provedores:** Claude, Gemini, ChatGPT (OpenAI), Groq, Puter, **Ollama** (modelos locais, sem chave) e qualquer **servidor compatível com a API da OpenAI** (LM Studio, llama.cpp, vLLM...). Modelos sem suporte a tools funcionam em **modo simulado**: o app ensina o formato no prompt, lê os pedidos de tool na resposta e executa o mesmo laço. No modo automático ele tenta o nativo e, se o modelo recusar, simula.

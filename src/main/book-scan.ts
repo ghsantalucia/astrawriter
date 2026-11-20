@@ -107,7 +107,7 @@ export async function scanBook(bookPath, known = {}, only = null) {
  * @param {string} dir - Pasta.
  * @returns {Promise<{files: number, bytes: number}>}
  */
-async function sumDir(dir) {
+export async function sumDir(dir) {
   let files = 0;
   let bytes = 0;
   let entries = [];

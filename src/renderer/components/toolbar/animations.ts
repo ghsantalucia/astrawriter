@@ -25,7 +25,7 @@ export function initSaveButtonAnimation() {
   btn.addEventListener("mousedown", () => {
     gsap.to(btn, {
       scale: 1.08,
-      boxShadow: "0px 0px 20px rgba(96, 165, 250, 0.5)",
+      boxShadow: "0px 0px 20px color-mix(in srgb, var(--accent) 55%, transparent)",
       duration: 0.35, // Transição suave para expandir
       ease: "power2.out",
       overwrite: "auto",

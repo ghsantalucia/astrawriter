@@ -17,10 +17,18 @@
     {{#each step.fields}}
     <div class="wizard-field {{#if required}}required{{/if}}" data-field="{{id}}">
       <label class="wizard-label" for="{{id}}">{{label}}{{#if required}}<span class="wizard-required">*</span>{{/if}}</label>
-      {{#if isTextarea}}
+      {{#if isSelect}}
+      <select id="{{id}}" name="{{id}}" class="wizard-input wizard-select" data-field-id="{{id}}" {{#if ../readOnly}}disabled{{/if}}>
+        {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      </select>
+      {{else if isEvents}}
+      <div class="wizard-events" data-events-host="{{id}}" data-placeholder="{{placeholder}}"></div>
+      <input type="hidden" id="{{id}}" name="{{id}}" data-field-id="{{id}}" value="{{value}}" />
+      {{else if isTextarea}}
       <textarea id="{{id}}" name="{{id}}" class="wizard-input wizard-textarea" data-field-id="{{id}}" rows="{{rows}}" placeholder="{{placeholder}}" {{#if ../readOnly}}disabled{{/if}}>{{value}}</textarea>
       {{else}}
-      <input id="{{id}}" name="{{id}}" type="text" class="wizard-input" data-field-id="{{id}}" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" spellcheck="false" {{#if ../readOnly}}disabled{{/if}} />
+      <input id="{{id}}" name="{{id}}" type="text" class="wizard-input" data-field-id="{{id}}" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" spellcheck="false" {{#if suggestions.length}}list="{{id}}-suggestions"{{/if}} {{#if ../readOnly}}disabled{{/if}} />
+      {{#if suggestions.length}}<datalist id="{{id}}-suggestions">{{#each suggestions}}<option value="{{this}}"></option>{{/each}}</datalist>{{/if}}
       {{/if}}
       {{#if hint}}<small class="wizard-hint">{{hint}}</small>{{/if}}
       <span class="wizard-field-error" hidden>Campo obrigatório</span>

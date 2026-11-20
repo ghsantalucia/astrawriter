@@ -41,6 +41,11 @@ export class SidebarComponent extends Component {
             icon: "fa-solid fa-plus",
             event: "book:create",
           },
+          {
+            label: "Importar livro (.zip)",
+            icon: "fa-solid fa-file-import",
+            event: "book:import",
+          },
         ],
       },
     );

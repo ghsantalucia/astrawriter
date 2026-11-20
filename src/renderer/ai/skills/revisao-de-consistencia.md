@@ -1,6 +1,22 @@
 ---
 name: revisao-de-consistencia
+title: Revisão de consistência
 description: Revisa um trecho ou capítulo procurando contradições com personagens, lugares, linha do tempo e regras do universo.
+author: Astra Writer
+version: 1.0.0
+kind: once
+triggers: []
+tools: [list_files, read_file, replace_in_file, get_file_digest, search_facts]
+tags: [revisão, consistência]
+details: |
+  Procura **contradições** entre o texto que você está escrevendo e o que já foi estabelecido no livro: traços de
+  personagens, descrições de lugares, regras dos sistemas e a ordem dos eventos.
+
+  A skill lê o arquivo, cruza com as fichas citadas nele e lista cada problema encontrado, citando o trecho e a ficha de
+  referência. Ela **não altera nada** sem você pedir.
+tokens:
+  bookTokens: 20000
+  spent: 7000
 ---
 
 # Revisão de consistência

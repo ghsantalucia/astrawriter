@@ -4,6 +4,7 @@
  * @file Cliente HTTP da API Gemini (generateContent).
  */
 
+import { activeSignal } from "../../abort.js";
 import { GEMINI_API_BASE, GEMINI_MAX_OUTPUT_TOKENS } from "./config.js";
 import { buildGeminiError } from "../../apiError.js";
 
@@ -67,6 +68,7 @@ export async function generateContent({
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify(body),
+      signal: activeSignal(),
     },
   );
   return parseResponse(response, model);

@@ -11,6 +11,13 @@ import started from "electron-squirrel-startup";
 import { setupFileWatcher } from "./file-watcher.js";
 import { setupIpcHandlers } from "./ipc-handlers.js";
 import { ensureBooksDir, iconPath } from "./paths.js";
+import { installManualBook } from "./first-run.js";
+
+// Em desenvolvimento, os dados do app continuam na pasta antiga (draftweaver-v2): o nome do produto agora é "Astra Writer", que
+// é a pasta de dados do app instalado (assim o instalado nunca enxerga as chaves e configurações de desenvolvimento).
+if (!app.isPackaged) {
+  app.setPath("userData", path.join(app.getPath("appData"), "draftweaver-v2"));
+}
 
 // Trata criação e remoção de atalhos no Windows durante instalação/desinstalação
 if (started) {
@@ -25,6 +32,8 @@ let mainWindow;
 const createWindow = () => {
   // Primeira execução do app instalado: a pasta de livros começa vazia
   ensureBooksDir();
+  // Primeira abertura: o livro "Manual de Uso" já vem instalado
+  installManualBook();
 
   mainWindow = new BrowserWindow({
     width: 1200,

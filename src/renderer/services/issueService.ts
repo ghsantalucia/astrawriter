@@ -49,7 +49,7 @@ const RESCAN_DELAY_MS = 1200;
 
 /** Arquivos que não entram na verificação ortográfica. */
 /** Arquivos sem ortografia: índices, a linha do tempo e a análise dos capítulos (texto técnico gerado pela IA, com termos em inglês). */
-const NO_SPELLING = [/(^|\/)index\.md$/i, /^assets\/events\/timeline\.md$/i, /^content\/chapter_\d+\/3_analysis\.md$/i];
+const NO_SPELLING = [/^notes\/manual-completo\.md$/i, /(^|\/)index\.md$/i, /^assets\/events\/timeline\.md$/i, /^content\/chapter_\d+\/3_analysis\.md$/i];
 
 /**
  * Serviço de issues (Central de Revisões).
@@ -498,6 +498,54 @@ export class IssueService {
     this.timeline = { ordered, events: events.length };
     this.external.timeline = issues;
     this.cache = null;
+    this.scheduleTimelineSync();
+  }
+
+  /**
+   * Agenda a atualização automática do arquivo da linha do tempo (agrupa várias mudanças seguidas).
+   * @returns {void}
+   * @private
+   */
+  scheduleTimelineSync() {
+    clearTimeout(this.timelineTimer);
+    this.timelineTimer = setTimeout(() => {
+      this.syncTimelineFile().catch((e) => console.error("[ISSUES] Falha ao atualizar a linha do tempo:", e));
+    }, 1500);
+  }
+
+  /**
+   * Mantém o arquivo da linha do tempo (`assets/events/timeline.md`) em dia sem usar IA: a ordem vem dos eventos ligados
+   * pelo autor ("antes"/"depois" e momento), e os eventos sem data conhecida ficam numa seção reservada. Em caso de
+   * contradição (ordem circular ou momento incompatível) o arquivo não é alterado: o autor resolve nos issues. O arquivo
+   * é gravado direto (como os índices) e a alteração entra no changelog como ajuste do sistema.
+   * @returns {Promise<void>}
+   */
+  async syncTimelineFile() {
+    const book = this.bookPath;
+    if (!this.data || !book || !this.timeline) return;
+    if ((this.external.timeline || []).some((i) => i.type === "timeline-cycle" || i.type === "timeline-order")) return;
+    const abs = `${book}/assets/events/timeline.md`;
+    // Rascunho pendente (ex.: a IA atualizou): não atropela
+    if ((await window.electronAPI.readFile(`${abs}.temp`)) !== null) return;
+    const before = await window.electronAPI.readFile(abs);
+    if (before === null) return;
+    const { frontmatter, body } = splitFrontmatter(before);
+    const { ordered } = this.timeline;
+    // Sem eventos e ainda sem lista no arquivo: mantém o texto de apresentação
+    if (ordered.length === 0 && !/^\d+\.\s/m.test(body)) return;
+    const after = frontmatter + timelineMarkdown(ordered);
+    if (after.trim() === before.trim()) return;
+    if (this.bookPath !== book) return; // trocou de livro enquanto lia
+    await window.electronAPI.saveFile(abs, after);
+    await this.changelog?.record({
+      action: "update",
+      filePath: abs,
+      before,
+      after,
+      actor: this.changelog.systemActor(),
+      meta: { reason: "Linha do tempo atualizada pelo sistema a partir dos eventos" },
+      bookPath: book,
+    });
   }
 
   /**

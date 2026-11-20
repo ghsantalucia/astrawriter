@@ -30,6 +30,8 @@ export class ToolbarComponent extends Component {
     /** Arquivos com rascunho (.temp) e arquivo aberto, para o asterisco da guia. */
     this._tempPaths = new Set();
     this._openPath = "";
+    /** Arquivos alterados pela IA no modo autônomo (a bolinha das guias do capítulo). */
+    this.aiChanges = context.services?.aiChanges;
   }
 
   /**
@@ -100,8 +102,15 @@ export class ToolbarComponent extends Component {
         }
         this.setHistoryButtonEnabled(true);
         this.setAutolinkButtonEnabled(Boolean(metadata?.humanWrite));
+        this.setNarratorEnabled(true);
       },
     );
+
+    // Narrador: o botão mostra ouvir, pausar ou continuar conforme o estado
+    this.uiBus.on("narrator:status", ({ status }) => this.setNarratorStatus(status));
+
+    // Arquivos alterados pela IA mudaram (gravação no modo autônomo ou arquivo aberto): as bolinhas das guias acompanham
+    this.uiBus.on("ai-changed:updated", () => this.refreshTabDirty());
 
     // Nenhum arquivo aberto: não há variáveis nem histórico
     this.uiBus.on("editor:reseted", () => {
@@ -111,6 +120,7 @@ export class ToolbarComponent extends Component {
       this.showFileTab(null);
       this.setHistoryButtonEnabled(false);
       this.setAutolinkButtonEnabled(false);
+      this.setNarratorEnabled(false);
     });
 
     // Título alterado pelas variáveis: a guia acompanha
@@ -151,6 +161,33 @@ export class ToolbarComponent extends Component {
         }
       });
     }
+  }
+
+  /**
+   * Habilita ou desabilita o botão do narrador (precisa de um arquivo aberto).
+   * @param {boolean} enabled - Se há arquivo aberto.
+   * @returns {void}
+   */
+  setNarratorEnabled(enabled) {
+    const btn = this.element?.querySelector("#btn-narrator");
+    if (btn) btn.disabled = !enabled;
+  }
+
+  /**
+   * Atualiza o rótulo e o ícone do botão do narrador.
+   * @param {"stopped"|"playing"|"paused"} status - Estado da leitura.
+   * @returns {void}
+   */
+  setNarratorStatus(status) {
+    const icon = this.element?.querySelector("#narrator-icon");
+    const btn = this.element?.querySelector("#btn-narrator");
+    if (!icon || !btn) return;
+    icon.className = `fa-solid ${status === "playing" ? "fa-pause" : status === "paused" ? "fa-play" : "fa-volume-high"}`;
+    // Só o ícone na barra; o que ele faz aparece na dica
+    const text = status === "playing" ? "Pausar a leitura" : status === "paused" ? "Continuar a leitura" : "Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)";
+    btn.title = text;
+    btn.setAttribute("aria-label", text);
+    this.element.querySelector("#btn-narrator-stop")?.classList.toggle("hidden", status === "stopped");
   }
 
   /**
@@ -216,12 +253,16 @@ export class ToolbarComponent extends Component {
    * @returns {void}
    */
   refreshTabDirty() {
-    // Guias do capítulo: cada uma mostra o asterisco do próprio arquivo
+    // Arquivos alterados pela IA (modo autônomo), em caminho absoluto minúsculo para comparar com as guias
+    const book = String(this.state?.currentBookPath || "").replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+    const aiChanged = new Set((this.aiChanges?.list() || []).map((rel) => `${book}/${rel}`.toLowerCase()));
+    // Guias do capítulo: cada uma mostra o asterisco do próprio arquivo e a bolinha de "alterado pela IA"
     this.element?.querySelectorAll(".chapter-tab").forEach((tab) => {
       const path = this.cleanPath(tab.dataset.absolutePath);
       tab
         .querySelector(".file-tab-dirty")
         ?.classList.toggle("hidden", !(path && this._tempPaths.has(path)));
+      tab.querySelector(".ai-dot")?.classList.toggle("hidden", !(path && aiChanged.has(path)));
     });
     const mark = this.element?.querySelector("#file-tab-dirty");
     mark?.classList.toggle(

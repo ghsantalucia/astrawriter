@@ -123,6 +123,11 @@ export async function onSendMessage({ promptText }, aiService) {
     // 9. Renderiza a resposta da IA no chat
     uiBus.emit("chat:render-message", assistantMessage);
   } catch (error) {
+    // Interrompida pelo autor (botão de parar): só um aviso discreto na conversa
+    if (error?.name === "AbortError") {
+      await onSystemNotice({ text: "Você interrompeu a IA." }, aiService);
+      return;
+    }
     console.error("[ChatHandler] Falha ao processar mensagem do chat:", error);
 
     uiBus.emit("toast:show", { message: error.message, type: "error" });

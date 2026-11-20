@@ -18,9 +18,17 @@
       ├── constructor (src\renderer\components\Central\panels\aiPanel.ts)
       └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
+⚙️ [ai-changed:updated]
+    * Emissores:
+      └── publish (src\renderer\services\aiChangeService.ts)
+    * Escutadores:
+      ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
+      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+
 ⚙️ [ai-chat:toggle]
     * Emissores:
-      └── ---
+      ├── run (src\renderer\services\shortcutService.ts)
+      └── consume (src\renderer\utils\escapeKey.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
@@ -58,13 +66,21 @@
     * Emissores:
       └── run (src\renderer\services\analysisService.ts)
     * Escutadores:
-      └── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [analysis:progress]
     * Emissores:
       └── setProgress (src\renderer\services\analysisService.ts)
     * Escutadores:
       └── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
+
+⚙️ [app-settings:changed]
+    * Emissores:
+      └── set (src\renderer\utils\appSettings.ts)
+    * Escutadores:
+      ├── set (src\renderer\services\appearanceService.ts)
+      └── bump (src\renderer\services\productivityService.ts)
 
 ⚙️ [app:ready]
     * Emissores:
@@ -74,7 +90,7 @@
 
 ⚙️ [autolink:run]
     * Emissores:
-      └── ---
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -101,8 +117,9 @@
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
       ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── constructor (src\renderer\services\aiChangeService.ts)
       ├── listen (src\renderer\services\issueService.ts)
-      └── constructor (src\renderer\services\skillService.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [book:cleared]
     * Emissores:
@@ -111,12 +128,12 @@
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
       ├── registerEvents (src\renderer\controllers\uiController.ts)
-      ├── listen (src\renderer\services\issueService.ts)
-      └── constructor (src\renderer\services\skillService.ts)
+      ├── constructor (src\renderer\services\aiChangeService.ts)
+      └── listen (src\renderer\services\issueService.ts)
 
 ⚙️ [book:create]
     * Emissores:
-      └── ---
+      └── execute (src\renderer\ai\tools\systemTools.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -127,6 +144,12 @@
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
 ⚙️ [book:edit]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [book:import]
     * Emissores:
       └── ---
     * Escutadores:
@@ -160,7 +183,7 @@
       ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
       └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      └── ---
+      └── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
 
 ⚙️ [books:updated]
     * Emissores:
@@ -171,26 +194,29 @@
 
 ⚙️ [central:close]
     * Emissores:
-      └── ---
+      └── consume (src\renderer\utils\escapeKey.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
 
 ⚙️ [central:open]
     * Emissores:
-      ├── count (src\renderer\components\Central\panels\bookPanel.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── openCentral (src\renderer\ai\tools\systemTools.ts)
+      ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
+      ├── normalizePath (src\renderer\components\Central\panels\bookPanel.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
 
 ⚙️ [central:refresh]
     * Emissores:
-      └── ---
+      └── confirmDiscard (src\renderer\controllers\handlers\templateEditorHandler.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
 
 ⚙️ [chapter:create]
     * Emissores:
-      └── ---
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -208,6 +234,7 @@
 
 ⚙️ [chat-bg:apply]
     * Emissores:
+      ├── setChatBackgroundMode (src\renderer\components\Central\panels\system\appearance.ts)
       └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
@@ -217,6 +244,13 @@
       └── ---
     * Escutadores:
       └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
+
+⚙️ [chat-bg:rebuild]
+    * Emissores:
+      ├── setChatBackgroundMode (src\renderer\components\Central\panels\system\appearance.ts)
+      └── setChatColor (src\renderer\components\Central\panels\system\appearance.ts)
+    * Escutadores:
+      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:append-history]
     * Emissores:
@@ -277,9 +311,12 @@
 
 ⚙️ [chat:system-notice]
     * Emissores:
+      ├── splitFrontmatter (src\renderer\controllers\handlers\aiReviewHandler.ts)
+      ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
-      └── notice (src\renderer\services\aiService.ts)
+      ├── notice (src\renderer\services\aiService.ts)
+      └── run (src\renderer\services\skillRunnerService.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -318,11 +355,14 @@
 ⚙️ [editor:open-file]
     * Emissores:
       ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
+      ├── execute (src\renderer\ai\tools\systemTools.ts)
       ├── more (src\renderer\components\Central\panels\issuesPanel.ts)
       ├── goTo (src\renderer\components\Central\panels\issuesPanel.ts)
       ├── goToFile (src\renderer\components\Central\panels\issuesPanel.ts)
+      ├── openChatLink (src\renderer\components\Chat\ChatComponent.ts)
       ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
       ├── onclick (src\renderer\components\Explorer\ExplorerComponent.ts)
+      ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onBookChange (src\renderer\controllers\handlers\bookHandler.ts)
       ├── openCreated (src\renderer\controllers\handlers\creationHandler.ts)
       ├── remap (src\renderer\controllers\handlers\deleteHandler.ts)
@@ -361,7 +401,8 @@
       └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
       ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      └── constructor (src\renderer\services\narratorService.ts)
 
 ⚙️ [editor:set-body]
     * Emissores:
@@ -389,7 +430,8 @@
 
 ⚙️ [explorer:keyboard-restore]
     * Emissores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      ├── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── consume (src\renderer\utils\escapeKey.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
 
@@ -398,11 +440,12 @@
       └── ---
     * Escutadores:
       ├── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [export:toggle-menu]
     * Emissores:
-      └── ---
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
 
@@ -414,7 +457,7 @@
 
 ⚙️ [file-data:toggle]
     * Emissores:
-      └── ---
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
 
@@ -442,7 +485,10 @@
     * Escutadores:
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── constructor (src\renderer\services\aiChangeService.ts)
+      ├── constructor (src\renderer\services\narratorService.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [file:restored]
     * Emissores:
@@ -503,7 +549,8 @@
 
 ⚙️ [history:open-modal]
     * Emissores:
-      └── ---
+      ├── execute (src\renderer\ai\tools\systemTools.ts)
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -524,7 +571,10 @@
 ⚙️ [modal:open]
     * Emissores:
       ├── resolve (src\renderer\ai\tools\historyTools.ts)
+      ├── askPermission (src\renderer\ai\tools\systemTools.ts)
       ├── confirmModal (src\renderer\components\Central\panels\panelKit.ts)
+      ├── askName (src\renderer\components\Central\panels\system\templates.ts)
+      ├── askUninstall (src\renderer\components\Central\panels\systemPanel.ts)
       ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
       ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
@@ -534,9 +584,32 @@
       ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.ts)
       ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.ts)
       ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
-      └── offerAfterSync (src\renderer\services\analysisService.ts)
+      ├── confirmDiscard (src\renderer\controllers\handlers\templateEditorHandler.ts)
+      ├── then (src\renderer\controllers\handlers\templateEditorHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\templateEditorHandler.ts)
+      ├── offerAfterSync (src\renderer\services\analysisService.ts)
+      ├── confirm (src\renderer\services\skillRunnerService.ts)
+      └── run (src\renderer\services\startupService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Modal\ModalManager.ts)
+
+⚙️ [narrator:status]
+    * Emissores:
+      └── setStatus (src\renderer\services\narratorService.ts)
+    * Escutadores:
+      └── editableFields (src\renderer\components\Toolbar\ToolbarComponent.ts)
+
+⚙️ [narrator:stop]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── constructor (src\renderer\services\narratorService.ts)
+
+⚙️ [narrator:toggle]
+    * Emissores:
+      └── run (src\renderer\services\shortcutService.ts)
+    * Escutadores:
+      └── constructor (src\renderer\services\narratorService.ts)
 
 ⚙️ [note:create]
     * Emissores:
@@ -549,6 +622,38 @@
       └── ---
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
+
+⚙️ [productivity:auto]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── bump (src\renderer\services\productivityService.ts)
+
+⚙️ [productivity:changed]
+    * Emissores:
+      ├── reset (src\renderer\services\productivityService.ts)
+      ├── deleteRecord (src\renderer\services\productivityService.ts)
+      └── clearRecords (src\renderer\services\productivityService.ts)
+    * Escutadores:
+      └── constructor (src\renderer\components\Central\panels\systemPanel.ts)
+
+⚙️ [productivity:reset]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── bump (src\renderer\services\productivityService.ts)
+
+⚙️ [productivity:tick]
+    * Emissores:
+      └── tick (src\renderer\services\productivityService.ts)
+    * Escutadores:
+      └── ---
+
+⚙️ [productivity:toggle]
+    * Emissores:
+      └── run (src\renderer\services\shortcutService.ts)
+    * Escutadores:
+      └── bump (src\renderer\services\productivityService.ts)
 
 ⚙️ [search:changed]
     * Emissores:
@@ -578,15 +683,24 @@
 
 ⚙️ [settings:close]
     * Emissores:
-      └── open (src\renderer\components\Central\CentralComponent.ts)
+      ├── open (src\renderer\components\Central\CentralComponent.ts)
+      └── consume (src\renderer\utils\escapeKey.ts)
     * Escutadores:
       └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
 
 ⚙️ [settings:open]
     * Emissores:
-      └── ---
+      ├── execute (src\renderer\ai\tools\systemTools.ts)
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
+
+⚙️ [skills:changed]
+    * Emissores:
+      ├── setCustomSkills (src\renderer\services\skillService.ts)
+      └── recordRun (src\renderer\services\skillService.ts)
+    * Escutadores:
+      └── constructor (src\renderer\components\Central\panels\aiPanel.ts)
 
 ⚙️ [spellcheck:changed]
     * Emissores:
@@ -599,6 +713,7 @@
 
 ⚙️ [spellcheck:toggle]
     * Emissores:
+      ├── execute (src\renderer\ai\tools\systemTools.ts)
       └── more (src\renderer\components\Central\panels\issuesPanel.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
@@ -608,7 +723,8 @@
       └── syncMultipleFiles (src\renderer\controllers\handlers\fileHandler.ts)
     * Escutadores:
       ├── constructor (src\renderer\components\Central\panels\issuesPanel.ts)
-      └── constructor (src\renderer\services\analysisService.ts)
+      ├── constructor (src\renderer\services\analysisService.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [sync:open-modal]
     * Emissores:
@@ -624,6 +740,7 @@
 
 ⚙️ [temp-file:deleted]
     * Emissores:
+      ├── splitFrontmatter (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
       └── onClick (src\renderer\controllers\handlers\fileHandler.ts)
@@ -642,7 +759,8 @@
       ├── setupListeners (src\renderer\components\Editor\EditorComponent.ts)
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [temp-file:saving-error]
     * Emissores:
@@ -652,12 +770,14 @@
 
 ⚙️ [temp-file:synced]
     * Emissores:
+      ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onClick (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── syncFile (src\renderer\controllers\handlers\fileHandler.ts)
       └── syncFile (src\renderer\services\fileService.ts)
     * Escutadores:
       ├── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
-      └── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [temp-files:pending-list]
     * Emissores:
@@ -666,16 +786,25 @@
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       └── setupListeners (src\renderer\components\Toolbar\ToolbarComponent.ts)
 
+⚙️ [template-editor:open]
+    * Emissores:
+      └── edit (src\renderer\components\Central\panels\system\templates.ts)
+    * Escutadores:
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
 ⚙️ [theme:changed]
     * Emissores:
       └── applyTheme (src\renderer\core\themeManager.ts)
     * Escutadores:
       ├── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
-      └── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
+      ├── setChatBackgroundColor (src\renderer\components\Settings\SettingsComponent.ts)
+      └── set (src\renderer\services\appearanceService.ts)
 
 ⚙️ [theme:toggle]
     * Emissores:
-      └── ---
+      ├── dark (src\renderer\components\Central\panels\system\appearance.ts)
+      ├── set (src\renderer\services\appearanceService.ts)
+      └── run (src\renderer\services\shortcutService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\core\themeManager.ts)
 
@@ -684,6 +813,7 @@
       ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
       ├── assertValuesFromAuthor (src\renderer\ai\tools\creationTools.ts)
       ├── toast (src\renderer\components\Central\CentralComponent.ts)
+      ├── openChatLink (src\renderer\components\Chat\ChatComponent.ts)
       ├── runAutoLinks (src\renderer\components\Editor\EditorComponent.ts)
       ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
       ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
@@ -713,15 +843,23 @@
       ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
       ├── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
       ├── onAutoLink (src\renderer\controllers\handlers\linkHandler.ts)
+      ├── openTemplateEditor (src\renderer\controllers\handlers\templateEditorHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\templateEditorHandler.ts)
+      ├── paint (src\renderer\controllers\handlers\templateEditorHandler.ts)
       ├── onVariablesOpen (src\renderer\controllers\handlers\variablesHandler.ts)
       ├── onVariablesInlineSave (src\renderer\controllers\handlers\variablesHandler.ts)
+      ├── registerEvents (src\renderer\controllers\uiController.ts)
       ├── notifyError (src\renderer\services\analysisService.ts)
-      └── runWithToasts (src\renderer\services\analysisService.ts)
+      ├── runWithToasts (src\renderer\services\analysisService.ts)
+      ├── play (src\renderer\services\narratorService.ts)
+      ├── checkUpdates (src\renderer\services\startupService.ts)
+      └── checkBackup (src\renderer\services\startupService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Toast\ToastComponent.ts)
 
 ⚙️ [toolbar:open-sync-modal]
     * Emissores:
+      ├── execute (src\renderer\ai\tools\systemTools.ts)
       └── handleSyncClick (src\renderer\components\Toolbar\ToolbarComponent.ts)
     * Escutadores:
       └── ---
@@ -812,6 +950,12 @@
       ├── setInterval (src\renderer\components\Chat\ChatComponent.ts)
       └── registerEvents (src\renderer\controllers\domainController.ts)
 
+⚙️ [ai:turn-finished]
+    * Emissores:
+      └── notice (src\renderer\services\aiService.ts)
+    * Escutadores:
+      └── fire (src\renderer\services\skillRunnerService.ts)
+
 ⚙️ [ai:usage-updated]
     * Emissores:
       └── publishUsage (src\renderer\services\aiService.ts)
@@ -835,6 +979,30 @@
       └── selectBook (src\renderer\services\bookService.ts)
     * Escutadores:
       └── ---
+
+⚙️ [chapter:created]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── fire (src\renderer\services\skillRunnerService.ts)
+
+⚙️ [chapter:deleted]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── fire (src\renderer\services\skillRunnerService.ts)
+
+⚙️ [file:created]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── fire (src\renderer\services\skillRunnerService.ts)
+
+⚙️ [file:deleted]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── fire (src\renderer\services\skillRunnerService.ts)
 
 ⚙️ [file:restored]
     * Emissores:

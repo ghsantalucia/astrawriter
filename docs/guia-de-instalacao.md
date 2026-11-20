@@ -1,62 +1,73 @@
 # Guia de Instalação e Release — Astra Writer
 
-Como gerar o instalador do Windows e como o app se comporta depois de instalado.
+Como gerar o instalador e a versão portátil do Windows, auditar o pacote e publicar no GitHub.
 
-## 1. Gerar o instalador
+## 1. Gerar o instalador e a versão portátil
 
-Na raiz do projeto:
+Feche o app (dev ou instalado) e, na raiz do projeto:
 
 ```bash
 npm run release
 ```
 
-O comando faz três coisas (ver `scripts/release.js`):
+O comando (ver `scripts/release.js`):
 
-1. empacota o app com o Electron Forge (pasta `out/`);
-2. remove do pacote qualquer pasta `books/` (assim o instalador sempre leva `books/` **vazia**);
-3. gera o instalador com o electron-builder.
+1. regenera o livro padrão **Manual de Uso** a partir do `docs/guia-do-usuario.md` (`scripts/build-manual.js`);
+2. empacota o app e gera, com o Electron Forge, o **instalador** (`AstraWriter-Setup.exe`, mais os arquivos de atualização
+   `.nupkg` e `RELEASES`) e a **versão portátil** (um `.zip`);
+3. **audita o pacote** (`scripts/audit-package.js`): procura chaves de API, livros, dados de teste e caminhos do seu computador.
+   Se achar algo, o comando falha e nada é copiado;
+4. copia tudo para a pasta `release/`.
 
-O resultado é **`release/Astra Writer Setup 1.0.0.exe`** (~135 MB). Esse é o arquivo que você instala ou distribui.
+Arquivos gerados em `release/`:
 
-> A primeira execução baixa as ferramentas do instalador (NSIS) e demora mais. **Feche o app empacotado antes** de gerar de novo
-> (se `out/draftweaver-v2-win32-x64/` estiver em uso, o Windows trava a pasta). Para gerar em outra pasta: `FORGE_OUT_DIR=out-release npm run release`.
+| Arquivo | Para quê |
+| --- | --- |
+| `AstraWriter-Setup.exe` | Instalador (instala só para o usuário atual, sem administrador, cria atalhos e o desinstalador) |
+| `AstraWriter-portable-<versão>-win-x64.zip` | Versão portátil: descompacte em qualquer pasta e execute `Astra Writer.exe` |
+| `AstraWriter-<versão>-full.nupkg` e `RELEASES` | Usados pela atualização automática do app instalado (precisam estar na release do GitHub) |
 
-Só o app sem instalador (para uma olhada rápida): `npm run package` → `out/draftweaver-v2-win32-x64/Astra Writer.exe`.
+> A versão portátil **não se atualiza sozinha** e, como a instalada, guarda os livros em `Documentos\Astra Writer\books` e as
+> configurações em `%APPDATA%\Astra Writer`.
 
-## 2. O que o instalador faz
+## 2. O que garante que nada seu vai junto
 
-- Abre um **assistente** que pergunta **onde instalar** (padrão: `%LOCALAPPDATA%\Programs\Astra Writer`; instala só para o usuário atual, sem pedir administrador).
-- Cria o atalho **"Astra Writer" na área de trabalho** e no menu Iniciar. É por ele que você abre o app, como o `npm start` faz em desenvolvimento.
-- Cria a pasta **`books/` vazia** dentro da pasta de instalação.
-- Cria o desinstalador (Configurações do Windows → Aplicativos).
-- **Não precisa instalar mais nada:** o Electron já leva dentro dele o Chromium, o Node e todas as dependências do app (incluindo os dicionários da correção ortográfica).
+- O pacote leva só o resultado do build, as dependências de produção e a pasta `templates` (modelos de livro, perfis de template e o
+  Manual de Uso). Nunca leva `books/`, `.system`, `debug.log` nem a sua pasta de configurações.
+- Suas chaves de API ficam em `%APPDATA%\draftweaver-v2` (desenvolvimento). O app instalado usa **outra** pasta, `%APPDATA%\Astra Writer`,
+  que nasce vazia em cada computador: ele nunca enxerga as suas chaves.
+- Os livros do app instalado ficam em `Documentos\Astra Writer\books`; os de desenvolvimento, na pasta `books/` do projeto.
+- `scripts/audit-package.js` confere isso a cada release.
 
-## 3. Onde ficam os dados
+## 3. Primeira abertura
 
-| O quê | Onde (app instalado) | Em desenvolvimento (`npm start`) |
-| --- | --- | --- |
-| **Livros** | `<pasta de instalação>\books\` | `books/` na raiz do projeto |
-| **Modelo de livro** | `<pasta de instalação>\resources\templates\` | `templates/` na raiz do projeto |
-| **Chave de IA, dicionário pessoal, log de erros da IA** | `%APPDATA%\draftweaver-v2\` | o mesmo |
+Ao abrir pela primeira vez, o app instala o livro **Manual de Uso** (uma única vez por usuário; se for apagado, não volta).
 
-- **Desinstalar ou atualizar não apaga os livros:** o desinstalador remove tudo da pasta de instalação **menos** `books/` (se houver livros, a pasta de instalação permanece só com ela).
-  Para apagar os livros de vez, exclua essa pasta manualmente.
-- **Instale em uma pasta onde você tem permissão de escrita** (o padrão serve). Em `C:\Program Files`, por exemplo, o Windows impede o app de gravar livros.
-- Faça **backup** copiando a pasta `books/`.
+## 4. Testar numa máquina limpa
 
-## 4. Testar na sua máquina
+1. Copie `AstraWriter-Setup.exe` para outro computador (ou uma conta de usuário nova do Windows) e execute. O Windows pode mostrar o
+   aviso do **SmartScreen** ("Windows protegeu o computador"): como o app não tem assinatura de código paga, clique em
+   **Mais informações → Executar assim mesmo**.
+2. Confira: abre com o livro **Manual de Uso**, sem contas de IA, sem rascunhos, sem livros seus.
+3. Teste também o `.zip` portátil.
 
-1. Feche o app em desenvolvimento e qualquer cópia de `out/` que esteja aberta.
-2. Rode `npm run release`.
-3. Execute `release\Astra Writer Setup 1.0.0.exe`, escolha a pasta e conclua.
-4. Abra o atalho da área de trabalho: o app inicia com a lista de livros vazia. Crie um livro em **"Criar novo livro"**.
+## 5. Publicar no GitHub (releases)
 
-O Windows pode mostrar o aviso do **SmartScreen** ("editor desconhecido") porque o instalador não é assinado digitalmente. Clique em **Mais informações → Executar assim mesmo**.
+Repositório: `https://github.com/ghsantalucia/draftweaver` (público).
 
-## 5. Detalhes técnicos
+**Pelo site (mais simples)**
 
-- `forge.config.js`: `executableName` (`Astra Writer.exe`), `icon` (`public/icon`), `extraResource` (`templates` e `public/icon.ico`) e `ignore` (só entram `.vite/`, `node_modules/` e
-  `package.json`: o processo principal usa `require` em tempo de execução).
-- `electron-builder.yml`: opções do instalador NSIS (assistente, escolha da pasta, atalhos). `build/installer.nsh`: cria `books/` e impede que a desinstalação a apague.
-- `src/main/paths.ts`: único lugar que decide as pastas (`books/` ao lado do executável quando instalado, raiz do projeto em desenvolvimento).
-- O nome da pasta de dados do usuário (`draftweaver-v2`) vem do `productName` do `package.json`. Não o altere sem migrar esses dados (chave de IA e dicionário pessoal).
+1. Faça commit e `git push` do código.
+2. Crie a tag da versão: `git tag v1.0.0` e `git push origin v1.0.0`.
+3. No GitHub: **Releases → Draft a new release** → escolha a tag `v1.0.0` → título "Astra Writer 1.0.0" → descreva as novidades.
+4. Arraste para a release **todos** os arquivos de `release/` (Setup, zip portátil, `.nupkg` e `RELEASES`).
+5. **Publish release**. (O app só encontra atualizações em releases publicadas, não em rascunhos.)
+
+**Pela linha de comando** (opcional): instale o GitHub CLI (`winget install GitHub.cli`), rode `gh auth login` e:
+
+```bash
+gh release create v1.0.0 release/* --title "Astra Writer 1.0.0" --notes "Primeira versão oficial"
+```
+
+**Próximas versões:** aumente o `version` no `package.json`, rode `npm run release` e repita. O app instalado verifica as
+releases ao abrir e baixa a atualização sozinho (Central do Sistema → Atualização).

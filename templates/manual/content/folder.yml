@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: false
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Escrita"
+description: "Contém os manuscritos dos capítulos do livro."
+userDelete: false
+userRename: false

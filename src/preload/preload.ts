@@ -4,7 +4,7 @@
  * @file Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.
  */
 
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, webFrame } = require("electron");
 
 /**
  * API principal exposta no escopo global do renderizador para operações do sistema.
@@ -21,6 +21,40 @@ contextBridge.exposeInMainWorld("electronAPI", {
   exportFile: (payload) => ipcRenderer.invoke("export-file", payload),
   /** Exporta o livro: zip do projeto, zip dos capítulos ou arquivo único. */
   exportBook: (payload) => ipcRenderer.invoke("export-book", payload),
+  /** Importa um livro de um zip exportado pelo app (pergunta qual arquivo). */
+  importBook: () => ipcRenderer.invoke("import-book"),
+
+  /** Skills do usuário (compartilhadas entre os livros): listar, salvar e excluir. */
+  skills: {
+    list: () => ipcRenderer.invoke("skills-list"),
+    save: (file, content) => ipcRenderer.invoke("skills-save", file, content),
+    delete: (file) => ipcRenderer.invoke("skills-delete", file),
+  },
+  /** Perfis de template: listar, ler, salvar, restaurar, criar, renomear e excluir. */
+  templates: {
+    profiles: () => ipcRenderer.invoke("templates-profiles"),
+    read: (profile, kind) => ipcRenderer.invoke("templates-read", profile, kind),
+    original: (profile, kind) => ipcRenderer.invoke("templates-original", profile, kind),
+    save: (profile, kind, body) => ipcRenderer.invoke("templates-save", profile, kind, body),
+    restore: (profile, kind) => ipcRenderer.invoke("templates-restore", profile, kind),
+    createProfile: (input) => ipcRenderer.invoke("templates-create-profile", input),
+    renameProfile: (id, name) => ipcRenderer.invoke("templates-rename-profile", id, name),
+    deleteProfile: (id) => ipcRenderer.invoke("templates-delete-profile", id),
+  },
+  /** Central do Sistema: atualização, tamanho das pastas, backup e desinstalação. */
+  checkUpdate: () => ipcRenderer.invoke("check-update"),
+  configureAutoUpdate: (enabled) => ipcRenderer.invoke("configure-auto-update", enabled),
+  getUpdateState: () => ipcRenderer.invoke("get-update-state"),
+  installUpdate: () => ipcRenderer.invoke("install-update"),
+  appDiskUsage: () => ipcRenderer.invoke("app-disk-usage"),
+  backupBooks: (folder, keep) => ipcRenderer.invoke("backup-books", { folder, keep }),
+  exportAllBooks: () => ipcRenderer.invoke("export-all-books"),
+  uninstallApp: () => ipcRenderer.invoke("uninstall-app"),
+  takeFirstRunBook: () => ipcRenderer.invoke("take-first-run-book"),
+  /** Avisos da atualização automática (baixando, pronta para instalar...). */
+  onUpdateStatus: (callback) => ipcRenderer.on("update-status", (event, status) => callback(status)),
+  /** Zoom de toda a interface (tamanho da fonte do app): 1 = 100%. */
+  setZoomFactor: (factor) => webFrame.setZoomFactor(Number(factor) || 1),
 
   /** Versão do app (package.json). */
   getAppVersion: () => ipcRenderer.invoke("get-app-version"),
@@ -120,7 +154,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("save-ai-settings", settings),
 
   /** Altera o tema visual da barra de título nativa. */
-  setNativeTheme: (isDark) => ipcRenderer.send("update-titlebar-theme", isDark),
+  setNativeTheme: (isDark, colors) => ipcRenderer.send("update-titlebar-theme", isDark, colors),
 });
 
 /**

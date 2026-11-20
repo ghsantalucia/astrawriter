@@ -544,3 +544,541 @@ li.kb-focus > .file-issues {
 .cn-field[hidden] {
   display: none;
 }
+
+/* ---------- Central do Sistema ---------- */
+.cn-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.cn-range input[type="range"] {
+  width: 160px;
+  accent-color: var(--accent);
+}
+.cn-range output {
+  min-width: 38px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+/* Temas de cores */
+.cn-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  margin: 10px 0;
+}
+.cn-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.cn-theme.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.cn-theme small {
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+.cn-theme-swatch {
+  display: flex;
+  height: 30px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.cn-theme-swatch span {
+  flex: 1;
+}
+.cn-theme-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 12px 0;
+}
+.cn-theme-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.cn-theme-row label,
+.cn-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cn-theme-row small {
+  color: var(--text-dim);
+  min-width: 38px;
+}
+.cn-theme-row input[type="color"],
+.cn-color input[type="color"] {
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+.cn-chat-theme {
+  padding: 10px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.cn-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 10px;
+}
+
+/* Atalhos */
+.cn-key {
+  display: inline-block;
+  min-width: 22px;
+  margin-right: 4px;
+  padding: 2px 7px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-align: center;
+}
+.cn-shortcuts td:first-child {
+  width: 42%;
+}
+.cn-keys {
+  white-space: nowrap;
+}
+.cn-recording {
+  color: var(--accent);
+  font-style: italic;
+}
+.cn-sub {
+  margin: 14px 0 4px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Produtividade */
+.cn-chart {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  margin-top: 10px;
+}
+.cn-line-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cn-line-area {
+  fill: var(--accent);
+  opacity: 0.12;
+}
+.cn-line-grid {
+  stroke: var(--line);
+  stroke-dasharray: 3 4;
+}
+.cn-line-dot {
+  fill: var(--bg-editor);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.cn-line-dot:hover {
+  fill: var(--accent);
+}
+.cn-table .cn-sub td {
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.cn-table .cn-day-row td {
+  font-weight: 600;
+}
+.cn-bar-label {
+  fill: var(--text-dim);
+  font-size: 9px;
+}
+
+/* Editor: pré-visualização das fontes */
+.cn-preview-section {
+  border: 2px solid var(--accent) !important;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  padding: 12px 14px;
+}
+.cn-preview-section h4 {
+  color: var(--accent);
+}
+.cn-font-preview {
+  padding: 16px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-editor);
+  color: var(--text-editor);
+}
+.cn-font-preview .cn-font-h {
+  margin-bottom: 8px;
+  font-size: 1.6em;
+  font-weight: 700;
+}
+.cn-font-preview p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ---------- Skills ---------- */
+.cn-skill-card {
+  cursor: pointer;
+  gap: 6px;
+}
+.cn-skill-card:hover {
+  border-color: var(--accent);
+}
+.cn-skill-card > span {
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.cn-edited {
+  color: var(--warning);
+  font-weight: 600;
+}
+.cn-skill-page h3 {
+  margin: 6px 0 2px;
+}
+.cn-skill-about {
+  margin: 10px 0;
+  line-height: 1.55;
+}
+.cn-fold {
+  margin: 8px 0;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+}
+.cn-fold > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+.cn-trig-group {
+  margin: 4px 0;
+}
+.cn-trig-group > summary {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+.cn-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  padding: 6px 0;
+}
+.cn-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.cn-loading {
+  padding: 28px 8px;
+  color: var(--text-dim);
+}
+
+/* ---------- Skills: cor, estado, busca e tabela de tools ---------- */
+.cn-skill-card {
+  border-left: 5px solid var(--skill-color, var(--accent));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--skill-color, var(--accent)) 9%, transparent), transparent 60%);
+}
+.cn-skill-card[hidden] {
+  display: none;
+}
+.cn-skill-card.inactive {
+  opacity: 0.62;
+}
+.cn-skill-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cn-skill-head strong {
+  flex: 1;
+  min-width: 0;
+}
+.cn-skill-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--skill-color, var(--accent));
+  flex: none;
+}
+.cn-skill-head .cn-skill-dot {
+  margin-right: 0;
+}
+.cn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.cn-status i {
+  font-size: 0.55rem;
+}
+.cn-status.on {
+  color: var(--success);
+}
+.cn-status.off {
+  color: var(--text-subtle);
+}
+.cn-searchbar {
+  position: relative;
+  margin: 10px 0 4px;
+}
+.cn-searchbar i {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+.cn-searchbar .cn-input {
+  width: 100%;
+  padding-left: 34px;
+}
+.cn-skill-color {
+  width: 42px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: none;
+  cursor: pointer;
+}
+.cn-tool-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-editor) 45%, transparent);
+}
+.cn-tool-filter {
+  grid-column: 1 / -1;
+}
+.cn-tool-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-areas: "box name" ". desc";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 1px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.cn-tool-row[hidden] {
+  display: none;
+}
+.cn-tool-row:hover {
+  border-color: var(--line-strong);
+}
+.cn-tool-row.on {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+.cn-tool-row code {
+  grid-area: name;
+  font-weight: 600;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cn-tool-row small {
+  grid-area: desc;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+.cn-cbx-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.cn-cbx {
+  grid-area: box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--bg-editor);
+  color: transparent;
+  font-size: 0.65rem;
+  transition: all 0.15s ease;
+}
+.cn-cbx-input:checked + .cn-cbx {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--text-on-accent, #fff);
+}
+.cn-cbx-input:focus-visible + .cn-cbx {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cn-cbx-input:disabled + .cn-cbx {
+  opacity: 0.55;
+}
+
+.cn-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+/* ---------- Contas de IA: um cartão por conta ---------- */
+.cn-acct-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  margin: 10px 0;
+}
+.cn-acct {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cn-acct.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 70%);
+}
+.cn-acct-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cn-acct-use {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.cn-acct.active .cn-acct-use {
+  color: var(--accent);
+}
+.cn-cbx.round {
+  border-radius: 50%;
+}
+.cn-acct-nick {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.cn-acct-provider {
+  margin-top: -6px;
+  color: var(--text-subtle);
+}
+.cn-acct-field {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.cn-acct-field > span {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cn-acct-field .cn-select,
+.cn-acct-field .cn-input {
+  width: 100%;
+  min-width: 0;
+}
+.cn-grow {
+  width: 100%;
+}
+.cn-keycell-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Gráfico de produtividade: tooltip que segue o cursor */
+.cn-chart-wrap {
+  position: relative;
+}
+.cn-chart-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-app-strong, var(--line-strong));
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  box-shadow: 0 6px 18px var(--shade-strong, rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+.cn-chart-tip[hidden] {
+  display: none;
+}
+.cn-chart-tip small {
+  color: var(--text-dim);
+}
+.cn-line-dot.hover {
+  fill: var(--accent);
+  r: 6;
+}

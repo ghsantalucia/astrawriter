@@ -27,6 +27,11 @@ export const CHAT_ACTIONS = {
     event: "sync:open-modal",
     description: "Abre a janela de sincronização de rascunhos pendentes.",
   },
+  "open-central": {
+    event: "central:open",
+    description: "Abre uma central do app (requer `central`: issues, book, ai ou system; opcional `tab`).",
+    params: ["central"],
+  },
   "open-settings": {
     event: "settings:open",
     description: "Abre as configurações do aplicativo.",

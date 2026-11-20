@@ -4,9 +4,10 @@
  * @file Componente responsável pela renderização estrutural do chat do assistente de IA
  */
 
+import { isAppLink, openAppLink } from "../../utils/appLinks.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
-import { initStarryBackground } from "./animations.js";
+import { initStarryBackground, setStarsPalette } from "./animations.js";
 import { Component } from "../Component.js";
 import { gsap } from "gsap";
 import { renderChatMarkdown } from "../../utils/chatMarkdown.js";
@@ -16,6 +17,7 @@ import { mountNebula } from "./nebula.js";
 import { mountOrbits, ORBIT_PRESETS } from "./orbits.js";
 import {
   getChatBackground,
+  getExtraColors,
   hasSavedColor,
 } from "../../utils/chatBackground.js";
 import {
@@ -86,6 +88,11 @@ export class ChatComponent extends Component {
 
     // Preferência de fundo alterada nas configurações
     this.uiBus.on("chat-bg:apply", () => {
+      this.applyChatBackground(document.body.classList.contains("dark-theme"));
+    });
+    // Cores extras alteradas na Central do Sistema: reconstrói o fundo com a nova paleta
+    this.uiBus.on("chat-bg:rebuild", () => {
+      this.bgKey = null;
       this.applyChatBackground(document.body.classList.contains("dark-theme"));
     });
 
@@ -183,6 +190,7 @@ export class ChatComponent extends Component {
 
     const theme = isDark ? "dark" : "light";
     const { mode, color } = getChatBackground(theme);
+    setStarsPalette(getExtraColors(theme, "stars"));
 
     // Mesmo tipo e tema: só a cor mudou (não reconstrói a animação)
     if (this.bgKey === `${theme}:${mode}` && this.bg) {
@@ -216,11 +224,13 @@ export class ChatComponent extends Component {
       } else if (mode === "orbits") {
         const orbits = mountOrbits(body, {
           ...ORBIT_PRESETS[theme],
+          ...getExtraColors(theme, "orbits"),
           background: color,
         });
         this.bg = { ...orbits, setColor: (c) => orbits.setBackground(c) };
       } else {
-        this.bg = mountNebula(body);
+        const nebula = mountNebula(body, { colors: getExtraColors(theme, "nebula") });
+        this.bg = { ...nebula, setColor: () => nebula.setColors(getExtraColors(theme, "nebula")) };
       }
       // Gaveta recolhida: a animação fica pausada
       if (!expanded) this.bg.pause();
@@ -423,9 +433,18 @@ export class ChatComponent extends Component {
     }
 
     if (btnSend) {
-      btnSend.disabled = isLoading;
-      btnSend.style.opacity = isLoading ? "0.5" : "1";
-      btnSend.style.pointerEvents = isLoading ? "none" : "auto";
+      // Enquanto a IA trabalha, o botão de enviar vira o de parar (interrompe a resposta)
+      this.aiBusy = Boolean(isLoading);
+      btnSend.classList.toggle("stop", this.aiBusy);
+      btnSend.title = this.aiBusy ? "Parar a IA" : "Enviar mensagem";
+      btnSend.setAttribute("aria-label", btnSend.title);
+      this.sendIconHtml ??= btnSend.innerHTML;
+      btnSend.innerHTML = this.aiBusy
+        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>'
+        : this.sendIconHtml;
+      btnSend.disabled = false;
+      btnSend.style.opacity = "1";
+      btnSend.style.pointerEvents = "auto";
     }
 
     // Gaveta recolhida + IA trabalhando: a estrela do cabeçalho vira os três pontinhos animados
@@ -484,6 +503,10 @@ export class ChatComponent extends Component {
    */
   async openChatLink(href) {
     if (!href || href.startsWith("#")) return;
+    if (isAppLink(href)) {
+      openAppLink(href, this.uiBus);
+      return;
+    }
 
     if (!isInternalHref(href)) {
       const url = /^[a-z][a-z0-9+.-]*:/i.test(href) ? href : `https://${href}`;
@@ -751,6 +774,10 @@ export class ChatComponent extends Component {
     if (btnSend) {
       btnSend.addEventListener("click", (e) => {
         e.preventDefault();
+        if (this.aiBusy) {
+          this.uiBus.emit("ai:stop");
+          return;
+        }
         this.triggerSendMessage();
       });
     }
@@ -823,11 +850,15 @@ export class ChatComponent extends Component {
    * @param {Array<{label: string, event: string, data?: Object}>} [msgData.buttons] - Botões exibidos abaixo da mensagem.
    * @returns {HTMLElement} Elemento DOM do nó da mensagem pronto para injeção.
    */
-  createMessageElement({ role, content, buttons }) {
+  createMessageElement({ role, content, buttons, timestamp }) {
+    // Horário (só hora e minuto: a data já aparece no divisor do dia); aparece ao passar o mouse
+    const date = timestamp ? new Date(timestamp) : null;
+    const time = date && !Number.isNaN(date.getTime()) ? date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
     // Respostas da IA vêm em Markdown; mensagens do usuário continuam texto puro
     const html = this.compile(messageTpl, {
       role,
       content,
+      time,
       html: role === "assistant" ? renderChatMarkdown(content) : null,
       buttons: this.prepareButtons(buttons),
     });

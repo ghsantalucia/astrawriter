@@ -6,6 +6,7 @@
 
 import { AI_PROVIDERS, getProviderInfo } from "../../../ai/providers/index.js";
 import { getUsageReport } from "../../../ai/usageTracker.js";
+import { SkillsTab } from "./system/skillsTab.js";
 import { MAX_RECENT, clearExchanges, ensureDebugLoaded, isPinned, listExchanges, listPinned, loadPinned, pinExchange, subscribeExchanges, unpinExchange } from "../../../ai/debugLog.js";
 import { builtinSkillNames, listSkills } from "../../../ai/skills/index.js";
 import { PROFILES, PROFILE_OPTIONS, detectProfile, resolveAnalysis, toSaved } from "../../../ai/profiles.js";
@@ -45,9 +46,12 @@ export class AiPanel {
     this.title = "Central de IA";
     this.usageDays = 7;
     this.unsubscribe = null;
-    /** Skill em edição na aba de skills (null: formulário em branco). */
-    this.editingSkill = null;
+    /** Aba de skills (biblioteca, mercado, página da skill e formulário). */
+    this.skillsTab = new SkillsTab(ctx);
     this.editingKey = null;
+    ctx.uiBus.on("skills:changed", () => {
+      if (this.ctx.isOpen?.("ai") && this.ctx.currentTab?.() === "skills") this.ctx.refresh();
+    });
     // Contas alteradas (aqui ou nas Configurações): a página se atualiza
     ctx.uiBus.on("ai-accounts:changed", () => {
       if (this.ctx.isOpen?.("ai")) this.ctx.refresh();
@@ -94,7 +98,7 @@ export class AiPanel {
       usage: ["Uso por modelo", "Requisições e tokens contados pelo app neste computador (a API nem sempre informa a cota restante)."],
       analysis: ["Perfil de uso e análises", "Escolha quanto a IA trabalha (e gasta tokens) neste app, como nas configurações de qualidade de um jogo. Mexer em qualquer opção muda o perfil para Personalizado."],
       debug: ["Depuração", "Os últimos 10 turnos de conversa com a IA: o texto completo enviado (instruções do sistema, histórico e mensagem), a resposta, as tools usadas e os tokens. Use o alfinete para salvar um turno importante; a chave de API nunca aparece aqui."],
-      skills: ["Skills", "Pacotes de instruções que a IA carrega sob demanda. Crie as suas para este livro."],
+      skills: ["Skills", "Pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Algumas rodam só quando você manda; outras rodam sozinhas em gatilhos (como ao sincronizar)."],
     };
     const [subtitle, lead] = titles[tab] || ["", ""];
     return { subtitle, lead };
@@ -114,7 +118,7 @@ export class AiPanel {
     if (tab === "usage") return this.renderUsage(el);
     if (tab === "analysis") return this.renderAnalysis(el);
     if (tab === "debug") return this.renderDebug(el);
-    if (tab === "skills") return this.renderSkills(el);
+    if (tab === "skills") return this.skillsTab.render(el);
     if (tab === "errors") return this.renderErrors(el);
   }
 
@@ -144,41 +148,47 @@ export class AiPanel {
     const ctxWindow = this.ai.getContextWindow();
 
     const toolModeLabels = { auto: "Automático", native: "Nativas", simulated: "Simuladas" };
+    /** Campo rotulado dentro do cartão da conta. */
+    const field = (label, control, title = "") => `<div class="cn-acct-field" ${title ? `title="${esc(title)}"` : ""}><span>${label}</span><div>${control}</div></div>`;
     const extras = (a, info) => {
-      if (!info?.toolModes && !info?.editableUrl) return "";
-      const url = info.editableUrl
-        ? `<label class="cn-inline"><span>Endereço</span><input class="cn-input" value="${esc(a.baseUrl || info.defaultUrl || "")}" data-change="baseurl" data-id="${esc(a.id)}" placeholder="endereço do servidor" title="Endereço do servidor" style="min-width:260px" /></label>`
-        : "";
-      const mode = info.toolModes
-        ? `<label class="cn-inline" title="Como a IA usa as tools neste modelo. Automático: tenta o modo nativo e, se o modelo recusar, simula."><span>Tools</span><select class="cn-select" data-change="toolmode" data-id="${esc(a.id)}">${Object.entries(toolModeLabels).map(([v, t]) => `<option value="${v}" ${(a.toolMode || "auto") === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>`
-        : "";
-      const ctx = info.id === "ollama"
-        ? `<label class="cn-inline" title="Contexto (tokens) pedido ao Ollama. O padrão dele (4096) é pequeno para este app."><span>Contexto</span><input class="cn-input" type="number" min="2048" step="1024" value="${esc(a.numCtx || info.defaultContext)}" data-change="numctx" data-id="${esc(a.id)}" style="width:100px" /></label>`
-        : "";
-      return `${mode}${ctx}${url}`;
+      const parts = [];
+      if (info?.toolModes) {
+        parts.push(field("Tools", `<select class="cn-select" data-change="toolmode" data-id="${esc(a.id)}">${Object.entries(toolModeLabels).map(([v, t]) => `<option value="${v}" ${(a.toolMode || "auto") === v ? "selected" : ""}>${t}</option>`).join("")}</select>`, "Como a IA usa as tools neste modelo. Automático: tenta o modo nativo e, se o modelo recusar, simula."));
+      }
+      if (info?.id === "ollama") {
+        parts.push(field("Contexto", `<input class="cn-input" type="number" min="2048" step="1024" value="${esc(a.numCtx || info.defaultContext)}" data-change="numctx" data-id="${esc(a.id)}" />`, "Contexto (tokens) pedido ao Ollama. O padrão dele (4096) é pequeno para este app."));
+      }
+      if (info?.editableUrl) {
+        parts.push(field("Endereço", `<input class="cn-input" value="${esc(a.baseUrl || info.defaultUrl || "")}" data-change="baseurl" data-id="${esc(a.id)}" placeholder="endereço do servidor" title="Endereço do servidor" />`));
+      }
+      return parts.join("");
     };
     const modelCell = (a, info) => {
       const list = modelsOf(this.state, a.provider);
-      const field = list.length
-        ? `<select class="cn-select" data-change="model" data-id="${esc(a.id)}" style="max-width:210px">${options(list, a.model || info?.defaultModel)}</select>`
-        : `<input class="cn-input" value="${esc(a.model || "")}" data-change="model" data-id="${esc(a.id)}" placeholder="nome do modelo" style="max-width:210px" />`;
-      return `<div class="cn-nowrap">${field}${info?.id !== "mock" ? `<button class="cn-btn small ghost" data-act="refresh-models" data-id="${esc(a.id)}" title="Atualizar a lista de modelos"><i class="fa-solid fa-rotate"></i></button>` : ""}</div>`;
+      const input = list.length
+        ? `<select class="cn-select" data-change="model" data-id="${esc(a.id)}">${options(list, a.model || info?.defaultModel)}</select>`
+        : `<input class="cn-input" value="${esc(a.model || "")}" data-change="model" data-id="${esc(a.id)}" placeholder="nome do modelo" />`;
+      return `<div class="cn-nowrap cn-grow">${input}${info?.id !== "mock" ? `<button class="cn-btn small ghost" data-act="refresh-models" data-id="${esc(a.id)}" title="Atualizar a lista de modelos"><i class="fa-solid fa-rotate"></i></button>` : ""}</div>`;
     };
 
-    const rows = accounts
+    const cards = accounts
       .map((a) => {
         const info = getProviderInfo(a.provider);
         const keyOk = Boolean(a.apiKey) || !info?.requiresKey;
-        const sub = extras(a, info);
-        return `<tr data-id="${esc(a.id)}" class="${sub ? "has-sub" : ""}">
-          <td><input type="radio" name="active-account" value="${esc(a.id)}" ${a.id === activeId ? "checked" : ""} data-change="activate" title="Usar esta conta" /></td>
-          <td><input class="cn-input" value="${esc(a.nickname)}" data-change="nick" data-id="${esc(a.id)}" maxlength="40" style="width:150px" /></td>
-          <td>${esc(info?.label || a.provider)}</td>
-          <td>${modelCell(a, info)}</td>
-          <td><div class="cn-keycell">${keyOk ? `<span class="cn-pill success">${info?.requiresKey ? mask(a.apiKey) : "sem chave"}</span>` : '<span class="cn-pill error">sem chave</span>'}
-            ${info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? "Trocar chave" : "Definir chave"}</button>` : ""}</div></td>
-          <td style="text-align:right"><button class="cn-btn small ghost" data-act="remove" data-id="${esc(a.id)}" title="Remover conta"><i class="fa-regular fa-trash-can"></i></button></td>
-        </tr>${sub ? `<tr class="cn-sub" data-id="${esc(a.id)}"><td></td><td colspan="5"><div class="cn-inline-row">${sub}</div></td></tr>` : ""}`;
+        const keyPill = keyOk ? `<span class="cn-pill success">${info?.requiresKey ? mask(a.apiKey) : "sem chave"}</span>` : '<span class="cn-pill error">sem chave</span>';
+        const keyBtn = info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? "Trocar chave" : "Definir chave"}</button>` : "";
+        const active = a.id === activeId;
+        return `<article class="cn-acct ${active ? "active" : ""}" data-id="${esc(a.id)}">
+          <header class="cn-acct-head">
+            <label class="cn-acct-use" title="Usar esta conta"><input type="radio" class="cn-cbx-input" name="active-account" value="${esc(a.id)}" ${active ? "checked" : ""} data-change="activate" /><span class="cn-cbx round" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span>${active ? "Em uso" : "Usar"}</span></label>
+            ${a.provider === "mock" ? '<span class="cn-pill" title="Sempre existe: é o que responde no chat quando nenhuma IA está conectada">embutido</span>' : `<button class="cn-btn small ghost" data-act="remove" data-id="${esc(a.id)}" title="Remover conta"><i class="fa-regular fa-trash-can"></i></button>`}
+          </header>
+          <input class="cn-input cn-acct-nick" value="${esc(a.nickname)}" data-change="nick" data-id="${esc(a.id)}" maxlength="40" title="Apelido da conta" />
+          <small class="cn-acct-provider">${esc(info?.label || a.provider)}</small>
+          ${field("Modelo", modelCell(a, info))}
+          ${field("Chave de API", `<span class="cn-keycell-row">${keyPill}${keyBtn}</span>`)}
+          ${extras(a, info)}
+        </article>`;
       })
       .join("");
 
@@ -188,7 +198,7 @@ export class AiPanel {
          <h4>Contas de IA</h4>
          ${
            accounts.length
-             ? `<table class="cn-table cn-accounts"><thead><tr><th style="width:36px">Ativa</th><th>Apelido</th><th>Provedor</th><th>Modelo</th><th>Chave de API</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+             ? `<div class="cn-acct-grid">${cards}</div>`
              : '<p class="cn-hint">Nenhuma conta. Adicione uma abaixo.</p>'
          }
          ${ctxWindow ? `<p class="cn-hint">Janela de contexto do modelo ativo: <strong>${fmt(ctxWindow)}</strong> tokens.</p>` : ""}
@@ -202,7 +212,7 @@ export class AiPanel {
          <h4>Adicionar conta</h4>
          <div class="cn-row">
            <label class="cn-field"><span>Provedor</span>
-             <select class="cn-select" id="new-provider" data-change="new-provider">${AI_PROVIDERS.map((p) => `<option value="${p.id}">${esc(p.label)}</option>`).join("")}</select></label>
+             <select class="cn-select" id="new-provider" data-change="new-provider">${AI_PROVIDERS.filter((p) => p.id !== "mock").map((p) => `<option value="${p.id}">${esc(p.label)}</option>`).join("")}</select></label>
            <label class="cn-field"><span>Apelido</span>
              <input class="cn-input" id="new-nick" maxlength="40" placeholder="Ex.: Gemini pessoal" /></label>
            <label class="cn-field" style="min-width:260px"><span>Chave de API</span>
@@ -655,91 +665,5 @@ export class AiPanel {
     this.debugTab = this.debugTab || "recent";
     draw();
     this.unsubscribe = subscribeExchanges(draw);
-  }
-
-  // ========== Skills ========== //
-
-  /**
-   * Skills do app e do livro, com o formulário de criação/edição.
-   * @param {HTMLElement} el - Contêiner.
-   * @returns {Promise<void>}
-   * @private
-   */
-  async renderSkills(el) {
-    const skillsService = this.ctx.services.skills;
-    const custom = this.state.currentBookPath ? await skillsService.list() : [];
-    const editing = this.editingSkill && custom.find((s) => s.name === this.editingSkill);
-    const builtin = builtinSkillNames();
-
-    const root = mount(
-      el,
-      `<section class="cn-section">
-         <h4>Skills do app</h4>
-         ${listSkills().filter((s) => builtin.includes(s.name)).map((s) => `<p class="cn-hint"><strong>${esc(s.name)}</strong> — ${esc(s.description)}</p>`).join("") || '<p class="cn-hint">Nenhuma.</p>'}
-       </section>
-       <section class="cn-section">
-         <h4>Skills deste livro</h4>
-         ${
-           custom.length === 0
-             ? '<p class="cn-hint">Você ainda não criou nenhuma. Skills ficam em <code>.system/skills/</code> dentro do livro.</p>'
-             : `<table class="cn-table"><tbody>${custom
-                 .map(
-                   (s) => `<tr><td><strong>${esc(s.name)}</strong><br><small>${esc(s.description)}</small></td>
-                     <td style="text-align:right"><button class="cn-btn small" data-act="edit" data-name="${esc(s.name)}"><i class="fa-solid fa-pen"></i> Editar</button>
-                     <button class="cn-btn small ghost" data-act="delete" data-name="${esc(s.name)}"><i class="fa-regular fa-trash-can"></i></button></td></tr>`,
-                 )
-                 .join("")}</tbody></table>`
-         }
-       </section>
-       <section class="cn-section">
-         <h4>${editing ? `Editar "${esc(editing.name)}"` : "Criar uma skill"}</h4>
-         <label class="cn-field"><span>Nome (minúsculas e hífens)</span>
-           <input class="cn-input" id="sk-name" value="${esc(editing?.name || "")}" ${editing ? "readonly" : ""} placeholder="revisar-dialogos" /></label>
-         <label class="cn-field"><span>Quando a IA deve usar (aparece no prompt de sistema)</span>
-           <input class="cn-input" id="sk-desc" value="${esc(editing?.description || "")}" placeholder="Ao revisar diálogos de um capítulo" /></label>
-         <label class="cn-field"><span>Instruções (a IA só lê quando carregar a skill)</span>
-           <textarea class="cn-textarea" id="sk-body" placeholder="Passo a passo que a IA deve seguir...">${esc(editing?.body || "")}</textarea></label>
-         <div class="cn-row">
-           <button class="cn-btn primary" data-act="save"><i class="fa-solid fa-check"></i> ${editing ? "Salvar alterações" : "Criar skill"}</button>
-           ${editing ? '<button class="cn-btn ghost" data-act="cancel">Cancelar edição</button>' : ""}
-         </div>
-       </section>`,
-      {
-        edit: (btn) => {
-          this.editingSkill = btn.dataset.name;
-          this.ctx.refresh();
-        },
-        cancel: () => {
-          this.editingSkill = null;
-          this.ctx.refresh();
-        },
-        delete: (btn) =>
-          confirmModal(this.ctx.uiBus, {
-            title: "Excluir a skill?",
-            danger: true,
-            confirmText: "Excluir",
-            html: `<p>A skill <strong>${esc(btn.dataset.name)}</strong> será apagada deste livro.</p>`,
-            onConfirm: async () => {
-              await skillsService.remove(btn.dataset.name);
-              this.editingSkill = null;
-              this.ctx.refresh();
-            },
-          }),
-        save: async () => {
-          try {
-            await skillsService.save({
-              name: root.querySelector("#sk-name").value,
-              description: root.querySelector("#sk-desc").value,
-              body: root.querySelector("#sk-body").value,
-            });
-            this.editingSkill = null;
-            this.ctx.toast("Skill salva. A IA já pode usá-la.", "success");
-            this.ctx.refresh();
-          } catch (error) {
-            this.ctx.toast(error.message, "error");
-          }
-        },
-      },
-    );
   }
 }

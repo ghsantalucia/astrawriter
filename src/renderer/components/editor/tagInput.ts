@@ -38,11 +38,26 @@ export class TagInput {
    * @param {Object} options
    * @param {() => string[]} options.getKnownTags - Tags já usadas no livro (para as sugestões).
    * @param {() => void} [options.onChange] - Chamado quando a lista de tags muda.
+   * @param {(raw: string) => string} [options.normalize] - Normaliza um item (padrão: regras das tags).
+   * @param {(input: any) => string[]} [options.parse] - Converte texto/lista em itens (padrão: regras das tags).
+   * @param {string} [options.placeholder] - Texto de ajuda do campo.
+   * @param {string} [options.label] - Nome do campo (leitores de tela).
+   * @param {boolean} [options.stripHash=true] - Remove o "#" digitado no começo (só faz sentido para tags).
+   * @param {boolean} [options.colored=true] - Cada item ganha uma cor própria (como as tags).
+   * @param {boolean} [options.stopEnter=false] - Enter não sobe para o formulário que contém o campo.
+   * O campo serve também para outras listas (ex.: eventos "antes"/"depois"): só muda o que é normalizado e sugerido.
    */
-  constructor(root, { getKnownTags, onChange }) {
+  constructor(root, { getKnownTags, onChange, normalize, parse, placeholder, label, stripHash = true, colored = true, stopEnter = false }) {
     this.root = root;
     this.getKnownTags = getKnownTags;
     this.onChange = onChange || (() => {});
+    this.normalize = normalize || normalizeTag;
+    this.parse = parse || parseTags;
+    this.placeholder = placeholder || "Digite e use vírgula ou Enter";
+    this.label = label || "Tags";
+    this.stripHash = stripHash;
+    this.colored = colored;
+    this.stopEnter = stopEnter;
     this.tags = [];
     this.active = -1;
     this.suggestions = [];
@@ -56,11 +71,13 @@ export class TagInput {
       <div class="tag-input-box">
         <span class="tag-input-chips"></span>
         <input type="text" class="tag-input-field" autocomplete="off" spellcheck="false"
-          placeholder="Digite e use vírgula ou Enter" aria-label="Tags" />
+          aria-label="" />
       </div>
       <ul class="tag-input-list" hidden role="listbox"></ul>`;
     this.chipsEl = this.root.querySelector(".tag-input-chips");
     this.input = this.root.querySelector("input");
+    this.input.placeholder = this.placeholder;
+    this.input.setAttribute("aria-label", this.label);
     this.listEl = this.root.querySelector(".tag-input-list");
 
     this.root
@@ -106,7 +123,7 @@ export class TagInput {
    * @returns {void}
    */
   setTags(tags) {
-    this.tags = parseTags(tags);
+    this.tags = this.parse(tags);
     this.input.value = "";
     this.closeList();
     this.renderChips();
@@ -117,7 +134,7 @@ export class TagInput {
    * @returns {string[]}
    */
   getTags() {
-    return parseTags([...this.tags, this.input.value]);
+    return this.parse([...this.tags, this.input.value]);
   }
 
   /**
@@ -140,7 +157,7 @@ export class TagInput {
         const remove = locked
           ? ""
           : `<button type="button" class="tag-remove" data-remove="${safe}" aria-label="Remover ${safe}">&times;</button>`;
-        return `<span class="tag-chip tag-c${tagColorIndex(tag)}">${safe}${remove}</span>`;
+        return `<span class="tag-chip ${this.colored ? `tag-c${tagColorIndex(tag)}` : "tag-plain"}">${safe}${remove}</span>`;
       })
       .join("");
   }
@@ -151,7 +168,7 @@ export class TagInput {
    * @returns {void}
    */
   add(raw) {
-    const tag = normalizeTag(raw);
+    const tag = this.normalize(raw);
     if (!tag || this.tags.includes(tag)) return;
     this.tags.push(tag);
     this.renderChips();
@@ -196,7 +213,7 @@ export class TagInput {
       this.input.value = rest.replace(/^\s+/, "");
     }
     // O "#" é só enfeite: se for digitado, sai
-    if (/^\s*#/.test(this.input.value)) {
+    if (this.stripHash && /^\s*#/.test(this.input.value)) {
       this.input.value = this.input.value.replace(/^\s*#+/, "");
     }
     this.updateSuggestions();
@@ -220,6 +237,7 @@ export class TagInput {
     } else if (e.key === "Enter") {
       // Enter nunca envia o formulário daqui: só confirma a tag
       e.preventDefault();
+      if (this.stopEnter) e.stopPropagation();
       if (open && this.active >= 0) this.add(this.suggestions[this.active]);
       else this.add(this.input.value);
       this.input.value = "";
@@ -239,7 +257,7 @@ export class TagInput {
 
   /** Busca (entre as tags já cadastradas no livro) as que combinam com o texto digitado. @private */
   updateSuggestions() {
-    const typed = foldText(normalizeTag(this.input.value));
+    const typed = foldText(this.normalize(this.input.value));
     if (!typed) {
       this.closeList();
       return;
@@ -265,7 +283,7 @@ export class TagInput {
     this.listEl.innerHTML = this.suggestions
       .map((tag, i) => {
         const cls = i === this.active ? "active" : "";
-        return `<li role="option" data-tag="${escapeHtml(tag)}" class="${cls}">${tagChipHtml(tag)}</li>`;
+        return `<li role="option" data-tag="${escapeHtml(tag)}" class="${cls}">${this.colored ? tagChipHtml(tag) : `<span class="tag-chip tag-plain">${escapeHtml(tag)}</span>`}</li>`;
       })
       .join("");
   }
