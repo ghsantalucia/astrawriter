@@ -25,6 +25,9 @@ const CHAT_TOOLS = ["show_buttons"];
 /** Tools do modo mínimo (além das do chat): ler arquivos quando o autor pedir. */
 const MINIMAL_TOOLS = ["read_file"];
 
+/** Edição pontual: enviada completa também no modo Econômico (escrever é o uso mais comum; são só duas tools). */
+const SUMMARY_FULL_TOOLS = ["replace_in_file", "append_to_file"];
+
 /** Tools mais usadas, enviadas completas no modo equilibrado. */
 const POPULAR_TOOLS = [
   "list_files",
@@ -33,6 +36,8 @@ const POPULAR_TOOLS = [
   "append_to_file",
   "replace_in_file",
   "load_skill",
+  "list_skills",
+  "run_skill",
   "list_issues",
   "get_file_digest",
   "search_facts",
@@ -90,6 +95,7 @@ export class ToolView {
     if (this.mode === "all") toolRegistry.tools.forEach((_, n) => names.add(n));
     else if (this.mode === "minimal") MINIMAL_TOOLS.forEach((n) => names.add(n));
     else {
+      SUMMARY_FULL_TOOLS.forEach((n) => names.add(n));
       if (this.mode === "popular") POPULAR_TOOLS.forEach((n) => names.add(n));
       unlocked.forEach((n) => names.add(n));
     }
@@ -134,11 +140,15 @@ export class ToolView {
    * @returns {string}
    */
   promptNote() {
+    // Modo Mínimo: a IA só lê. Sem este aviso ela descreve tools de edição que não tem e chega a afirmar que alterou arquivos
+    if (this.mode === "minimal" && !this.allow) {
+      return "\n\n# Modo de uso mínimo\nNeste modo você SÓ pode LER arquivos (`read_file`, pelos caminhos do Mapa do livro) e mostrar botões (`show_buttons`). Você NÃO tem tools para alterar ou criar nada, nem para pedir outras tools. Se o autor pedir uma alteração ou criação, não finja nem diga que fez: explique que neste perfil você só lê e ofereça um botão (`show_buttons` com action `open-central`, central `ai`, tab `analysis`) para ele trocar o perfil de uso da IA.";
+    }
     if (!this.usesSummary) return "";
     const full = this.fullNames();
     const rest = toolRegistry.getDefinitions().filter((d) => !full.has(d.name));
     if (rest.length === 0) return "";
-    return `\n\n# Outras tools (sumário)\nAlém das tools declaradas, existem as abaixo. Para usar uma delas, chame antes \`${SPECS_TOOL}\` com os nomes (recebe a especificação e a tool fica liberada).\n${rest.map((d) => `- ${d.name}: ${oneLine(d)}`).join("\n")}`;
+    return `\n\n# Outras tools (sumário)\nAlém das tools declaradas, existem as abaixo. Para usar uma delas, chame antes \`${SPECS_TOOL}\` com os nomes (recebe a especificação e a tool fica liberada). Para ALTERAR um arquivo existente peça \`replace_in_file\`, \`append_to_file\` ou \`write_file\`; não use as tools de criação para isso.\n${rest.map((d) => `- ${d.name}: ${oneLine(d)}`).join("\n")}`;
   }
 
   /**

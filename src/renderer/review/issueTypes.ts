@@ -170,6 +170,34 @@ export const ISSUE_TYPES = {
     source: "ai",
     description: "Trecho confuso ou ambíguo.",
   },
+  "verbose-tip": {
+    label: "Trecho prolixo",
+    category: "tips",
+    severity: "warning",
+    source: "ai",
+    description: "Trecho maior do que precisa ser, enrolado ou repetitivo.",
+  },
+  "pacing-tip": {
+    label: "Ritmo",
+    category: "tips",
+    severity: "warning",
+    source: "ai",
+    description: "Trecho lento demais, corrido demais ou descritivo em excesso.",
+  },
+  "missing-entity-tip": {
+    label: "Ficha ausente",
+    category: "tips",
+    severity: "warning",
+    source: "ai",
+    description: "Personagem, ambiente, conceito ou evento citado que ainda não tem ficha.",
+  },
+  "grounding-tip": {
+    label: "Grounding",
+    category: "tips",
+    severity: "warning",
+    source: "ai",
+    description: "Fato, data ou objeto que pode não combinar com a época ou o mundo real (só o autor sabe se é proposital).",
+  },
 };
 
 /**

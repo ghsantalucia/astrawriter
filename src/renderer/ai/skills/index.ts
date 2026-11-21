@@ -3,7 +3,7 @@
  * @file Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
  *
  * - **do app** (`./*.md`): vêm instaladas e não podem ser excluídas (só editadas, o que cria uma cópia "editada");
- * - **catálogo** (`./market/*.md`): o "mercado" offline do app; o usuário inclui na biblioteca as que quiser.
+ * - **catálogo** (`./market/*.md`): o "loja" offline do app; o usuário inclui na biblioteca as que quiser.
  *
  * O frontmatter de cada arquivo traz `name` (identificador), `title`, `description`, `author`, `version`, `kind`
  * (`once` ou `recurring`), `triggers`, `tools`, `tags`, `details` (descrição completa em Markdown) e `tokens`
@@ -60,6 +60,17 @@ export function parseSkill(raw, origin) {
     tools: list(m.tools),
     tags: list(m.tags),
     tokens: m.tokens && typeof m.tokens === "object" ? { bookTokens: Number(m.tokens.bookTokens) || 0, spent: Number(m.tokens.spent) || 0 } : null,
+    // Otimizar as instruções quando o perfil de uso pede (desligue em skills com amostras de escrita ou textos exatos)
+    compact: m.compact !== false,
+    // Nativa: já vem instalada e o sistema depende dela (não pode ser removida; pode ser editada, com aviso)
+    native: m.native === true,
+    // Permite que a IA pesquise na internet (busca nativa do provedor, onde existir)
+    web: m.web === true,
+    // Informações que a skill pede ao autor antes de executar (uma pergunta por item; janela com um campo para cada)
+    // Itens com ": " no meio, sem aspas, viram objeto no YAML: junta de volta em texto
+    inputs: (Array.isArray(m.inputs) ? m.inputs : []).map((q) => (q && typeof q === "object" ? Object.entries(q).map(([k, v]) => `${k}: ${v}`).join(" ") : String(q))).filter(Boolean),
+    // Modos do livro em que os gatilhos automáticos valem (vazio = todos); execução manual e pedida pela IA sempre podem
+    modes: list(m.modes),
     edited: m.edited === true,
     sourceSlug: m.sourceSlug ? String(m.sourceSlug) : null,
     origin: m.origin ? String(m.origin) : origin,
@@ -74,7 +85,7 @@ for (const raw of Object.values(rawBuiltin)) {
   if (skill) builtin.set(skill.slug, skill);
 }
 
-/** Skills do catálogo (mercado offline). @type {Map<string, Object>} */
+/** Skills do catálogo (loja offline). @type {Map<string, Object>} */
 const market = new Map();
 for (const raw of Object.values(rawMarket)) {
   const skill = parseSkill(raw, "market");

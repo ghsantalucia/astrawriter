@@ -5,6 +5,8 @@
  */
 
 import { setActiveSignal } from "../ai/abort.js";
+/** Provedores com busca na internet nativa ligada no pedido. */
+const WEB_SEARCH_PROVIDERS = new Set(["claude", "gemini"]);
 import { normalizePath } from "../utils/helpers.js";
 import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
@@ -483,7 +485,7 @@ export class AiService {
    * @returns {Promise<{text: string, tokens: number, buttons: Array<{label: string, event: string, data: Object}>}>}
    * Texto da resposta do provedor ativo e os botões (ferramenta `show_buttons`) a exibir junto dela.
    */
-  async sendMessage({ prompt, history = [], skill = null }) {
+  async sendMessage({ prompt, history = [], skill = null, unchanged = null, web = false }) {
     const bookPath = this.state.currentBookPath;
     const session = { locked: false, syncDenied: false, files: new Set() };
 
@@ -520,6 +522,12 @@ export class AiService {
       buttons: [],
       /** Execução de skill: só estas tools (mais as do chat). */
       allowedTools: skill ? skill.tools : undefined,
+      /** Busca na internet nativa do provedor (skills com `web: true`; só onde o provedor oferece). */
+      web: Boolean(web) && WEB_SEARCH_PROVIDERS.has(this.state.aiProvider),
+      /** Execução de skill: arquivos inalterados desde a última execução (aparecem marcados no mapa e em list_files). */
+      unchanged: unchanged ? new Set(unchanged) : null,
+      /** Arquivos lidos nesta resposta (a skill guarda o hash deles). */
+      readFiles: new Set(),
 
       beginEdit: async () => {
         if (session.locked) return;
@@ -544,6 +552,9 @@ export class AiService {
       notice: (text) => uiBus.emit("chat:system-notice", { text }),
     };
 
+    if (web && !toolContext.web) {
+      toolContext.notice?.("A busca na internet nativa não está disponível neste provedor (só Claude e Gemini): a skill vai usar apenas o que o modelo já sabe.");
+    }
     try {
       const { text, usage } = await ai.processPrompt(
         { prompt, history },
@@ -572,7 +583,7 @@ export class AiService {
       );
       this.publishUsage();
 
-      return { text, buttons: toolContext.buttons, tokens: usage.inputTokens + usage.outputTokens };
+      return { text, buttons: toolContext.buttons, tokens: usage.inputTokens + usage.outputTokens, readFiles: [...toolContext.readFiles] };
     } catch (error) {
       // Interrupção pelo autor não é falha: não entra no log de erros nem muda o estado dos provedores
       if (error?.name === "AbortError") throw error;

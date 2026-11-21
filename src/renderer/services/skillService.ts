@@ -2,7 +2,7 @@
 /**
  * @file Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).
  * Cada skill é um texto de instruções com metadados (autor, versão, tags, gatilhos, tools permitidas), que a IA executa
- * usando as tools. A biblioteca junta as skills do app (sempre instaladas), as incluídas do catálogo (o "mercado",
+ * usando as tools. A biblioteca junta as skills do app (sempre instaladas), as incluídas do catálogo (o "loja",
  * por enquanto offline) e as criadas pelo usuário.
  *
  * - Editar o **texto** de uma skill do app ou do catálogo cria uma cópia com ID novo e o selo "editado" (dá para restaurar);
@@ -43,6 +43,7 @@ export const TRIGGER_GROUPS = [
     group: "Escrita",
     triggers: [
       { id: "sync", label: "Ao sincronizar" },
+      { id: "chapter-sync", label: "Ao sincronizar o manuscrito de um capítulo" },
       { id: "file-open", label: "Ao abrir um arquivo no editor" },
       { id: "file-save", label: "Ao salvar um arquivo (rascunho automático)" },
       { id: "export", label: "Ao exportar" },
@@ -141,6 +142,8 @@ export class SkillService {
         askBefore: prefs.askBefore ?? true,
         enabled: prefs.enabled ?? true,
         color: prefs.color || autoSkillColor(slug),
+        compact: prefs.compact ?? effective.compact !== false,
+        web: prefs.web ?? effective.web === true,
         // Segue o original/catálogo quando o texto foi editado: base para "restaurar" e para comparar versões
         original: base || own || null,
         hasEditedCopy: Boolean(edited),
@@ -160,7 +163,7 @@ export class SkillService {
   }
 
   /**
-   * Catálogo (mercado) com o estado de instalação de cada skill.
+   * Catálogo (loja) com o estado de instalação de cada skill.
    * @returns {Array<Object>}
    */
   market() {
@@ -298,6 +301,11 @@ export class SkillService {
       origin: skill.origin,
       edited: skill.edited || undefined,
       sourceSlug: skill.sourceSlug || undefined,
+      compact: skill.compact === false ? false : undefined,
+      native: skill.native ? true : undefined,
+      web: skill.web ? true : undefined,
+      inputs: skill.inputs?.length ? skill.inputs : undefined,
+      modes: skill.modes?.length ? skill.modes : undefined,
     };
     const content = stringifyFrontmatter(front, `${String(skill.body).trim()}\n`);
     const file = `${skill.id}.md`;
@@ -346,6 +354,7 @@ export class SkillService {
       body: String(input.body).trim(),
       kind: input.kind === "recurring" ? "recurring" : "once",
       tags: (input.tags || []).map(String),
+      inputs: (input.inputs || []).map((q) => String(q).trim()).filter(Boolean),
       triggers: input.triggers || [],
       tools: input.tools || [],
       tokens: null,

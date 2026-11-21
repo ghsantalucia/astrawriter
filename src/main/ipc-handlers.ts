@@ -39,6 +39,8 @@ import {
 import { appendAiError, readAiErrors, clearAiErrors } from "./ai-error-log.js";
 import { migrateBook } from "./book-migrations.js";
 import { takeFirstRunBook } from "./first-run.js";
+import { extractBookFromFile } from "./book-import-file.js";
+import { puterChat, puterModels } from "./puter.js";
 import { scanBook, bookDiskStats } from "./book-scan.js";
 import { withFileWatcherPaused } from "./file-watcher.js";
 
@@ -170,6 +172,11 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("uninstall-app", () => uninstallApp());
   // Primeira abertura: caminho do livro "Manual de Uso" recém-instalado (devolvido uma única vez)
   ipcMain.handle("take-first-run-book", () => takeFirstRunBook());
+  // Importar livro de um arquivo (docx, odt, pdf, txt, md): extrai título e capítulos para a tela de revisão
+  ipcMain.handle("extract-book-file", () => extractBookFromFile(mainWindow));
+  // Puter pela biblioteca oficial (o token não sai do processo principal)
+  ipcMain.handle("puter-chat", (event, params) => puterChat(params));
+  ipcMain.handle("puter-models", (event, params) => puterModels(params));
 
   ipcMain.handle("select-folder", async () => {
     const result = await dialog.showOpenDialog(mainWindow, {

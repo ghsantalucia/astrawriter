@@ -960,3 +960,47 @@ body:not(.dark-theme) .actor-user {
   font-size: 0.8rem;
   color: var(--text-dim);
 }
+
+/* Importar livro de um arquivo: revisão dos capítulos extraídos */
+.imp-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(640px, 80vw);
+}
+.imp-summary {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.imp-warn {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--warning) 55%, transparent);
+  border-radius: var(--radius-control);
+  font-size: 0.82rem;
+}
+.imp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.imp-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 8px;
+}
+.imp-n {
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+  text-align: right;
+}
+.imp-words {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}

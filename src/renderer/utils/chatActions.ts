@@ -48,10 +48,6 @@ export const CHAT_ACTIONS = {
     event: "note:create",
     description: "Abre a criação de uma nova anotação.",
   },
-  "new-book": {
-    event: "book:create",
-    description: "Abre o assistente de criação de livro.",
-  },
   "new-entity": {
     event: "entity:create",
     description:

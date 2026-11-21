@@ -42,6 +42,7 @@ export async function generateContent({
   system,
   contents,
   tools = [],
+  webSearch = false,
 }) {
   const body = {
     systemInstruction: { parts: [{ text: system }] },
@@ -61,6 +62,8 @@ export async function generateContent({
     );
     body.tools = [{ functionDeclarations }];
   }
+  // Busca na internet nativa (Grounding com o Google Search)
+  if (webSearch) body.tools = [...(body.tools || []), { google_search: {} }];
 
   const response = await fetch(
     `${GEMINI_API_BASE}/models/${encodeURIComponent(model)}:generateContent`,

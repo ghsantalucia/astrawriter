@@ -4,6 +4,8 @@
  * @file Componente responsável pela renderização estrutural do chat do assistente de IA
  */
 
+import { appSettings } from "../../utils/appSettings.js";
+import { playPing } from "../../utils/sounds.js";
 import { isAppLink, openAppLink } from "../../utils/appLinks.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
@@ -104,6 +106,12 @@ export class ChatComponent extends Component {
     // Renderiza uma mensagem no chat (chamado pelo chatHandler/uiController)
     this.uiBus.on("chat:render-message", (msgData) => {
       this.renderChatMessage(msgData);
+      // Resposta da IA com a gaveta recolhida: bolinha no cabeçalho e um som suave
+      if (msgData?.role === "assistant" && !document.getElementById("chat-container")?.classList.contains("expanded") && appSettings.get("chat.notify")) {
+        const dot = document.getElementById("ai-unread-dot");
+        if (dot) dot.hidden = false;
+        playPing();
+      }
     });
 
     // Controla o estado de carregamento/bloqueio do input
@@ -250,6 +258,11 @@ export class ChatComponent extends Component {
 
     const isOpening = !aiDrawer.classList.contains("expanded");
     aiDrawer.classList.toggle("expanded");
+    // Abriu a gaveta: a resposta nova foi vista
+    if (isOpening) {
+      const dot = document.getElementById("ai-unread-dot");
+      if (dot) dot.hidden = true;
+    }
     if (isOpening) this.bg?.resume();
     else this.bg?.pause();
 

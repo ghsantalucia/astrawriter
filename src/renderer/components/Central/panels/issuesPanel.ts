@@ -191,9 +191,9 @@ export class IssuesPanel {
     const aiHtml = `
       <section class="cn-section">
         <h4>Correção pela IA</h4>
-        <p class="cn-hint">Pede ao assistente que corrija os pendentes sozinho. <strong>Não é recomendado</strong>: a IA pode cometer erros e só altera arquivos em que a escrita da IA está liberada. A central fecha e o chat abre com a conversa.</p>
+        <p class="cn-hint">A IA avalia cada pendência (seguindo as sugestões do sistema) e escolhe a solução de cada uma: aplica a correção segura, resolve contradições pelas fichas e pela Sinopse e deixa para você o que depende de decisão. Só altera arquivos em que a escrita da IA está liberada; as mudanças passam pela sua revisão e ficam no changelog.</p>
         <div class="cn-row">
-          <button class="cn-btn" data-act="ai-fix" ${s.total === 0 ? "disabled" : ""}><i class="fa-solid fa-wand-magic-sparkles"></i> Pedir à IA para corrigir</button>
+          <button class="cn-btn primary" data-act="ai-fix" ${s.total === 0 ? "disabled" : ""}><i class="fa-solid fa-wand-magic-sparkles"></i> Corrigir tudo com a IA</button>
           <button class="cn-btn ghost" data-act="rescan"><i class="fa-solid fa-rotate"></i> Reanalisar o livro</button>
         </div>
       </section>`;
@@ -249,7 +249,7 @@ export class IssuesPanel {
         this.ctx.toast(input.checked ? "Revisões ligadas. Reanalisando o livro..." : "Revisões do sistema desligadas neste livro.", "info");
         this.ctx.refresh();
       },
-      "ai-fix": () => this.askAiFix(),
+      "ai-fix": () => this.fixWithAi("todas"),
       analyze: () => this.askAnalyze(pending),
       "cancel-analysis": () => analysis.cancel(),
       rescan: async () => {
@@ -285,6 +285,26 @@ export class IssuesPanel {
         this.ctx.services.analysis.runWithToasts().catch(() => {});
         setTimeout(() => this.ctx.refresh(), 300);
       },
+    });
+  }
+
+  /**
+   * "Corrigir tudo": pede à skill nativa que avalie cada issue (da categoria, ou de todas) e escolha a solução de cada um.
+   * A execução mostra a janela de permissão com a estimativa de tokens.
+   * @param {string} category - Categoria (`links`, `spelling`...) ou `todas`.
+   * @returns {void}
+   * @private
+   */
+  fixWithAi(category) {
+    const skill = this.ctx.services.skills.get("corrigir-pendencias");
+    if (!skill) {
+      this.ctx.toast("A skill \"Corrigir pendências\" não está disponível.", "error");
+      return;
+    }
+    const label = category === "todas" ? "todas as categorias" : categoryInfo(category).label;
+    this.ctx.services.skillRunner.request(skill, {
+      manual: true,
+      extra: `Categoria a corrigir: ${category === "todas" ? "todas" : category} (${label}).`,
     });
   }
 
@@ -331,6 +351,7 @@ export class IssuesPanel {
     const extra = tab === "timeline" ? this.timelineHtml() : tab === "spelling" ? this.spellingHtml() : "";
 
     const handlers = {
+      "fix-all": () => this.fixWithAi(tab),
       ...this.cardActions(),
       filter: (btn) => {
         this.filters[tab] = btn.dataset.type || null;
@@ -381,7 +402,7 @@ export class IssuesPanel {
 
     mount(
       el,
-      `${extra}<div class="rv-chips">${chips}</div>
+      `${extra}${all.length ? `<div class="cn-row" style="margin:6px 0"><button class="cn-btn small primary" data-act="fix-all"><i class="fa-solid fa-wand-magic-sparkles"></i> Corrigir tudo com a IA (${all.length})</button><small class="cn-hint">A IA avalia cada pendência desta aba e escolhe a solução.</small></div>` : ""}<div class="rv-chips">${chips}</div>
        <div class="rv-list">${shown.slice(0, limit).map((i) => this.cardHtml(i)).join("")}</div>
        ${more}`,
       handlers,

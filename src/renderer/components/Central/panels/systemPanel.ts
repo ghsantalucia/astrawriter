@@ -137,13 +137,19 @@ export class SystemPanel {
          </div>
        </section>
        <section class="cn-section">
+         <h4>Avisos</h4>
+         <div class="cn-setting-list">
+           ${settingRow("chat.notify")}
+         </div>
+       </section>
+       <section class="cn-section">
          <h4>Sobre</h4>
          <div class="cn-stats">
            <div class="cn-stat"><strong>${esc(version)}</strong><span>versão instalada</span></div>
          </div>
          <p class="cn-hint">Seus livros ficam em: <strong>${esc(paths?.booksDir || "")}</strong>. ${paths?.packaged ? "É a pasta <strong>Documentos/Astra Writer</strong>, separada da instalação do app: atualizar ou reinstalar o app não apaga os livros." : "Você está no modo de desenvolvimento: aqui os livros ficam dentro da pasta do projeto. No app instalado eles ficam em Documentos/Astra Writer, fora da instalação."}</p>
        </section>`,
-      {},
+      settingHandlers(this.ctx, () => this.ctx.refresh()),
     );
   }
 
@@ -336,9 +342,10 @@ export class SystemPanel {
          <div class="cn-setting-list">
            ${settingRow("productivity.enabled")}
            ${settingRow("productivity.auto")}
+           ${settingRow("productivity.goalMinutes")}
            ${settingRow("productivity.idleMinutes")}
          </div>
-         <p class="cn-hint">O cronômetro fica desligado até você ativá-lo: então ele aparece entre as abas e a busca do explorer. Manual: você inicia e pausa. Automático: conta sozinho enquanto você está no app e para quando a janela perde o foco ou você fica parado. Cada registro dura até fechar o app ou apertar “zerar” (que para o relógio e espera você dar play de novo).</p>
+         <p class="cn-hint">O cronômetro fica desligado até você ativá-lo: então ele aparece entre as abas e a busca do explorer. Manual: você inicia e pausa. Automático: conta sozinho enquanto você está no app e para quando a janela perde o foco ou você fica parado. Cada registro dura até fechar o app ou apertar “zerar” (que para o relógio e espera você dar play de novo). Com uma **meta de tempo**, o relógio conta de forma regressiva e, ao zerar, toca um som suave e mostra um aviso positivo; o modo Auto continua pausando quando você se ausenta.</p>
        </section>
        <section class="cn-section">
          <h4>Tempo de escrita</h4>

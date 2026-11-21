@@ -823,6 +823,42 @@ export class CreationService {
   }
 
   /**
+   * Preenche um livro recém-criado com os capítulos importados de um arquivo: o capítulo 1 do livro é reaproveitado e os
+   * demais nascem como cópia dele (já com o perfil de templates do livro). Cada manuscrito recebe o texto do capítulo.
+   * @param {string} bookPath - Caminho do livro.
+   * @param {Array<{title: string, text: string}>} chapters - Capítulos (título e texto).
+   * @returns {Promise<number>} Quantos capítulos foram gravados.
+   */
+  async importChapters(bookPath, chapters) {
+    const content = `${bookPath}/content`;
+    const model = `${content}/chapter_001`;
+    for (let i = 2; i <= chapters.length; i++) {
+      const copy = await window.electronAPI.copyFolder(model, `${content}/chapter_${pad(i)}`);
+      if (!copy?.success) throw new Error(`Falha ao criar o capítulo ${i}: ${copy?.error}`);
+    }
+    for (let i = 1; i <= chapters.length; i++) {
+      const chapter = chapters[i - 1];
+      const folder = `${content}/chapter_${pad(i)}`;
+      const title = String(chapter.title || `Capítulo ${i}`).trim();
+      // folder.yml: "Capítulo 02" no explorer
+      const folderYml = `${folder}/folder.yml`;
+      const meta = parseYaml((await this.readText(folderYml)) || "");
+      meta.title = `Capítulo ${pad(i, 2)}`;
+      meta.description = meta.title;
+      await this.writeText(folderYml, stringifyYaml(meta));
+      // Manuscrito: título no frontmatter (chapter_title) e no corpo, depois o texto
+      const draftName = (await this.listDir(folder)).find((e) => !e.isDirectory && /draft\.md$/i.test(e.name))?.name;
+      if (!draftName) throw new Error("O template do capítulo precisa ter o arquivo *_draft.md.");
+      const draftPath = `${folder}/${draftName}`;
+      const draft = parseMarkdown((await this.readText(draftPath)) || "");
+      draft.metadata.chapter_title = title;
+      await this.writeText(draftPath, stringifyFrontmatter(draft.metadata, `# ${title}\n\n${String(chapter.text || "").trim()}\n`));
+      await this.appendChapterToIndex(bookPath, title, `chapter_${pad(i)}`, draftName, "ui");
+    }
+    return chapters.length;
+  }
+
+  /**
    * Acrescenta o capítulo (título + link) ao índice `content/index.md`.
    * @param {string} book - Caminho do livro.
    * @param {string} title - Título do capítulo.

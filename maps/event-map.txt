@@ -62,6 +62,12 @@
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
+⚙️ [ai:stop]
+    * Emissores:
+      └── setupAutoResizeAndInputListeners (src\renderer\components\Chat\ChatComponent.ts)
+    * Escutadores:
+      └── getTodaySessionDate (src\renderer\services\aiService.ts)
+
 ⚙️ [analysis:changed]
     * Emissores:
       └── run (src\renderer\services\analysisService.ts)
@@ -117,6 +123,7 @@
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
       ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── update (src\renderer\core\appContainer.ts)
       ├── constructor (src\renderer\services\aiChangeService.ts)
       ├── listen (src\renderer\services\issueService.ts)
       └── fire (src\renderer\services\skillRunnerService.ts)
@@ -128,12 +135,13 @@
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── setupListeners (src\renderer\components\Sidebar\SidebarComponent.ts)
       ├── registerEvents (src\renderer\controllers\uiController.ts)
+      ├── update (src\renderer\core\appContainer.ts)
       ├── constructor (src\renderer\services\aiChangeService.ts)
       └── listen (src\renderer\services\issueService.ts)
 
 ⚙️ [book:create]
     * Emissores:
-      └── execute (src\renderer\ai\tools\systemTools.ts)
+      └── ---
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
@@ -155,10 +163,17 @@
     * Escutadores:
       └── registerEvents (src\renderer\controllers\uiController.ts)
 
+⚙️ [book:import-file]
+    * Emissores:
+      └── ---
+    * Escutadores:
+      └── registerEvents (src\renderer\controllers\uiController.ts)
+
 ⚙️ [book:selected]
     * Emissores:
       ├── selectLastBook (src\renderer\components\Sidebar\SidebarComponent.ts)
       ├── openCreated (src\renderer\controllers\handlers\creationHandler.ts)
+      ├── finishPendingImport (src\renderer\controllers\handlers\importFileHandler.ts)
       └── registerEvents (src\renderer\controllers\uiController.ts)
     * Escutadores:
       ├── setupListeners (src\renderer\components\Explorer\ExplorerComponent.ts)
@@ -176,7 +191,7 @@
       ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
       └── onCurrentConfigChanged (src\renderer\controllers\handlers\configHandler.ts)
     * Escutadores:
-      └── ---
+      └── update (src\renderer\core\appContainer.ts)
 
 ⚙️ [books:refresh-list]
     * Emissores:
@@ -203,8 +218,11 @@
       ├── openCentral (src\renderer\ai\tools\systemTools.ts)
       ├── uiBus_titleChanged (src\renderer\components\Central\panels\bookPanel.ts)
       ├── normalizePath (src\renderer\components\Central\panels\bookPanel.ts)
+      ├── constructor (src\renderer\components\Central\panels\system\skillsTab.ts)
+      ├── button (src\renderer\components\Editor\EditorKit.ts)
       ├── registerEvents (src\renderer\controllers\uiController.ts)
-      └── run (src\renderer\services\shortcutService.ts)
+      ├── run (src\renderer\services\shortcutService.ts)
+      └── openAppLink (src\renderer\utils\appLinks.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Central\CentralComponent.ts)
 
@@ -256,7 +274,7 @@
     * Emissores:
       └── fetchMoreHistory (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── playPing (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:clear]
     * Emissores:
@@ -287,7 +305,7 @@
     * Emissores:
       └── loadHistory (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── playPing (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:render-message]
     * Emissores:
@@ -307,7 +325,7 @@
     * Emissores:
       └── onSendMessage (src\renderer\controllers\handlers\chatHandler.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── playPing (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [chat:system-notice]
     * Emissores:
@@ -359,8 +377,9 @@
       ├── more (src\renderer\components\Central\panels\issuesPanel.ts)
       ├── goTo (src\renderer\components\Central\panels\issuesPanel.ts)
       ├── goToFile (src\renderer\components\Central\panels\issuesPanel.ts)
-      ├── openChatLink (src\renderer\components\Chat\ChatComponent.ts)
+      ├── openAppLink (src\renderer\components\Chat\ChatComponent.ts)
       ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
+      ├── onClick (src\renderer\components\Editor\EditorComponent.ts)
       ├── onclick (src\renderer\components\Explorer\ExplorerComponent.ts)
       ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onBookChange (src\renderer\controllers\handlers\bookHandler.ts)
@@ -575,6 +594,7 @@
       ├── confirmModal (src\renderer\components\Central\panels\panelKit.ts)
       ├── askName (src\renderer\components\Central\panels\system\templates.ts)
       ├── askUninstall (src\renderer\components\Central\panels\systemPanel.ts)
+      ├── onClick (src\renderer\components\Editor\EditorComponent.ts)
       ├── reviewFile (src\renderer\controllers\handlers\aiReviewHandler.ts)
       ├── onFileDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
       ├── onChapterDeleteRequest (src\renderer\controllers\handlers\deleteHandler.ts)
@@ -584,11 +604,13 @@
       ├── onFolderDelete (src\renderer\controllers\handlers\folderHandler.ts)
       ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.ts)
       ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── cleanup (src\renderer\controllers\handlers\importFileHandler.ts)
       ├── confirmDiscard (src\renderer\controllers\handlers\templateEditorHandler.ts)
       ├── then (src\renderer\controllers\handlers\templateEditorHandler.ts)
       ├── onClick (src\renderer\controllers\handlers\templateEditorHandler.ts)
       ├── offerAfterSync (src\renderer\services\analysisService.ts)
       ├── confirm (src\renderer\services\skillRunnerService.ts)
+      ├── resolve (src\renderer\services\skillRunnerService.ts)
       └── run (src\renderer\services\startupService.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Modal\ModalManager.ts)
@@ -631,6 +653,7 @@
 
 ⚙️ [productivity:changed]
     * Emissores:
+      ├── tick (src\renderer\services\productivityService.ts)
       ├── reset (src\renderer\services\productivityService.ts)
       ├── deleteRecord (src\renderer\services\productivityService.ts)
       └── clearRecords (src\renderer\services\productivityService.ts)
@@ -691,7 +714,8 @@
 ⚙️ [settings:open]
     * Emissores:
       ├── execute (src\renderer\ai\tools\systemTools.ts)
-      └── run (src\renderer\services\shortcutService.ts)
+      ├── run (src\renderer\services\shortcutService.ts)
+      └── openAppLink (src\renderer\utils\appLinks.ts)
     * Escutadores:
       └── setupListeners (src\renderer\components\Settings\SettingsComponent.ts)
 
@@ -701,6 +725,12 @@
       └── recordRun (src\renderer\services\skillService.ts)
     * Escutadores:
       └── constructor (src\renderer\components\Central\panels\aiPanel.ts)
+
+⚙️ [skills:propose]
+    * Emissores:
+      └── execute (src\renderer\ai\tools\skillTools.ts)
+    * Escutadores:
+      └── constructor (src\renderer\components\Central\panels\system\skillsTab.ts)
 
 ⚙️ [spellcheck:changed]
     * Emissores:
@@ -813,7 +843,7 @@
       ├── saveDraft (src\renderer\ai\tools\bookTools.ts)
       ├── assertValuesFromAuthor (src\renderer\ai\tools\creationTools.ts)
       ├── toast (src\renderer\components\Central\CentralComponent.ts)
-      ├── openChatLink (src\renderer\components\Chat\ChatComponent.ts)
+      ├── openAppLink (src\renderer\components\Chat\ChatComponent.ts)
       ├── runAutoLinks (src\renderer\components\Editor\EditorComponent.ts)
       ├── setupInternalLinkHandler (src\renderer\components\Editor\EditorComponent.ts)
       ├── toastError (src\renderer\controllers\handlers\aiReviewHandler.ts)
@@ -842,6 +872,9 @@
       ├── onHistoryOpen (src\renderer\controllers\handlers\historyHandler.ts)
       ├── openCompare (src\renderer\controllers\handlers\historyHandler.ts)
       ├── performRestore (src\renderer\controllers\handlers\historyHandler.ts)
+      ├── startImportFromFile (src\renderer\controllers\handlers\importFileHandler.ts)
+      ├── onClick (src\renderer\controllers\handlers\importFileHandler.ts)
+      ├── finishPendingImport (src\renderer\controllers\handlers\importFileHandler.ts)
       ├── onAutoLink (src\renderer\controllers\handlers\linkHandler.ts)
       ├── openTemplateEditor (src\renderer\controllers\handlers\templateEditorHandler.ts)
       ├── onClick (src\renderer\controllers\handlers\templateEditorHandler.ts)
@@ -852,6 +885,8 @@
       ├── notifyError (src\renderer\services\analysisService.ts)
       ├── runWithToasts (src\renderer\services\analysisService.ts)
       ├── play (src\renderer\services\narratorService.ts)
+      ├── tick (src\renderer\services\productivityService.ts)
+      ├── answer (src\renderer\services\skillRunnerService.ts)
       ├── checkUpdates (src\renderer\services\startupService.ts)
       └── checkBackup (src\renderer\services\startupService.ts)
     * Escutadores:
@@ -939,7 +974,7 @@
 
 ⚙️ [ai:edit-finished]
     * Emissores:
-      └── notice (src\renderer\services\aiService.ts)
+      └── setActiveSignal (src\renderer\services\aiService.ts)
     * Escutadores:
       └── registerEvents (src\renderer\controllers\domainController.ts)
 
@@ -952,7 +987,7 @@
 
 ⚙️ [ai:turn-finished]
     * Emissores:
-      └── notice (src\renderer\services\aiService.ts)
+      └── setActiveSignal (src\renderer\services\aiService.ts)
     * Escutadores:
       └── fire (src\renderer\services\skillRunnerService.ts)
 
@@ -960,7 +995,7 @@
     * Emissores:
       └── publishUsage (src\renderer\services\aiService.ts)
     * Escutadores:
-      └── setupListeners (src\renderer\components\Chat\ChatComponent.ts)
+      └── playPing (src\renderer\components\Chat\ChatComponent.ts)
 
 ⚙️ [analysis:changed]
     * Emissores:

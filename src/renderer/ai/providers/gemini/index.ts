@@ -42,13 +42,26 @@ export async function sendRequest({
     toolContext,
 
     async callModel(conversation) {
-      const data = await generateContent({
-        apiKey: config.apiKey,
-        model: config.model,
-        system: systemPrompt,
-        contents: conversation,
-        tools: tools.getDefinitions(),
-      });
+      const request = (webSearch) =>
+        generateContent({
+          apiKey: config.apiKey,
+          model: config.model,
+          system: systemPrompt,
+          contents: conversation,
+          tools: tools.getDefinitions(),
+          webSearch,
+        });
+      let data;
+      try {
+        data = await request(Boolean(toolContext?.web));
+      } catch (error) {
+        // Alguns modelos não aceitam a busca junto com as tools do app: segue sem a busca e avisa
+        if (toolContext?.web && error?.status === 400 && /function calling|tool/i.test(String(error?.message))) {
+          toolContext.web = false;
+          toolContext.notice?.("Este modelo do Gemini não aceita a busca na internet junto com as tools do app: a skill seguiu só com o que o modelo já sabe.");
+          data = await request(false);
+        } else throw error;
+      }
 
       const content = data.candidates?.[0]?.content;
       if (!content) {

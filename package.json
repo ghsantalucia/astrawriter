@@ -14,9 +14,9 @@
     "typecheck": "tsc --noEmit",
     "g": "node scripts/create-component.js",
     "docs:web": "jsdoc -c jsdoc.json",
-    "file-map": "node scripts/project-map.js > docs/project-map.txt",
-    "code-map": "node scripts/code-map.js > docs/code-map.txt",
-    "event-map": "node scripts/event-map.js > docs/event-map.txt",
+    "file-map": "node scripts/project-map.js > maps/project-map.txt",
+    "code-map": "node scripts/code-map.js > maps/code-map.txt",
+    "event-map": "node scripts/event-map.js > maps/event-map.txt",
     "docs": "npm run file-map && npm run code-map && npm run event-map && npm run docs:web",
     "format": "prettier --write \"src/**/*.{js,ts,json,css,md}\"",
     "release": "node scripts/release.js"
@@ -49,6 +49,7 @@
   "dependencies": {
     "@fontsource/cinzel-decorative": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
+    "@heyputer/puter.js": "^2.6.5",
     "@toast-ui/editor": "^3.2.2",
     "chokidar": "^5.0.0",
     "dictionary-en": "^4.0.0",
@@ -64,7 +65,9 @@
     "hunspell-asm": "^4.0.2",
     "js-yaml": "^3.15.2",
     "jszip": "^3.10.1",
+    "mammoth": "^1.13.0",
     "marked": "^18.2.0",
-    "mitt": "^3.0.1"
+    "mitt": "^3.0.1",
+    "pdf-parse": "^1.1.1"
   }
 }

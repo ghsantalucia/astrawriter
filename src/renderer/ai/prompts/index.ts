@@ -23,7 +23,7 @@ const MODE_PROMPTS = {
  * @param {Object} state - Estado global da aplicação.
  * @returns {string}
  */
-export function buildSystemPrompt(state, compact = false) {
+export function buildSystemPrompt(state, compact = false, bookMap = "") {
   const lines = [(compact ? compactPrompt : basePrompt).trim(), "", "## Contexto atual"];
 
   const bookTitle = state.currentBookMetadata?.book_title;
@@ -46,6 +46,8 @@ export function buildSystemPrompt(state, compact = false) {
   const mode = MODE_PROMPTS[current?.ai_mode] || MODE_PROMPTS.assistant;
   lines.push(`- Modo de trabalho: ${mode}`);
 
+  if (bookMap) lines.push("", bookMap);
+
   const skills = listSkills();
   if (skills.length > 0) {
     lines.push("", "## Skills disponíveis (use `load_skill` para carregar)");
@@ -53,4 +55,27 @@ export function buildSystemPrompt(state, compact = false) {
   }
 
   return lines.join("\n");
+}
+
+/** Máximo de arquivos no mapa do livro (o resto vai por `list_files`). */
+const MAX_MAP_FILES = 80;
+
+/**
+ * Mapa do livro para o contexto da IA: título e caminho dos arquivos que ela pode ler, para saber o que existe sem precisar
+ * listar nem perguntar. Fora índices e modelos. Só dados do livro aberto.
+ * @param {Array<{relPath: string, key?: string, metadata?: Object}>} files - Arquivos do livro (de `flattenBookTree`).
+ * @returns {string} Texto em Markdown (vazio se não há arquivos).
+ */
+export function buildBookMap(files, unchanged = null) {
+  const readable = (files || [])
+    .filter((f) => f.metadata?.aiRead === true && !/(^|\/)(index|template)\.md$/i.test(f.relPath))
+    .sort((a, b) => a.relPath.localeCompare(b.relPath, "pt-BR", { numeric: true }));
+  if (readable.length === 0) return "";
+  const shown = readable.slice(0, MAX_MAP_FILES);
+  const rows = shown.map((f) => {
+    const title = f.metadata?.title || f.metadata?.data?.title?.content || f.key || f.relPath;
+    return `- ${f.relPath}: ${title}${f.metadata?.aiWrite === true ? "" : " [só leitura]"}${unchanged?.has(f.relPath) ? " (inalterado desde a última execução)" : ""}`;
+  });
+  const extra = readable.length > shown.length ? `\n(+${readable.length - shown.length} arquivos: use list_files)` : "";
+  return `## Mapa do livro (arquivos que você pode ler; use o título ao falar com o autor)\n${rows.join("\n")}${extra}`;
 }

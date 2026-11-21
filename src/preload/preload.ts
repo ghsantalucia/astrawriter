@@ -51,6 +51,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   exportAllBooks: () => ipcRenderer.invoke("export-all-books"),
   uninstallApp: () => ipcRenderer.invoke("uninstall-app"),
   takeFirstRunBook: () => ipcRenderer.invoke("take-first-run-book"),
+  extractBookFile: () => ipcRenderer.invoke("extract-book-file"),
+  puterChat: (params) => ipcRenderer.invoke("puter-chat", params),
+  puterModels: (params) => ipcRenderer.invoke("puter-models", params),
   /** Avisos da atualização automática (baixando, pronta para instalar...). */
   onUpdateStatus: (callback) => ipcRenderer.on("update-status", (event, status) => callback(status)),
   /** Zoom de toda a interface (tamanho da fonte do app): 1 = 100%. */

@@ -13,6 +13,7 @@ import * as config from "./handlers/configHandler.js";
 import * as aiReview from "./handlers/aiReviewHandler.js";
 import * as search from "./handlers/searchHandler.js";
 import * as creation from "./handlers/creationHandler.js";
+import * as importFile from "./handlers/importFileHandler.js";
 import * as variables from "./handlers/variablesHandler.js";
 import * as history from "./handlers/historyHandler.js";
 import * as exporter from "./handlers/exportHandler.js";
@@ -260,6 +261,8 @@ export class UiController {
         uiBus.emit("toast:show", { message: error.message, type: "error" });
       }
     });
+    // Importar de um arquivo (docx, odt, pdf, txt, md): revisão dos capítulos extraídos e depois o assistente de livro
+    uiBus.on("book:import-file", () => importFile.startImportFromFile(this.state, creation, this.services.creation));
     uiBus.on("chapter:create", () => this.openCreationWizard("chapter"));
     uiBus.on("note:create", (payload) =>
       this.openCreationWizard("note", payload?.data?.folder),
@@ -276,6 +279,7 @@ export class UiController {
     // Itens criados (pela UI ou pela IA): mantém lista de livros e árvore de arquivos atualizadas
     uiBus.on("book:created", (payload) => {
       creation.onBookCreated(this.state, this.services.book);
+      importFile.finishPendingImport(payload, this.state, this.services.creation);
       chat.onCreationNotice(payload, this.services.ai);
     });
     uiBus.on("chapter:created", (payload) => {

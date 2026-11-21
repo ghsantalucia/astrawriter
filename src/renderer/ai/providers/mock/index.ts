@@ -15,7 +15,7 @@
  *   /substituir <caminho> | <de> | <para>  chama replace_in_file
  *   /escrever <caminho> | <conteúdo>       chama write_file
  *   /botoes                                chama show_buttons (respostas prontas e ações do app)
- *   /iniciar <tipo> [| <pasta>]            chama start_creation (book, chapter, entity, note)
+ *   /iniciar <tipo> [| <pasta>]            chama start_creation (chapter, entity, note)
  *   /criar <tipo> | <pasta> | campo=valor;… chama complete_creation (pasta vazia fora de fichas)
  *   /tool <nome> | <json>                  chama QUALQUER tool com os argumentos em JSON (ex.: /tool move_file | {"path":"notes/note_001.md","destination":"notes/ideias"})
  *   /lento                                 demora 6s (testa o indicador de carregamento)
@@ -42,7 +42,7 @@ Comandos que eu entendo:
 - \`/substituir <caminho> | <de> | <para>\`
 - \`/escrever <caminho> | <conteúdo>\`
 - \`/botoes\`
-- \`/iniciar <tipo> [| <pasta>]\` (book, chapter, entity, note)
+- \`/iniciar <tipo> [| <pasta>]\` (chapter, entity, note)
 - \`/criar <tipo> | <pasta> | campo=valor;campo=valor\`
 - \`/tool <nome> | <json>\` (chama qualquer tool; args em JSON)
 - \`/lento\` e \`/erro\`

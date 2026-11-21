@@ -78,15 +78,16 @@ export const AI_PROVIDERS = [
     id: "puter",
     label: "Puter",
     models: [
+      { id: "auto", label: "Automático (o Puter escolhe o modelo)" },
       { id: "gpt-5-nano", label: "GPT-5 nano" },
       { id: "claude-sonnet-5", label: "Claude Sonnet 5" },
       { id: "grok-4-1-fast", label: "Grok 4.1 fast" },
     ],
-    defaultModel: "gpt-5-nano",
+    defaultModel: "auto",
     requiresKey: true,
     defaultUrl: PUTER_URL,
     toolModes: true,
-    hint: "Token em puter.com/dashboard (“Create token”). O uso é cobrado da sua conta Puter.",
+    hint: "Usa a biblioteca oficial do Puter. Cole o token de puter.com/dashboard (“Create token”) e use “Atualizar modelos” para ver os modelos da sua conta. O uso é cobrado da sua conta Puter; sem assinatura, alguns modelos respondem com erro 402.",
   },
   {
     id: "ollama",

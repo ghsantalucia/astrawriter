@@ -7,6 +7,7 @@
  * execução (uma skill não dispara outra, nem a si mesma).
  */
 
+import { flattenBookTree } from "../utils/bookFiles.js";
 import { compactInstructions } from "../ai/compact.js";
 import { resolveAnalysis } from "../ai/profiles.js";
 import { uiBus } from "../events/uiBus.js";
@@ -84,6 +85,8 @@ export class SkillRunnerService {
     const path = payload?.relativePath || payload?.path || "";
     const type = fileTypeOf(path);
     if (/(^|\/)(index|template|timeline)\.md/i.test(path) || /\.system\//.test(path)) return;
+    // Só o manuscrito do capítulo (2_draft.md): o gatilho que a maioria das skills quer (esboço e análise não disparam)
+    if (when === "updated" && /chapter_\d+\/2_draft\.md$/i.test(path.replace(/\\/g, "/"))) this.fire("chapter-sync", { path, title: payload?.title });
     this.fire(`${when}:${type}`, { path, title: payload?.title });
     if (type !== "file") this.fire(`${when}:file`, { path, title: payload?.title });
   }
@@ -101,7 +104,14 @@ export class SkillRunnerService {
     const key = `${id}|${payload.path || ""}`;
     const now = Date.now();
     if (now - (this.recent.get(key) || 0) < dedupeMs) return;
-    const matching = this.services.skills.installed().filter((s) => s.kind === "recurring" && s.enabled && s.triggers.includes(id));
+    const mode = this.state.currentBookMetadata?.ai_mode || "assistant";
+    const matching = this.services.skills
+      .installed()
+      .filter((s) => s.kind === "recurring" && s.enabled && s.triggers.includes(id))
+      // Skills ligadas a modos (ex.: só co-autor e autônomo) não disparam sozinhas nos outros modos
+      .filter((s) => !s.modes?.length || s.modes.includes(mode))
+      // Skill que pede informações ao autor não roda sozinha (não há como perguntar)
+      .filter((s) => !s.inputs?.length);
     if (!matching.length) return;
     this.recent.set(key, now);
     for (const skill of matching) this.request(skill, { trigger: id, payload });
@@ -115,6 +125,15 @@ export class SkillRunnerService {
    */
   request(skill, options = {}) {
     const job = async () => {
+      // Gatilho com arquivo: só roda se o arquivo mudou desde a última vez que esta skill rodou nele (ou se as diretrizes mudaram)
+      if (options.trigger && options.payload?.path && !options.manual && !(await this.hasChanged(skill, options.payload.path))) {
+        return { ran: false, skipped: true };
+      }
+      if (skill.inputs?.length) {
+        const answers = await this.askInputs(skill);
+        if (!answers) return { ran: false };
+        options = { ...options, inputs: answers };
+      }
       const { value: askAlways } = this.services.skills.askAlways();
       const mustAsk = options.manual === true ? true : askAlways || skill.askBefore;
       if (mustAsk && !(await this.confirm(skill, options))) return { ran: false };
@@ -195,12 +214,22 @@ export class SkillRunnerService {
     ]
       .filter(Boolean)
       .join(" ");
-    const prompt = `Execute agora a skill “${skill.title}” seguindo as instruções abaixo ao pé da letra. Use somente as tools disponíveis. ${context}\n\n# Instruções da skill\n\n${resolveAnalysis(this.state.aiSettings?.analysis).compact ? compactInstructions(skill.body) : skill.body}`;
+    const unchanged = await this.unchangedFiles(skill);
+    const given = (options.inputs || []).length
+      ? `\n\n# Informações fornecidas pelo autor\n${options.inputs.map((a) => `- ${a.question}: ${a.answer}`).join("\n")}`
+      : "";
+    const fixed = unchanged.size
+      ? " Arquivos marcados como (inalterado desde a última execução) NÃO devem ser relidos nem reanalisados, exceto se as instruções da skill disserem o contrário ou se for indispensável para atualizar outro arquivo."
+      : "";
+    const prompt = `Execute agora a skill “${skill.title}” seguindo as instruções abaixo ao pé da letra. Use somente as tools disponíveis. ${context}${options.extra ? ` ${options.extra}` : ""}${fixed}${given}\n\n# Instruções da skill\n\n${resolveAnalysis(this.state.aiSettings?.analysis).compact && skill.compact !== false ? compactInstructions(skill.body) : skill.body}`;
     try {
       const profile = this.state.aiSettings?.analysis;
       if (profile?.chatOnly) throw new Error("O modo “apenas conversa” está ligado: desligue-o para executar skills.");
-      const { text, tokens } = await ai.sendMessage({ prompt, history: [], skill });
+      const { text, tokens, readFiles } = await ai.sendMessage({ prompt, history: [], skill, unchanged: [...unchanged], web: skill.web === true });
       skills.recordRun(skill.slug, { ok: true, tokens, trigger: options.trigger || "manual", bookTokens });
+      if (options.trigger && options.payload?.path) await this.markDone(skill, options.payload.path);
+      // Guarda o hash do que a skill leu: na próxima execução esses arquivos chegam marcados como inalterados
+      await this.markMany(skill, readFiles || []);
       uiBus.emit("chat:system-notice", { text: `Skill “${skill.title}” concluída (${tokens.toLocaleString("pt-BR")} tokens).${text ? ` ${String(text).slice(0, 280)}` : ""}` });
       return { ran: true, ok: true, text, tokens };
     } catch (error) {
@@ -210,6 +239,190 @@ export class SkillRunnerService {
     } finally {
       this.active = null;
       this.lastEnd = Date.now();
+    }
+  }
+
+  // ========== Controle de alterações (hash por arquivo) ========== //
+
+  /** @returns {string} Pasta do livro aberto, sem barra final. @private */
+  bookDir() {
+    return String(this.state.currentBookPath || "").replace(/\\/g, "/").replace(/\/+$/, "");
+  }
+
+  /**
+   * Caminho relativo ao livro de um caminho (absoluto ou relativo).
+   * @param {string} path - Caminho.
+   * @returns {string}
+   * @private
+   */
+  relOf(path) {
+    const p = String(path || "").replace(/\\/g, "/").replace(/\.temp$/, "");
+    const root = this.bookDir();
+    return p.toLowerCase().startsWith(`${root.toLowerCase()}/`) ? p.slice(root.length + 1) : p.replace(/^\/+/, "");
+  }
+
+  /**
+   * Hash SHA-1 de um texto.
+   * @param {string} text - Texto.
+   * @returns {Promise<string>}
+   * @private
+   */
+  async sha1(text) {
+    const buffer = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(String(text ?? "")));
+    return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  /**
+   * Hash das "diretrizes" de uma skill neste livro: o texto e a versão da skill e a Sinopse (tom e regras do livro). Se
+   * mudarem, os arquivos já processados precisam ser vistos de novo.
+   * @param {Object} skill - Skill.
+   * @returns {Promise<string>}
+   * @private
+   */
+  async guidelineHash(skill) {
+    const plot = (await window.electronAPI.readFile(`${this.bookDir()}/content/plot.md`)) || "";
+    return this.sha1(`${skill.version}|${skill.body}|${plot}`);
+  }
+
+  /** @returns {Promise<Object>} Estado das skills do livro (`.system/skills-state.json`). @private */
+  async loadState() {
+    try {
+      return JSON.parse((await window.electronAPI.readFile(`${this.bookDir()}/.system/skills-state.json`)) || "{}") || {};
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * O arquivo mudou desde a última execução (bem-sucedida) desta skill nele?
+   * @param {Object} skill - Skill.
+   * @param {string} path - Arquivo.
+   * @returns {Promise<boolean>}
+   */
+  async hasChanged(skill, path) {
+    try {
+      const rel = this.relOf(path);
+      const content = await window.electronAPI.readFile(`${this.bookDir()}/${rel}`);
+      if (content === null) return true;
+      const state = (await this.loadState())[skill.slug];
+      if (!state || state.guideline !== (await this.guidelineHash(skill))) return true;
+      return state.files?.[rel] !== (await this.sha1(content));
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Guarda o hash do arquivo que a skill acabou de processar.
+   * @param {Object} skill - Skill.
+   * @param {string} path - Arquivo.
+   * @returns {Promise<void>}
+   */
+  async markDone(skill, path) {
+    try {
+      const rel = this.relOf(path);
+      const content = await window.electronAPI.readFile(`${this.bookDir()}/${rel}`);
+      if (content === null) return;
+      const all = await this.loadState();
+      const guideline = await this.guidelineHash(skill);
+      const current = all[skill.slug]?.guideline === guideline ? all[skill.slug] : { guideline, files: {} };
+      current.files = { ...current.files, [rel]: await this.sha1(content) };
+      all[skill.slug] = current;
+      await window.electronAPI.saveFile(`${this.bookDir()}/.system/skills-state.json`, JSON.stringify(all, null, 2));
+    } catch {
+      // sem o registro, a skill só roda de novo na próxima alteração
+    }
+  }
+
+  /**
+   * Janela com uma pergunta (campo de texto) para cada informação que a skill pede ao autor.
+   * @param {Object} skill - Skill.
+   * @returns {Promise<Array<{question: string, answer: string}>|null>} Respostas, ou null se o autor cancelou.
+   * @private
+   */
+  askInputs(skill) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (value) => {
+        if (!done) {
+          done = true;
+          resolve(value);
+        }
+      };
+      uiBus.emit("modal:open", {
+        id: `skill-inputs-${Date.now()}`,
+        title: `Informações para “${skill.title}”`,
+        content: `<div class="cn-confirm cn-skill-inputs">
+          <p>Esta skill precisa de algumas informações antes de executar. Preencha cada campo:</p>
+          ${skill.inputs.map((q, i) => `<label class="cn-field"><span>${esc(q)}</span><textarea class="cn-textarea" data-skill-input="${i}" rows="${/amostra|trecho|exemplo|cole/i.test(q) ? 6 : 2}"></textarea></label>`).join("")}
+        </div>`,
+        onClose: () => finish(null),
+        buttons: [
+          { text: "Cancelar", class: "btn-secondary", onClick: (modal) => (finish(null), modal.close()) },
+          {
+            text: "Continuar",
+            class: "btn-primary",
+            onClick: (modal) => {
+              const fields = [...document.querySelectorAll("[data-skill-input]")];
+              const answers = skill.inputs.map((question, i) => ({ question, answer: (fields.find((f) => Number(f.dataset.skillInput) === i)?.value || "").trim() }));
+              if (answers.some((a) => !a.answer)) {
+                uiBus.emit("toast:show", { message: "Preencha todos os campos para continuar.", type: "error" });
+                return;
+              }
+              finish(answers);
+              modal.close();
+            },
+          },
+        ],
+      });
+    });
+  }
+
+  /**
+   * Arquivos do livro que não mudaram desde a última execução desta skill (para o mapa de arquivos e a instrução fixa).
+   * @param {Object} skill - Skill.
+   * @returns {Promise<Set<string>>} Caminhos relativos ao livro.
+   */
+  async unchangedFiles(skill) {
+    const out = new Set();
+    try {
+      const book = this.bookDir();
+      if (!book) return out;
+      const state = (await this.loadState())[skill.slug];
+      if (!state || state.guideline !== (await this.guidelineHash(skill))) return out;
+      const tree = await window.electronAPI.getTree(book);
+      for (const f of flattenBookTree(tree, book)) {
+        if (!state.files?.[f.relPath]) continue;
+        const content = await window.electronAPI.readFile(`${book}/${f.relPath}`);
+        if (content !== null && state.files[f.relPath] === (await this.sha1(content))) out.add(f.relPath);
+      }
+    } catch {
+      // sem o mapa de inalterados, a skill trata tudo como alterado
+    }
+    return out;
+  }
+
+  /**
+   * Guarda o hash de vários arquivos que a skill acabou de ler.
+   * @param {Object} skill - Skill.
+   * @param {string[]} paths - Arquivos (relativos ao livro).
+   * @returns {Promise<void>}
+   */
+  async markMany(skill, paths) {
+    try {
+      if (!paths.length) return;
+      const all = await this.loadState();
+      const guideline = await this.guidelineHash(skill);
+      const current = all[skill.slug]?.guideline === guideline ? all[skill.slug] : { guideline, files: {} };
+      for (const p of paths) {
+        const rel = this.relOf(p);
+        const content = await window.electronAPI.readFile(`${this.bookDir()}/${rel}`);
+        if (content !== null) current.files[rel] = await this.sha1(content);
+      }
+      all[skill.slug] = current;
+      await window.electronAPI.saveFile(`${this.bookDir()}/.system/skills-state.json`, JSON.stringify(all, null, 2));
+    } catch {
+      // sem o registro, tudo chega como alterado na próxima vez
     }
   }
 }

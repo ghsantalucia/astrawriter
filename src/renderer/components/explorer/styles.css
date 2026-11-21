@@ -848,3 +848,32 @@ li:not(.folder).kb-focus > .item-edit-btn {
 .productivity-bar .prod-icon-btn:hover .prod-icon {
   color: var(--accent);
 }
+
+/* Meta de tempo: o preenchimento mostra o progresso; ao cumprir, um brilho verde-água suave (nunca vermelho) */
+.productivity-bar[data-goal="on"],
+.productivity-bar[data-goal="done"] {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent) var(--goal-progress, 0%), transparent var(--goal-progress, 0%));
+  background-repeat: no-repeat;
+  transition: background-image 0.6s ease;
+}
+.productivity-bar[data-goal="done"] {
+  border-color: color-mix(in srgb, var(--success) 70%, transparent);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--success) 26%, transparent), color-mix(in srgb, var(--accent) 18%, transparent));
+  animation: prod-goal-glow 2.4s ease-in-out 3;
+}
+.productivity-bar[data-goal="done"] .prod-status {
+  color: var(--success);
+  font-weight: 700;
+}
+.productivity-bar[data-goal="done"] .prod-icon {
+  color: var(--success);
+}
+@keyframes prod-goal-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--success) 45%, transparent);
+  }
+}

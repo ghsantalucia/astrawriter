@@ -18,7 +18,7 @@ import * as variablesHandler from "./variablesHandler.js";
  * @returns {Promise<void>}
  */
 export async function onCreateRequested(
-  { kind, folder },
+  { kind, folder, prefill },
   state,
   creationService,
 ) {
@@ -32,6 +32,14 @@ export async function onCreateRequested(
 
   try {
     const spec = await creationService.getSpec({ kind, folder });
+    // Valores já conhecidos (ex.: título extraído de um arquivo importado) entram como padrão dos campos
+    if (prefill) {
+      for (const step of spec.steps || []) {
+        for (const field of step.fields || []) {
+          if (prefill[field.id] !== undefined) field.value = prefill[field.id];
+        }
+      }
+    }
 
     uiBus.emit("wizard:open", {
       wizardId: uniqueId(kind),

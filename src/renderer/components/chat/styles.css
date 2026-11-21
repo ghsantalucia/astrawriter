@@ -1037,3 +1037,24 @@ body:not(.dark-theme) .btn-send-round.stop svg {
 .ai-message[data-time]:hover::after {
   opacity: 0.9;
 }
+
+/* Aviso de resposta nova da IA com a gaveta recolhida */
+.ai-unread-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success, #2ed573);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #2ed573) 60%, transparent);
+  animation: ai-unread-pulse 1.8s ease-out infinite;
+}
+.ai-unread-dot[hidden] {
+  display: none;
+}
+@keyframes ai-unread-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #2ed573) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}

@@ -46,7 +46,7 @@ export class AiPanel {
     this.title = "Central de IA";
     this.usageDays = 7;
     this.unsubscribe = null;
-    /** Aba de skills (biblioteca, mercado, página da skill e formulário). */
+    /** Aba de skills (biblioteca, loja, página da skill e formulário). */
     this.skillsTab = new SkillsTab(ctx);
     this.editingKey = null;
     ctx.uiBus.on("skills:changed", () => {
@@ -176,7 +176,9 @@ export class AiPanel {
         const info = getProviderInfo(a.provider);
         const keyOk = Boolean(a.apiKey) || !info?.requiresKey;
         const keyPill = keyOk ? `<span class="cn-pill success">${info?.requiresKey ? mask(a.apiKey) : "sem chave"}</span>` : '<span class="cn-pill error">sem chave</span>';
-        const keyBtn = info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? "Trocar chave" : "Definir chave"}</button>` : "";
+        const keyBtn =
+          (info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? "Trocar chave" : "Definir chave"}</button>` : "") +
+          (a.apiKey ? `<button class="cn-btn small ghost" data-act="copy-key" data-id="${esc(a.id)}" title="Copiar a chave para a área de transferência"><i class="fa-regular fa-copy"></i> Copiar</button>` : "");
         const active = a.id === activeId;
         return `<article class="cn-acct ${active ? "active" : ""}" data-id="${esc(a.id)}">
           <header class="cn-acct-head">
@@ -279,6 +281,16 @@ export class AiPanel {
           box.hidden = false;
           root.querySelector("#key-input").value = "";
           root.querySelector("#key-input").focus();
+        },
+        "copy-key": async (btn) => {
+          const account = accounts.find((a) => a.id === btn.dataset.id);
+          if (!account?.apiKey) return;
+          try {
+            await navigator.clipboard.writeText(account.apiKey);
+            this.ctx.toast("Chave copiada para a área de transferência.", "success");
+          } catch {
+            this.ctx.toast("Não foi possível copiar a chave.", "error");
+          }
         },
         "key-cancel": () => {
           root.querySelector("#key-editor").hidden = true;

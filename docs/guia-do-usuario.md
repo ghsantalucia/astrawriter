@@ -2,7 +2,7 @@
 
 Este guia ensina, passo a passo, a usar o Astra Writer para escrever e organizar um livro. Ele foi escrito para quem **usa** o
 aplicativo (autores), não para quem desenvolve. Para a parte técnica, veja [`project.md`](project.md) e
-[`ai-tools.md`](ai-tools.md).
+[`ai-tools.md`](ai/ai-tools.md).
 
 > **Como ler:** se você é iniciante, siga os capítulos 1 a 4 na ordem. Os demais são consultas: volte a eles quando precisar.
 
@@ -382,7 +382,7 @@ Conversando em linguagem natural, você pode pedir à IA, por exemplo:
 - consultar o histórico e o changelog, e restaurar uma versão antiga (**sempre pedindo a sua confirmação**);
 - dizer quais modelos de IA estão configurados (sem nunca revelar a chave).
 
-A lista completa e técnica está em [`ai-tools.md`](ai-tools.md).
+A lista completa e técnica está em [`ai-tools.md`](ai/ai-tools.md).
 
 ### Como a IA mexe nos seus arquivos (com segurança)
 
@@ -428,7 +428,7 @@ tags: [reino, magia] # tags do arquivo
 | `tags` | Lista de tags do arquivo (use a caixa de dados em vez de editar à mão). |
 
 Nas pastas (`folder.yml`), `userDelete` e `userRename` indicam pastas **criadas por você** (as únicas que podem ser renomeadas,
-movidas ou excluídas). Veja os detalhes no capítulo de permissões do [`ai-tools.md`](ai-tools.md#permissões).
+movidas ou excluídas). Veja os detalhes no capítulo de permissões do [`ai-tools.md`](ai/ai-tools.md#permissões).
 
 ---
 
@@ -504,9 +504,16 @@ Personagens, locais, anotações, eventos e capítulos novos nascem como **rascu
 
 Clique no **nome da central** (no topo da janela) para abrir a lista e ir direto para outra central. Na barra do editor, o botão com o ícone de corretor ortográfico abre a aba **Ortografia** da Central de Revisões.
 
+### Citações e "Corrigir tudo"
+
+- **Citado em X arquivos:** no cabeçalho "Dados do arquivo", na frente do número de campos, aparece **citado em X arquivos** quando outros arquivos têm link para ele. Clique para ver cada citação (o título do arquivo e o parágrafo onde está o link) e clique numa citação para ir direto ao ponto do texto.
+- **Corrigir tudo com a IA:** na Central de Revisões há o botão em cada aba e na visão geral. A IA avalia cada pendência e escolhe a solução: aplica a correção segura, resolve contradições pelas fichas e pela Sinopse e deixa para você o que depende de decisão. As mudanças viram rascunho e ficam no changelog.
+- **Aviso de resposta da IA:** com o chat fechado, uma bolinha aparece no cabeçalho do assistente e toca um som suave quando a IA responde (desligue em Central do Sistema → Geral).
+
 ### Importar e exportar livros
 
 - **Importar:** no seletor de livros, **Importar livro (.zip)** cria um livro novo a partir de um zip exportado pelo app (o zip é validado, e o livro ganha um nome novo se o título já existir).
+- **Importar de um arquivo:** no seletor de livros, **Importar de um arquivo (Word, PDF, texto)** lê um `.docx`, `.odt`, `.pdf`, `.txt` ou `.md`, separa os capítulos pelos títulos e mostra o que encontrou: você corrige o título do livro, renomeia, junta com o anterior ou remove o que foi identificado errado, e segue o assistente de criação de livro normalmente.
 - **Exportar:** Central do Livro → **Exportar**: o livro em um único arquivo, os capítulos separados ou o projeto completo (zip), em Markdown, Word ou PDF.
 
 ### Modo autônomo da IA
@@ -521,7 +528,7 @@ A **Central do Sistema** (Configurações → Centrais, ou **Ctrl+Shift+Y**) re�
 - **Aparência:** claro/escuro, temas de cores prontos (**Netuno**, **Terra**, **Saturno**, **Vênus** em tons pastel e **Pulsar**, synthwave rosa e azul) e **criar o seu** (cor por cor, para o modo claro e o escuro), e o **fundo do chat** (estrelas, nebulosa, órbitas ou cor sólida), cada um com suas cores.
 - **Acessibilidade:** tamanho da fonte do app, **modo noturno** (filtro amarelado em horário agendado) e **narrador** (botão com o ícone de alto-falante na barra do editor, com **pausar** e **parar** durante a leitura; passe o mouse para ver a dica).
 - **Editor:** tamanho da letra e fonte do texto e dos títulos, com uma **pré-visualização ao vivo** em destaque no topo.
-- **Produtividade:** o **cronômetro** vem **desligado**; ative em **Mostrar o cronômetro** e ele aparece entre as abas e a busca do explorer, com play/pause, modo **Auto** (para quando a janela perde o foco ou você fica 2 minutos parado) e **zerar** (para o relógio e espera você dar play de novo). Aqui ficam o gráfico de linha por dia e os registros, agrupados por dia (com média e seta para expandir), que dá para apagar.
+- **Produtividade:** o **cronômetro** vem **desligado**; ative em **Mostrar o cronômetro** e ele aparece entre as abas e a busca do explorer, com play/pause, modo **Auto** (para quando a janela perde o foco ou você fica 2 minutos parado) e **zerar** (para o relógio e espera você dar play de novo). Com uma **meta de tempo** (ex.: 60 min), o relógio **conta de forma regressiva**: ao chegar a zero toca um som suave e a faixa fica verde com "meta cumprida"; o modo Auto continua pausando quando você se ausenta. Aqui ficam o gráfico de linha por dia e os registros, agrupados por dia (com média e seta para expandir), que dá para apagar.
 - **Atalhos:** todos os atalhos do app. Dá para trocar os principais (clique em **Alterar** e aperte a nova combinação). Setas, Esc, Tab, Enter, Espaço e as teclas de edição do sistema são reservadas. A navegação do explorer pelo teclado (↑ ↓ → ← Enter Esc) é fixa.
 - **Templates:** veja abaixo.
 - **Backup:** pasta de backup (pode ser a de um serviço de nuvem instalado), backup automático ao abrir o app e quantas cópias manter por livro (padrão: 2). A pasta padrão é Documentos/Astra Writer/backups.
@@ -534,13 +541,18 @@ Todo arquivo novo nasce de um template (fichas de personagem, ambiente, conceito
 
 ### Skills
 
-**Skills** são pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Na **Central de IA → Skills** há a biblioteca (**Minhas skills**) e o **Mercado** (catálogo que já vem com o app). Cada skill tem página própria (autor, versão, descrição, texto completo, gatilhos, tools permitidas, estimativa de tokens e histórico de execuções).
+**Skills** são pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Na **Central de IA → Skills** há a biblioteca (**Minhas skills**) e o **Loja** (catálogo que já vem com o app). Cada skill tem página própria (autor, versão, descrição, texto completo, gatilhos, tools permitidas, estimativa de tokens e histórico de execuções).
 
 - **Uso único:** roda quando você manda (**Executar agora**), sempre com uma janela de confirmação que mostra o que ela pode fazer e a **estimativa de tokens**.
 - **Recorrente:** roda sozinha nos **gatilhos** escolhidos (ao sincronizar, ao abrir o livro ou um arquivo, ao criar/atualizar/excluir capítulos, personagens, ambientes, conceitos, eventos e anotações, etc.).
 - **Permissão:** cada skill tem "pedir permissão antes de ativar" (ligado por padrão) e há a opção geral "todas as skills pedem permissão" (marcada sozinha nos perfis Mínimo e Econômico).
-- **Busca e cores:** há uma barra de busca na biblioteca e no mercado. Cada skill tem uma **cor** (sugerida a partir do nome, e você pode trocar) que aparece no cartão, junto com o estado **ativa/inativa**. Na página da skill, as tools permitidas aparecem numa grade com caixas de seleção e um filtro.
-- **Editar:** mudar o texto de uma skill do app ou do mercado cria uma cópia marcada como "editado" (dá para restaurar o original). Gatilhos e tools permitidas podem ser ajustados sem criar cópia.
+- **Gatilho de capítulo e economia:** há o gatilho **"Ao sincronizar o manuscrito de um capítulo"** (esboço e análise não disparam). Skills com gatilho de arquivo só rodam de novo quando o arquivo mudou (ou a Sinopse/a skill mudaram). Em cada skill há a opção **"Otimizar as instruções ao executar"**: desligue em skills com amostras de escrita.
+- **Skills nativas:** algumas já vêm instaladas (criar fichas, eventos, corrigir pendências, remover um item da história…): têm o selo **nativa**, **não podem ser removidas** (o sistema depende delas) mas podem ser editadas, com aviso (dá para restaurar o original).
+- **Perguntas antes de executar:** uma skill pode pedir informações (ex.: o nome de um autor e amostras de escrita); uma janela mostra um campo para cada pergunta.
+- **Pesquisa na internet:** em cada skill há a opção **"Permitir pesquisa na internet"** (busca nativa do provedor; hoje Claude e Gemini). Ligada, a IA pesquisa durante a skill (por exemplo, quem é o autor e o estilo dele, ou se um fato combina com a época). Gasta mais tokens.
+- **Criar com a IA:** peça à IA para criar uma skill; ela faz algumas perguntas e abre o formulário já preenchido para você revisar e criar.
+- **Busca e cores:** há uma barra de busca na biblioteca e na loja. Cada skill tem uma **cor** (sugerida a partir do nome, e você pode trocar) que aparece no cartão, junto com o estado **ativa/inativa**. Na página da skill, as tools permitidas aparecem numa grade com caixas de seleção e um filtro.
+- **Editar:** mudar o texto de uma skill do app ou da loja cria uma cópia marcada como "editado" (dá para restaurar o original). Gatilhos e tools permitidas podem ser ajustados sem criar cópia.
 
 ### A IA e o app
 

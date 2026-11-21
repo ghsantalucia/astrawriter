@@ -25,13 +25,13 @@ export const PROFILE_OPTIONS = [
     label: "Tools enviadas à IA",
     hint: "Quanto das tools vai em cada pedido (elas pesam no limite de tokens por minuto). Sumário: só 1 linha por tool, e a IA pede a especificação das que precisar. As pedidas ficam liberadas pelo resto da sessão.",
     choices: [
-      { value: "minimal", label: "Mínimo: só botões e leitura de arquivos" },
-      { value: "summary", label: "Sumário das tools" },
+      { value: "minimal", label: "Mínimo: só leitura de arquivos e botões (não escreve)" },
+      { value: "summary", label: "Econômico: edição pontual + sumário das demais" },
       { value: "popular", label: "Mais usadas + sumário" },
       { value: "all", label: "Todas as tools" },
     ],
   },
-  { group: "Chat", id: "compact", type: "bool", label: "Otimizar instruções (enxugar)", hint: "Envia as instruções do app, a descrição das tools e o texto das skills de forma mais enxuta (sem enfeites e com frases curtas) e pede respostas curtas à IA. Gasta menos tokens; nunca mexe no texto do seu livro." },
+  { group: "Chat", id: "compact", type: "bool", label: "Otimizar instruções", hint: "Envia as instruções do app, a descrição das tools e o texto das skills de forma mais enxuta (compactação de prompt, no estilo “caveman”: sem enfeites e com frases curtas) e pede respostas curtas à IA. Gasta menos tokens; nunca mexe no texto do seu livro." },
   { group: "Análise do livro", id: "onSync", type: "bool", label: "Analisar arquivos ao sincronizar", hint: "Depois de sincronizar, a IA cria o resumo (digest) dos arquivos novos ou alterados. Desligado: nenhuma análise é oferecida (dá para rodar manualmente)." },
   { group: "Análise do livro", id: "autoAnalyze", type: "bool", label: "Analisar em segundo plano, sem pedir autorização", hint: "Desligado: o app mostra a estimativa de tokens e pergunta antes de gastar." },
   { group: "Análise do livro", id: "facts", type: "bool", label: "Extrair fatos dos arquivos (base das contradições)", hint: "Traços, idades, parentescos e regras do mundo. Sem isso o app não acha contradições entre arquivos." },
@@ -74,13 +74,13 @@ export const PROFILES = [
   {
     id: "minimal",
     label: "Mínimo",
-    description: "Sem tools de edição: só os botões do chat e a leitura de arquivos quando você pedir (respeitando as permissões). Nada é analisado sozinho e o histórico enviado é curto.",
+    description: "Só leitura: a IA lê arquivos quando você pedir (respeitando as permissões) e usa os botões do chat, mas não altera nem cria nada. Nada é analisado sozinho e o histórico enviado é curto. Para a IA escrever, use o Econômico ou acima.",
     values: { compact: true, onSync: false, autoAnalyze: false, facts: true, verify: false, timeline: false, tone: false, synopsis: false, chatOnly: false, toolsMode: "minimal", budgetTokens: 20000, historyLimit: 6 },
   },
   {
     id: "economic",
     label: "Econômico",
-    description: "Envia só um sumário das tools (a IA pede as que precisar). Resume os arquivos perguntando antes e acha contradições só pelo sistema, sem verificação da IA.",
+    description: "Envia as tools de edição pontual (substituir e acrescentar trecho) e só um sumário das demais (a IA pede as que precisar). Resume os arquivos perguntando antes e acha contradições só pelo sistema, sem verificação da IA.",
     values: { compact: true, onSync: true, autoAnalyze: false, facts: true, verify: false, timeline: false, tone: false, synopsis: false, chatOnly: false, toolsMode: "summary", budgetTokens: 40000, historyLimit: 12 },
   },
   {

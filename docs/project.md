@@ -97,7 +97,7 @@ Tudo o que é criado, alterado, excluído, movido, restaurado, salvo automaticam
 
 - Capítulos ficam em `content/chapter_NNN/` (antes `cap_NNN`). Livros antigos são migrados automaticamente ao listar os livros (`src/main/book-migrations.ts`): pastas renomeadas, referências em `content/index.md`, `config.json` e no changelog atualizadas. A migração 7 (`ensureChapterLayout`) deixa cada capítulo com só três arquivos — `1_outline.md` (Esboço, antigo `1_script.md`), `2_draft.md` e `3_analysis.md` (Análise, que absorve a pasta `backlog`: arquivos do modelo são descartados, os editados viram seções; `3_metadata.md` é removido; tudo registrado no changelog para rollback). No explorer o capítulo é um item único (`chapterNode.hbs`) e a toolbar mostra as guias Manuscrito/Esboço/Análise (`#chapter-tabs`).
 - **Exclusão** (botão de lixeira ao passar o mouse no explorer): anotações e fichas do mundo, com modal de confirmação. Capítulos são excluídos pela **pasta inteira** (arquivos e subpastas) e os seguintes são **renumerados** sem deixar buracos; os ajustes colaterais (mover pastas, atualizar o índice e títulos padrão) entram no changelog com o autor **Sistema**.
-- **Permissão de exclusão** no frontmatter: `userDelete` e `aiDelete` (ver `docs/ai-tools.md` e `src/renderer/utils/deletePermission.js`). Arquivos da escrita (`content/`), índices (`index.md`) e modelos (`template.md`) nunca são excluídos individualmente; quem não pode editar um arquivo também não pode excluí-lo.
+- **Permissão de exclusão** no frontmatter: `userDelete` e `aiDelete` (ver `docs/ai/ai-tools.md` e `src/renderer/utils/deletePermission.js`). Arquivos da escrita (`content/`), índices (`index.md`) e modelos (`template.md`) nunca são excluídos individualmente; quem não pode editar um arquivo também não pode excluí-lo.
 - Variáveis de apelido (`aliases`) em personagens, ambientes e sistemas alimentam o botão "Linkar termos" do editor.
 
 ### Editor (links, busca e rodapé)
@@ -108,7 +108,7 @@ Tudo o que é criado, alterado, excluído, movido, restaurado, salvo automaticam
 
 ### Documentação das tools da IA
 
-A lista de tools da IA e o guia de uso ficam em `docs/ai-tools.md`. **Sempre que criar, alterar ou remover uma tool, atualize esse arquivo.**
+A lista de tools da IA e o guia de uso ficam em `docs/ai/ai-tools.md`. **Sempre que criar, alterar ou remover uma tool, atualize esse arquivo.**
 
 ---
 
@@ -151,7 +151,7 @@ A lista de tools da IA e o guia de uso ficam em `docs/ai-tools.md`. **Sempre que
 
 ## Tools de estrutura/histórico, índices, explorer e abertura (rodada atual)
 
-- **Novas tools da IA** (`structureTools`, `variableTools`, `historyTools`, `projectTools`): ver `docs/ai-tools.md`. Os serviços
+- **Novas tools da IA** (`structureTools`, `variableTools`, `historyTools`, `projectTools`): ver `docs/ai/ai-tools.md`. Os serviços
   `FolderService`/`DeletionService`/`ChangelogService.restore` aceitam o autor (`actor`) para registrar a IA no changelog; a
   interface se atualiza pelo evento `book:structure-changed` (`deleteHandler.onStructureChanged`) e `explorer:advanced-changed`.
 - **Revisão da IA:** alterações só nos dados (frontmatter) deixaram de ser descartadas como "sem alteração"; a tela lista as variáveis alteradas.

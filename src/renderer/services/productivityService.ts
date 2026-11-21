@@ -54,6 +54,8 @@ export class ProductivityService {
     this.lastActivity = Date.now();
     this.last = Date.now();
     this.timer = null;
+    /** Meta cumprida na contagem atual (o relógio fica parado até o autor zerar ou dar play de novo). */
+    this.goalDone = false;
     this.save();
   }
 
@@ -141,8 +143,19 @@ export class ProductivityService {
       }
       this.current.activeMs += delta;
       this.current.end = new Date(now).toISOString();
+      // Meta de tempo: ao chegar no fim, encerra a contagem com um som suave e um aviso positivo
+      const goalMs = this.goalMs();
+      if (goalMs > 0 && this.current.activeMs >= goalMs) {
+        this.current.activeMs = goalMs;
+        this.closeRecord();
+        this.manualPaused = true;
+        this.goalDone = true;
+        this.chime();
+        uiBus.emit("toast:show", { message: "Meta de tempo concluída! Bom trabalho.", type: "success" });
+        uiBus.emit("productivity:changed");
+      }
       // Grava de tempos em tempos (um fechamento brusco não perde o registro)
-      if (Math.floor(this.current.activeMs / 1000) % 10 === 0) this.save();
+      if (this.current && Math.floor(this.current.activeMs / 1000) % 10 === 0) this.save();
     }
     this.render();
     uiBus.emit("productivity:tick", { ms: this.current?.activeMs || 0, status: this.status() });
@@ -158,8 +171,44 @@ export class ProductivityService {
     this.save();
   }
 
+  /** @returns {number} Meta em milissegundos (0 = sem meta, o relógio conta para a frente). */
+  goalMs() {
+    return Math.max(0, Number(appSettings.get("productivity.goalMinutes")) || 0) * 60_000;
+  }
+
+  /**
+   * Som suave de conclusão (duas notas, sintetizado: não depende de arquivo de áudio).
+   * @returns {void}
+   * @private
+   */
+  chime() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const start = ctx.currentTime + 0.02;
+      [[523.25, 0], [783.99, 0.28], [1046.5, 0.56]].forEach(([freq, at]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, start + at);
+        gain.gain.exponentialRampToValueAtTime(0.18, start + at + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + at + 0.9);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start + at);
+        osc.stop(start + at + 1);
+      });
+      setTimeout(() => ctx.close?.(), 2500);
+    } catch {
+      // sem áudio: só o aviso visual
+    }
+  }
+
   /** Play/pause do autor. @returns {void} */
   toggle() {
+    // Depois de cumprir a meta, o play começa uma nova contagem
+    if (this.goalDone) this.goalDone = false;
     this.manualPaused = !this.manualPaused;
     this.last = Date.now();
     if (!this.manualPaused) this.lastActivity = Date.now();
@@ -169,6 +218,7 @@ export class ProductivityService {
   /** Zera o cronômetro (funciona como "stop"): o registro atual termina e a contagem espera o autor apertar play. @returns {void} */
   reset() {
     this.closeRecord();
+    this.goalDone = false;
     this.manualPaused = true;
     this.render();
     uiBus.emit("productivity:changed");
@@ -224,8 +274,13 @@ export class ProductivityService {
     bar.hidden = !appSettings.get("productivity.enabled");
     const status = this.status();
     bar.dataset.status = status;
+    const goalMs = this.goalMs();
+    const spent = this.current?.activeMs || 0;
+    bar.dataset.goal = goalMs > 0 ? (this.goalDone ? "done" : "on") : "off";
+    bar.style.setProperty("--goal-progress", goalMs > 0 ? `${Math.min(100, ((this.goalDone ? goalMs : spent) / goalMs) * 100).toFixed(1)}%` : "0%");
     const time = document.getElementById("prod-time");
-    if (time) time.textContent = formatClock(this.current?.activeMs || 0);
+    // Com meta, o relógio mostra o tempo que falta; sem meta, o tempo contado
+    if (time) time.textContent = formatClock(goalMs > 0 ? (this.goalDone ? 0 : Math.max(0, goalMs - spent)) : spent);
     const toggle = document.getElementById("prod-toggle");
     if (toggle) {
       toggle.innerHTML = `<i class="fa-solid ${this.manualPaused ? "fa-play" : "fa-pause"}"></i>`;
@@ -237,6 +292,8 @@ export class ProductivityService {
       auto.title = "Automático: o cronômetro para quando você se ausenta (janela sem foco ou parado) e volta quando você volta";
     }
     const label = document.getElementById("prod-status");
-    if (label) label.textContent = status === "running" ? "contando" : status === "away" ? "ausente" : "pausado";
+    if (label) {
+      label.textContent = this.goalDone ? "meta cumprida ✓" : status === "running" ? (goalMs > 0 ? "faltam" : "contando") : status === "away" ? "ausente" : goalMs > 0 ? `meta ${Math.round(goalMs / 60000)} min` : "pausado";
+    }
   }
 }

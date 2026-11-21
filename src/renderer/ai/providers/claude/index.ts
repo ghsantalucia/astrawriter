@@ -43,6 +43,7 @@ export async function sendRequest({
         system: systemPrompt,
         messages,
         tools: tools.getDefinitions(),
+        webSearch: Boolean(toolContext?.web),
       });
 
       const blocks = data.content || [];

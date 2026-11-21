@@ -48,11 +48,29 @@ function assertValuesFromAuthor(spec, values, conversation = {}) {
   }
 }
 
+/** Tipos que a IA pode criar: sempre dentro do livro aberto. Criar livros é só do autor (pela interface). */
+const AI_CREATION_KINDS = CREATION_KINDS.filter((kind) => kind !== "book");
+
+/**
+ * Recusa pedidos de criação de livro (a IA só trabalha dentro do livro aberto).
+ * @param {string} kind - Tipo pedido.
+ * @returns {void}
+ * @throws {Error} Se for `book` ou um tipo desconhecido.
+ */
+function assertAiKind(kind) {
+  if (kind === "book") {
+    throw new Error("A IA não cria livros: ela trabalha só dentro do livro aberto. Quem cria livros é o autor, pelo seletor de livros (Novo livro).");
+  }
+  if (!AI_CREATION_KINDS.includes(kind)) {
+    throw new Error(`Tipo de criação inválido: "${kind}". Use: ${AI_CREATION_KINDS.join(", ")}.`);
+  }
+}
+
 const KIND_PARAM = {
   type: "string",
-  enum: CREATION_KINDS,
+  enum: AI_CREATION_KINDS,
   description:
-    "O que criar: 'book' (livro), 'chapter' (capítulo), 'entity' (ficha de personagem/ambiente/sistema, requer `folder`) ou 'note' (anotação).",
+    "O que criar, dentro do livro aberto: 'chapter' (capítulo), 'entity' (ficha de personagem/ambiente/sistema, requer `folder`) ou 'note' (anotação).",
 };
 
 const FOLDER_PARAM = {
@@ -73,8 +91,6 @@ const PERMISSION_FOLDER = { chapter: "content", note: "notes" };
  * @throws {Error} Se a IA não tem permissão de escrita na pasta de destino.
  */
 async function assertAiCanCreate(kind, folder, ctx) {
-  if (kind === "book") return;
-
   const target = kind === "entity" ? folder : PERMISSION_FOLDER[kind];
   const metadata = await ctx.creation.getFolderMetadata(target);
 
@@ -114,14 +130,15 @@ export function registerCreationTools(registry) {
   registry.register({
     name: "start_creation",
     description:
-      "Primeira etapa para criar um livro, capítulo, ficha (personagem, ambiente, sistema) ou anotação: retorna os campos a preencher. Se o autor JÁ informou os campos obrigatórios (ex.: o título) ou já respondeu a você, chame complete_creation logo em seguida, na mesma resposta, SEM pedir confirmação. Só pergunte se faltar algum campo obrigatório (uma única vez) e então aguarde a resposta. Nunca invente as respostas.",
+      "Primeira etapa para criar, no livro aberto, um capítulo, ficha (personagem, ambiente, sistema) ou anotação (a IA não cria livros): retorna os campos a preencher. Se o autor JÁ informou os campos obrigatórios (ex.: o título) ou já respondeu a você, chame complete_creation logo em seguida, na mesma resposta, SEM pedir confirmação. Só pergunte se faltar algum campo obrigatório (uma única vez) e então aguarde a resposta. Nunca invente as respostas.",
     parameters: {
       type: "object",
       properties: { kind: KIND_PARAM, folder: FOLDER_PARAM },
       required: ["kind"],
     },
     async execute({ kind, folder }, ctx) {
-      if (!ctx.state.currentBookPath && kind !== "book") {
+      assertAiKind(kind);
+      if (!ctx.state.currentBookPath) {
         throw new Error("Nenhum livro selecionado.");
       }
 
@@ -199,6 +216,8 @@ export function registerCreationTools(registry) {
       required: ["kind", "answers"],
     },
     async execute({ kind, folder, answers }, ctx) {
+      assertAiKind(kind);
+      if (!ctx.state.currentBookPath) throw new Error("Nenhum livro selecionado.");
       const cleanFolder =
         kind === "entity"
           ? String(folder || "").replace(/^\/+|\/+$/g, "")

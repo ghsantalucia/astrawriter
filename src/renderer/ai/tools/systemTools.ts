@@ -41,7 +41,7 @@ const OTHER_OPTIONS = [
   { label: "Temas de cores e fundo do chat", where: "Central do Sistema → Aparência", central: "system", tab: "appearance", risk: "a" },
   { label: "Templates das fichas e capítulos (perfis)", where: "Central do Sistema → Templates", central: "system", tab: "templates", risk: "a" },
   { label: "Atalhos de teclado", where: "Central do Sistema → Atalhos", central: "system", tab: "shortcuts", risk: "a" },
-  { label: "Skills (biblioteca, mercado, gatilhos)", where: "Central de IA → Skills", central: "ai", tab: "skills", risk: "b" },
+  { label: "Skills (biblioteca, loja, gatilhos)", where: "Central de IA → Skills", central: "ai", tab: "skills", risk: "b" },
 ];
 
 /**
@@ -154,22 +154,22 @@ export function registerSystemTools(registry) {
   });
 
   registry.register({
-    name: "open_new_book_wizard",
-    description: "Abre o assistente de criação de um livro novo (só quando o autor pedir). Também dá para importar um livro .zip pelo seletor de livros.",
-    parameters: { type: "object", properties: {} },
-    async execute() {
-      uiBus.emit("book:create");
-      return "Assistente de novo livro aberto.";
-    },
-  });
-
-  registry.register({
     name: "request_sync",
     description: "Abre a janela de sincronização para o autor aprovar as alterações pendentes (rascunhos). A IA nunca sincroniza sozinha.",
     parameters: { type: "object", properties: {} },
-    async execute() {
+    async execute(_args, ctx) {
+      // Só uma vez por resposta (modelos menores repetiam a chamada em laço)
+      if (ctx?.syncRequested) {
+        throw new Error("A janela de sincronização já foi aberta nesta resposta. Não chame de novo: aguarde o autor.");
+      }
+      const pending = (await ctx?.fileService?.getPendingTempFiles?.()) || [];
+      // Sem rascunhos não há o que sincronizar (e a janela não abre): dizer a verdade evita que a IA espere por nada
+      if (pending.length === 0) {
+        return "Não há rascunhos pendentes: nada a sincronizar, e a janela não abriu. Você pode editar arquivos direto, com replace_in_file, append_to_file ou write_file (se a tool não estiver liberada, peça a especificação dela em get_tool_specs).";
+      }
+      if (ctx) ctx.syncRequested = true;
       uiBus.emit("toolbar:open-sync-modal");
-      return "Janela de sincronização aberta para o autor decidir.";
+      return `Janela de sincronização aberta: o autor decide o destino de ${pending.length} rascunho(s) pendente(s).`;
     },
   });
 
@@ -411,19 +411,19 @@ export function registerSystemTools(registry) {
 
   registry.register({
     name: "list_skills",
-    description: "Lista as skills da biblioteca do autor: nome (identificador), descrição, tipo (uso único ou recorrente), gatilhos e quantas vezes rodaram.",
+    description: "Lista as skills disponíveis na biblioteca do autor, cada uma com nome (identificador), título, DESCRIÇÃO (quando usar), tipo (uso único ou recorrente), gatilhos, se é nativa, se pede informações ao autor antes de executar e quantas vezes rodou. Use para escolher a skill certa antes de run_skill.",
     parameters: { type: "object", properties: {} },
     async execute(_args, ctx) {
       const skills = ctx.skills;
       if (!skills) throw new Error("A biblioteca de skills não está disponível.");
-      return skills.installed().map((s) => ({ name: s.slug, title: s.title, description: s.description, kind: s.kind, triggers: s.triggers, autoRun: s.kind === "recurring" && s.enabled && !s.askBefore, runs: skills.runs(s.slug).length }));
+      return skills.installed().map((s) => ({ name: s.slug, title: s.title, description: s.description, kind: s.kind, native: Boolean(s.native), triggers: s.triggers, modes: s.modes || [], active: s.kind === "recurring" ? s.enabled : true, asksAuthorForInfo: Boolean(s.inputs?.length), autoRun: s.kind === "recurring" && s.enabled && !s.askBefore, runs: skills.runs(s.slug).length }));
     },
   });
 
   registry.register({
     name: "run_skill",
     description:
-      "Pede para executar uma skill da biblioteca. A execução começa quando você terminar esta resposta e SEMPRE depende da autorização do autor (uma janela com as tools e a estimativa de tokens), exceto skills recorrentes que ele já configurou para rodar sozinhas. Não repita o pedido.",
+      "Pede para executar uma skill da biblioteca (veja list_skills). A execução começa quando você terminar esta resposta e SEMPRE depende da autorização do autor (uma janela com as tools e a estimativa de tokens), exceto skills recorrentes que ele já configurou para rodar sozinhas. Se a skill pede informações ao autor (asksAuthorForInfo), uma janela mostra os campos para ele preencher: não pergunte você. Não repita o pedido.",
     parameters: { type: "object", properties: { name: { type: "string", description: "Identificador da skill (veja list_skills)." } }, required: ["name"] },
     async execute({ name }, ctx) {
       const skill = ctx.skills?.get(name);

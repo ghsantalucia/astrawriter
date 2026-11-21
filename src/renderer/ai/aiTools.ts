@@ -3,7 +3,7 @@
 /**
  * @file Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
  * Para adicionar uma ferramenta, crie um módulo em /ai/tools com `registerXTools(registry)` e chame-o aqui.
- * IMPORTANTE: toda tool nova (ou alterada) deve ser documentada em docs/ai-tools.md.
+ * IMPORTANTE: toda tool nova (ou alterada) deve ser documentada em docs/ai/ai-tools.md.
  */
 
 import { ToolRegistry } from "./tools/registry.js";

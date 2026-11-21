@@ -112,7 +112,7 @@ npm start
 - [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo.
 - [Guia de Instalação e Release](docs/guia-de-instalacao.md): como gerar o instalador do Windows (`npm run release`).
 - [Memória de arquitetura](docs/project.md): decisões e padrões do projeto.
-- [Tools da IA](docs/ai-tools.md): o que a IA pode fazer e as regras de permissão.
+- [Tools da IA](docs/ai/ai-tools.md): o que a IA pode fazer e as regras de permissão.
 
 ## Licença
 

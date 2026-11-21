@@ -59,6 +59,7 @@ export async function createMessage({
   system,
   messages,
   tools = [],
+  webSearch = false,
 }) {
   const body = { model, max_tokens: CLAUDE_MAX_TOKENS, system, messages };
   if (tools.length > 0) {
@@ -68,6 +69,8 @@ export async function createMessage({
       input_schema: t.parameters,
     }));
   }
+  // Busca na internet nativa da Anthropic (ferramenta de servidor: roda do lado dela, junto com as tools do app)
+  if (webSearch) body.tools = [...(body.tools || []), { type: "web_search_20250305", name: "web_search", max_uses: 6 }];
 
   const response = await fetch(CLAUDE_API_URL, {
     method: "POST",

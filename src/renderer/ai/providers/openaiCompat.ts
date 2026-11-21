@@ -87,7 +87,7 @@ export async function requestJson({ provider, label, url, body, apiKey, model = 
  * @param {string} options.baseUrl - Endereço base padrão (a conta pode trocá-lo).
  * @returns {{sendRequest: Function, listModels: Function}}
  */
-export function createCompatProvider({ id, label, baseUrl: defaultUrl }) {
+export function createCompatProvider({ id, label, baseUrl: defaultUrl, request = requestJson, models: modelsFn = null }) {
   const baseOf = (config) => trimUrl(config.baseUrl || defaultUrl);
 
   /** Uma passada completa (laço de tools) no modo nativo ou simulado. */
@@ -109,7 +109,7 @@ export function createCompatProvider({ id, label, baseUrl: defaultUrl }) {
             function: { name: t.name, description: t.description, parameters: t.parameters },
           }));
         }
-        const data = await requestJson({ provider: id, label, url, body, apiKey: config.apiKey, model: config.model });
+        const data = await request({ provider: id, label, url, body, apiKey: config.apiKey, model: config.model });
         const message = data?.choices?.[0]?.message || {};
         const usage = { input: data?.usage?.prompt_tokens || 0, output: data?.usage?.completion_tokens || 0 };
 
@@ -160,6 +160,7 @@ export function createCompatProvider({ id, label, baseUrl: defaultUrl }) {
   }
 
   async function listModels(config) {
+    if (modelsFn) return modelsFn(config);
     const data = await requestJson({ provider: id, label, url: `${baseOf(config)}/models`, apiKey: config.apiKey });
     return (data?.data || [])
       .map((m) => ({ id: m.id, label: m.id, contextWindow: m.context_window || m.context_length || undefined }))

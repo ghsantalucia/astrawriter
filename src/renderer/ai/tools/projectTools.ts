@@ -74,19 +74,10 @@ export function registerProjectTools(registry) {
   registry.register({
     name: "get_book_config",
     description:
-      "Lê o config.json de um livro (título, bloqueio da IA, estado do explorer). Sem parâmetros, lê o do livro atual. Informe `book` (nome da pasta) para ler o de outro livro. Somente leitura.",
-    parameters: {
-      type: "object",
-      properties: {
-        book: {
-          type: "string",
-          description:
-            "Nome da pasta do livro (ex.: book_001). Omita para o livro atual.",
-        },
-      },
-    },
-    async execute({ book }, ctx) {
-      const item = findBook(ctx.state, book);
+      "Lê o config.json do livro aberto (título, bloqueio da IA, estado do explorer). Só o livro atual: a IA não tem acesso a outros livros. Somente leitura.",
+    parameters: { type: "object", properties: {} },
+    async execute(_args, ctx) {
+      const item = findBook(ctx.state);
       const text = await window.electronAPI.readFile(
         `${normalizePath(item.fullPath)}/config.json`,
       );

@@ -10,6 +10,7 @@ Estrutura do Projeto com Descrições:
 │   ├── [.personal]
 │   │   ├── architeture.md
 │   │   ├── checklist-tarefas.md
+│   │   ├── Checklist.md
 │   │   ├── claude-tasks.md
 │   │   ├── fluxo-events-controllers.md
 │   │   ├── metadata-spec.md
@@ -17,98 +18,31 @@ Estrutura do Projeto com Descrições:
 │   │   ├── roadmap.md
 │   │   ├── system.md
 │   │   └── ui-controls.md
-│   ├── ai-tools.md
-│   ├── Checklist.md
-│   ├── code-map.txt
-│   ├── Component.md
-│   ├── Event UI.md
-│   ├── event-map.txt
+│   ├── [ai]
+│   │   ├── ai-tools.md
+│   │   ├── features-ia.md
+│   │   ├── fluxos-da-ia.md
+│   │   ├── modos-da-ia.md
+│   │   └── perfis-de-uso-da-ia.md
+│   ├── [code]
+│   │   ├── Component.md
+│   │   ├── Event UI.md
+│   │   └── Padrão de Eventos.md
+│   ├── [features]
+│   │   ├── index.md
+│   │   ├── skills.md
+│   │   └── _modelo.md
 │   ├── guia-de-instalacao.md
 │   ├── guia-do-usuario.md
-│   ├── Padrão de Eventos.md
-│   ├── project-map.txt
 │   └── project.md
 ├── electron-builder.yml
 ├── forge.config.js
 ├── jsdoc.json
 ├── LICENCE
-├── [out]
-│   └── [draftweaver-v2-win32-x64]
-│       ├── chrome_100_percent.pak
-│       ├── chrome_200_percent.pak
-│       ├── d3dcompiler_47.dll
-│       ├── draftweaver-v2.exe
-│       ├── dxcompiler.dll
-│       ├── dxil.dll
-│       ├── ffmpeg.dll
-│       ├── icudtl.dat
-│       ├── LICENSE
-│       ├── LICENSES.chromium.html
-│       ├── [locales]
-│       │   ├── af.pak
-│       │   ├── am.pak
-│       │   ├── ar.pak
-│       │   ├── bg.pak
-│       │   ├── bn.pak
-│       │   ├── ca.pak
-│       │   ├── cs.pak
-│       │   ├── da.pak
-│       │   ├── de.pak
-│       │   ├── el.pak
-│       │   ├── en-GB.pak
-│       │   ├── en-US.pak
-│       │   ├── es-419.pak
-│       │   ├── es.pak
-│       │   ├── et.pak
-│       │   ├── fa.pak
-│       │   ├── fi.pak
-│       │   ├── fil.pak
-│       │   ├── fr.pak
-│       │   ├── gu.pak
-│       │   ├── he.pak
-│       │   ├── hi.pak
-│       │   ├── hr.pak
-│       │   ├── hu.pak
-│       │   ├── id.pak
-│       │   ├── it.pak
-│       │   ├── ja.pak
-│       │   ├── kn.pak
-│       │   ├── ko.pak
-│       │   ├── lt.pak
-│       │   ├── lv.pak
-│       │   ├── ml.pak
-│       │   ├── mr.pak
-│       │   ├── ms.pak
-│       │   ├── nb.pak
-│       │   ├── nl.pak
-│       │   ├── pl.pak
-│       │   ├── pt-BR.pak
-│       │   ├── pt-PT.pak
-│       │   ├── ro.pak
-│       │   ├── ru.pak
-│       │   ├── sk.pak
-│       │   ├── sl.pak
-│       │   ├── sr.pak
-│       │   ├── sv.pak
-│       │   ├── sw.pak
-│       │   ├── ta.pak
-│       │   ├── te.pak
-│       │   ├── th.pak
-│       │   ├── tr.pak
-│       │   ├── uk.pak
-│       │   ├── ur.pak
-│       │   ├── vi.pak
-│       │   ├── zh-CN.pak
-│       │   └── zh-TW.pak
-│       ├── [resources]
-│       │   └── app.asar
-│       ├── resources.pak
-│       ├── snapshot_blob.bin
-│       ├── v8_context_snapshot.bin
-│       ├── version
-│       ├── vk_swiftshader.dll
-│       ├── vk_swiftshader_icd.json
-│       └── vulkan-1.dll
+├── [maps]
+│   ├── code-map.txt
+│   ├── event-map.txt
+│   └── project-map.txt
 ├── package-lock.json
 ├── package.json
 ├── [public]
@@ -116,14 +50,21 @@ Estrutura do Projeto com Descrições:
 │   └── icon.png
 ├── README.md
 ├── [scripts]
+│   ├── audit-package.js — scripts/audit-package.js
+│   ├── build-manual.js — scripts/build-manual.js
 │   ├── code-map.js — scripts/code-map.js
 │   ├── create-component.js
 │   ├── event-map.js
+│   ├── [manual-src]
+│   │   └── comece-por-aqui.md
 │   ├── project-map.js — ou @description no início do arquivo
-│   └── release.js — scripts/release.js
+│   ├── publish-release.js — scripts/publish-release.js
+│   ├── release.js — scripts/release.js
+│   └── test-puter.js — scripts/test-puter.js
 ├── [src]
 │   ├── [main]
 │   │   ├── ai-error-log.ts — Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).
+│   │   ├── book-import-file.ts — Importação de um livro a partir de um arquivo de texto (Word `.docx`, LibreOffice `.odt`, PDF, `.txt` ou `.md`).
 │   │   ├── book-import.ts — Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é
 │   │   ├── book-migrations.ts — Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.
 │   │   ├── book-scan.ts — Varredura incremental de um livro para a Central de Revisões: lê os arquivos Markdown (o rascunho `.md.temp`
@@ -131,9 +72,11 @@ Estrutura do Projeto com Descrições:
 │   │   ├── changelog.ts — Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em
 │   │   ├── export.ts — Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do
 │   │   ├── file-watcher.ts — Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.
+│   │   ├── first-run.ts — Primeira abertura do app: instala o livro padrão "Manual de Uso" (modelo em `templates/manual`, gerado por
 │   │   ├── ipc-handlers.ts — Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).
 │   │   ├── main.ts — Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
 │   │   ├── paths.ts — Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta
+│   │   ├── puter.ts — Puter pela biblioteca oficial (`@heyputer/puter.js`, versão Node). O token fica só aqui, no processo principal; a
 │   │   ├── skills-store.ts — Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário
 │   │   ├── spellchecker.ts — Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
 │   │   ├── system-tools.ts — Ferramentas do sistema usadas pela Central do Sistema: versão e verificação de atualização (releases do GitHub),
@@ -142,14 +85,17 @@ Estrutura do Projeto com Descrições:
 │   │   └── preload.ts — Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.
 │   ├── [renderer]
 │   │   ├── [ai]
+│   │   │   ├── abort.ts — Interrupção da IA: o sinal de cancelamento da resposta em andamento, compartilhado pelos provedores (que o passam ao
 │   │   │   ├── aiGateway.ts — Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.
 │   │   │   ├── aiTools.ts — Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
 │   │   │   ├── apiError.ts — Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para
+│   │   │   ├── compact.ts — "Otimizar instruções": enxuga os textos de instrução que o app envia à IA (prompt de sistema, descrição das tools e
 │   │   │   ├── debugLog.ts — Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do
 │   │   │   ├── profiles.ts — Perfis de uso da IA (como nas configurações de gráficos de um jogo): cada perfil define um conjunto de opções que
 │   │   │   ├── [prompts]
 │   │   │   │   ├── index.ts — Monta o prompt de sistema único, reutilizado por todos os provedores de IA.
-│   │   │   │   └── systemPrompt.md
+│   │   │   │   ├── systemPrompt.md
+│   │   │   │   └── systemPromptCompact.md
 │   │   │   ├── [providers]
 │   │   │   │   ├── [claude]
 │   │   │   │   │   ├── client.ts — Cliente HTTP da API da Anthropic.
@@ -167,24 +113,36 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   │   └── index.ts — Provedor Groq (API compatível com a OpenAI).
 │   │   │   │   ├── index.ts — Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).
 │   │   │   │   ├── [mock]
-│   │   │   │   │   ├── index.ts — Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma
-│   │   │   │   │   └── models.ts — Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).
+│   │   │   │   │   ├── index.ts — Assistente embutido do Astra (provedor interno "mock"). Não é uma IA: não chama nenhuma API e responde de forma
+│   │   │   │   │   ├── models.ts — Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).
+│   │   │   │   │   └── quotes.ts — Citações de grandes escritores, curtas e inspiracionais. O assistente embutido do Astra abre cada sessão do chat com
 │   │   │   │   ├── [ollama]
 │   │   │   │   │   └── index.ts — Provedor Ollama (modelos locais). Usa a API nativa (`/api/chat`), que permite definir o tamanho do contexto —
 │   │   │   │   ├── [openai]
 │   │   │   │   │   └── index.ts — Provedor ChatGPT (OpenAI) (API compatível com a OpenAI).
 │   │   │   │   ├── openaiCompat.ts — Cliente e provedor genéricos para APIs compatíveis com a OpenAI (`/chat/completions`): ChatGPT, Groq, Puter, LM
 │   │   │   │   └── [puter]
-│   │   │   │       └── index.ts — Provedor Puter (API compatível com a OpenAI).
+│   │   │   │       └── index.ts — Provedor Puter, pela biblioteca oficial `puter.js` (que roda no processo principal; o token não sai de lá). A conversa
 │   │   │   ├── simulatedTools.ts — Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o
 │   │   │   ├── [skills]
+│   │   │   │   ├── capitulo-a-partir-do-esboco.md
+│   │   │   │   ├── conexoes-do-livro.md
+│   │   │   │   ├── contexto-do-evento.md
+│   │   │   │   ├── corrigir-pendencias.md
+│   │   │   │   ├── criar-fichas-de-ambientes.md
+│   │   │   │   ├── criar-fichas-de-conceitos.md
+│   │   │   │   ├── criar-fichas-de-personagens.md
+│   │   │   │   ├── eventos-do-manuscrito.md
 │   │   │   │   ├── index.ts — Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
 │   │   │   │   ├── [market]
-│   │   │   │   │   ├── completar-ficha-de-personagem.md
-│   │   │   │   │   ├── ortografia-elfica-tolkien.md
-│   │   │   │   │   ├── reescrever-estilo-conan-doyle.md
-│   │   │   │   │   └── revisar-dialogos.md
-│   │   │   │   └── revisao-de-consistencia.md
+│   │   │   │   │   ├── avaliar-ritmo-da-historia.md
+│   │   │   │   │   ├── reduzir-trechos-prolixos.md
+│   │   │   │   │   ├── reescrever-no-estilo-de-um-autor.md
+│   │   │   │   │   ├── revisar-e-padronizar-escrita.md
+│   │   │   │   │   └── sugerir-fichas-ausentes.md
+│   │   │   │   ├── rascunho-de-capitulo-pela-sinopse.md
+│   │   │   │   ├── remover-item-da-historia.md
+│   │   │   │   └── vincular-evento-criado.md
 │   │   │   ├── toolLoop.ts — Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.
 │   │   │   ├── [tools]
 │   │   │   │   ├── bookTools.ts — Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.
@@ -234,7 +192,7 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   │   │   ├── appearance.ts — Aba "Aparência" da Central do Sistema: tema claro/escuro, temas de cores (predefinidos e do usuário, com editor
 │   │   │   │   │   │   ├── controls.ts — Controles compartilhados pelas abas da Central do Sistema: uma linha de configuração para cada tipo de valor
 │   │   │   │   │   │   ├── shortcuts.ts — Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e
-│   │   │   │   │   │   ├── skillsTab.ts — Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Mercado", por enquanto
+│   │   │   │   │   │   ├── skillsTab.ts — Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Loja", por enquanto
 │   │   │   │   │   │   └── templates.ts — Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo
 │   │   │   │   │   └── systemPanel.ts — Central do Sistema: configurações do app (não do livro): geral, atualização, aparência, acessibilidade, editor,
 │   │   │   │   ├── panelStyles.css
@@ -341,6 +299,7 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   ├── fileHandler.ts — Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.
 │   │   │   │   ├── folderHandler.ts — Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.
 │   │   │   │   ├── historyHandler.ts — Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no
+│   │   │   │   ├── importFileHandler.ts — Importar livro de um arquivo (Word, LibreOffice, PDF, texto): o processo principal extrai título e capítulos; aqui o autor
 │   │   │   │   ├── linkHandler.ts — Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e
 │   │   │   │   ├── logViewerHandler.ts — Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.
 │   │   │   │   ├── searchHandler.ts — Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.
@@ -390,8 +349,10 @@ Estrutura do Projeto com Descrições:
 │   │   │   ├── startupService.ts — Rotina de inicialização: assim que o app abre, em segundo plano e sem travar nada, verifica atualizações e faz o
 │   │   │   └── templateService.ts — Perfis de template: o corpo dos templates de fichas e de capítulos muda conforme o perfil (assistente, co-autor,
 │   │   └── [utils]
+│   │       ├── appLinks.ts — Links do app: endereços `app:` que, em vez de abrir um arquivo ou um site, abrem uma janela do próprio app (a gaveta
 │   │       ├── appSettings.ts — Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,
 │   │       ├── autoLinkText.ts — Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e
+│   │       ├── backlinks.ts — Citações (retrolinks): em quais arquivos do livro um arquivo é citado por um link Markdown, com o parágrafo de cada
 │   │       ├── bookFiles.ts — Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos
 │   │       ├── bookIndex.ts — Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual
 │   │       ├── changelogFormat.ts — Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.
@@ -406,6 +367,7 @@ Estrutura do Projeto com Descrições:
 │   │       ├── helpers.ts — Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.
 │   │       ├── historyCompare.ts — Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown
 │   │       ├── markdown.ts — Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
+│   │       ├── sounds.ts — Sons curtos do app, sintetizados com a Web Audio API (sem arquivos de áudio): um aviso suave de "mensagem nova".
 │   │       ├── template.ts — Funções puras para interpretar arquivos-modelo (templates) do livro.
 │   │       └── themes.ts — Temas de cores do app: temas predefinidos e temas criados pelo usuário. Um tema é só um conjunto de **variáveis de
 │   ├── [shared]
@@ -432,7 +394,6 @@ Estrutura do Projeto com Descrições:
 │   │   │   │   └── template.md
 │   │   │   ├── [events]
 │   │   │   │   ├── folder.yml
-│   │   │   │   ├── index.md
 │   │   │   │   ├── template.md
 │   │   │   │   └── timeline.md
 │   │   │   ├── folder.yml
@@ -453,6 +414,45 @@ Estrutura do Projeto com Descrições:
 │   │   ├── index.md
 │   │   └── [notes]
 │   │       └── folder.yml
+│   ├── [manual]
+│   │   ├── [assets]
+│   │   │   ├── [characters]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   ├── sobre-personagens.md
+│   │   │   │   └── template.md
+│   │   │   ├── [elements]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   ├── sobre-conceitos.md
+│   │   │   │   └── template.md
+│   │   │   ├── [events]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── sobre-eventos.md
+│   │   │   │   ├── template.md
+│   │   │   │   └── timeline.md
+│   │   │   ├── folder.yml
+│   │   │   └── [places]
+│   │   │       ├── folder.yml
+│   │   │       ├── index.md
+│   │   │       ├── sobre-ambientes.md
+│   │   │       └── template.md
+│   │   ├── config.json
+│   │   ├── [content]
+│   │   │   ├── [chapter_001]
+│   │   │   │   ├── 1_outline.md
+│   │   │   │   ├── 2_draft.md
+│   │   │   │   ├── 3_analysis.md
+│   │   │   │   └── folder.yml
+│   │   │   ├── folder.yml
+│   │   │   ├── index.md
+│   │   │   └── plot.md
+│   │   ├── index.md
+│   │   └── [notes]
+│   │       ├── comece-por-aqui.md
+│   │       ├── folder.yml
+│   │       ├── manual-completo.md
+│   │       └── o-que-sao-anotacoes.md
 │   ├── [profiles]
 │   │   ├── [assistant]
 │   │   │   ├── chapter-analysis.md

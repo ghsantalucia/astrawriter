@@ -4,6 +4,7 @@
  * @file Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
  */
 
+import { citationsOf } from "../../utils/backlinks.js";
 import { isAppLink, openAppLink } from "../../utils/appLinks.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
@@ -703,6 +704,7 @@ export class EditorComponent extends Component {
         <i class="fa-solid fa-chevron-right file-data-arrow"></i>
         <span class="file-data-title">Dados do arquivo</span>
         <span class="file-data-count"></span>
+        <span class="file-data-cited" role="button" tabindex="0" hidden title="Ver onde este arquivo é citado"></span>
         <span class="file-data-tags"></span>
       </button>
       <form class="file-data-body" hidden>
@@ -723,6 +725,12 @@ export class EditorComponent extends Component {
     });
 
     box.querySelector(".file-data-head").addEventListener("click", (e) => {
+      // Clicar em "citado em X arquivos" abre a lista de citações (e não abre/fecha a caixa)
+      if (e.target.closest?.(".file-data-cited")) {
+        e.stopPropagation();
+        this.openCitations();
+        return;
+      }
       // Clicar numa tag do cabeçalho pesquisa por ela (e não abre/fecha a caixa)
       const chip = e.target.closest?.(".tag-chip[data-tag]");
       if (chip) {
@@ -803,12 +811,72 @@ export class EditorComponent extends Component {
     this.dataBox.querySelector(".file-data-tags").innerHTML = tags.length
       ? `<span class="file-data-sep">·</span>${tags.map((tag) => tagChipHtml(tag, true)).join("")}`
       : "";
+    this.updateCitedCount();
     this.tagInput.setTags(tags);
     this.tagInput.setDisabled(readonly);
     const fieldsEl = this.dataBox.querySelector(".file-data-fields");
     fieldsEl.innerHTML = fields.map((f) => this.dataFieldHtml(f, readonly)).join("");
     this.mountEventInputs(fieldsEl, readonly);
     this.dataBox.querySelector(".file-data-save").disabled = readonly;
+  }
+
+  /**
+   * Mostra "citado em X arquivos" na frente do número de campos (só aparece se o arquivo for citado).
+   * @returns {Promise<void>}
+   * @private
+   */
+  async updateCitedCount() {
+    const el = this.dataBox?.querySelector(".file-data-cited");
+    if (!el) return;
+    const rel = this.getCurrentRel();
+    el.hidden = true;
+    if (!rel || !this.state.currentBookPath) return;
+    const list = await citationsOf(this.state.currentBookPath, rel);
+    if (rel !== this.getCurrentRel()) return; // trocou de arquivo enquanto lia
+    const files = new Set(list.map((c) => c.rel)).size;
+    if (!files) return;
+    el.textContent = `citado em ${files} ${files === 1 ? "arquivo" : "arquivos"}`;
+    el.hidden = false;
+  }
+
+  /**
+   * Abre a janela com todas as citações do arquivo aberto (nome do arquivo + o parágrafo). Clicar leva ao arquivo e ao ponto.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async openCitations() {
+    const rel = this.getCurrentRel();
+    const list = await citationsOf(this.state.currentBookPath, rel);
+    if (!list.length) return;
+    const title = this.state.currentFileMetadata?.title || rel;
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const items = list
+      .map((c, i) => {
+        const text = esc(c.paragraph.replace(/\[([^\]]*)\]\([^)]*\)/g, "[[$1]]"));
+        const shown = text.replace(/\[\[([^\]]*)\]\]/g, (m, label) => (label === esc(c.label) ? `<mark>${label}</mark>` : label));
+        return `<button type="button" class="cit-item" data-i="${i}"><strong>${esc(c.title)}</strong><span>${shown}</span></button>`;
+      })
+      .join("");
+    // Clique numa citação: fecha a janela e abre o arquivo no ponto do link (ouvinte único, removido ao fechar)
+    const onClick = (e) => {
+      const btn = e.target.closest?.(".cit-item");
+      if (!btn) return;
+      const c = list[Number(btn.dataset.i)];
+      document.removeEventListener("click", onClick, true);
+      [...document.querySelectorAll(".modal-close-btn")].pop()?.click();
+      this.uiBus.emit("editor:open-file", {
+        path: `${this.state.currentBookPath}/${c.rel}`,
+        reveal: { term: c.label, occurrence: c.occurrence },
+      });
+    };
+    document.addEventListener("click", onClick, true);
+    this.uiBus.emit("modal:open", {
+      id: "citations-modal",
+      title: `Citações de “${title}”`,
+      content: `<div class="cit-list"><p class="cit-hint">${list.length} ${list.length === 1 ? "citação" : "citações"}. Clique para ir ao ponto do texto.</p>${items}</div>`,
+      buttons: [{ text: "Fechar", class: "btn-secondary" }],
+      onClose: () => document.removeEventListener("click", onClick, true),
+    });
   }
 
   /**

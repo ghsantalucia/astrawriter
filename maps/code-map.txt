@@ -8,6 +8,13 @@
 │   │   ├── ⚙️ appendAiError(userDataDir, error) — Acrescenta um erro ao log.
 │   │   ├── ⚙️ readAiErrors(userDataDir) — Lê os registros do log, do mais recente para o mais antigo.
 │   │   └── ⚙️ clearAiErrors(userDataDir) — Apaga todo o log de erros.
+│   ├── book-import-file.ts — [Importação de um livro a partir de um arquivo de texto (Word `.docx`, LibreOffice `.odt`, PDF, `.txt` ou `.md`).]
+│   │   ├── ⚙️ blocksFromText(text) — Converte texto corrido (txt/pdf) em blocos: títulos de capítulo e parágrafos. Linhas quebradas no meio da frase são unidas.
+│   │   ├── ⚙️ blocksFromHtml(html) — Blocos do HTML gerado pelo mammoth (`h1..h6` e `p`).
+│   │   ├── ⚙️ blocksFromOdt(xml) — Blocos do `content.xml` de um .odt (`text:h` e `text:p`).
+│   │   ├── ⚙️ splitChapters(blocks, fallbackTitle) — Separa os blocos em capítulos. Usa os títulos que parecem "Capítulo N"; se não houver, o nível de título que aparece em mais de um lugar. O que vem antes do primeiro capítulo vira o título do livro (se for um título curto) ou um "Prólogo".
+│   │   ├── ⚙️ readBlocks(file) — Lê o arquivo e devolve os blocos do documento.
+│   │   └── ⚙️ extractBookFromFile(parent) — Escolhe um arquivo e extrai título e capítulos (nada é criado).
 │   ├── book-import.ts — [Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é]
 │   │   ├── ⚙️ nextBookFolder(dir) — Próximo nome livre de pasta de livro (`book_NNN`).
 │   │   ├── ⚙️ safeRelative(rel) — Caminho relativo seguro (sem `..`, sem raiz, sem letra de unidade) ou null.
@@ -25,6 +32,7 @@
 │   │   ├── ⚙️ removeAiWriteFlag(text, isYaml = false) — Remove a linha `aiWrite` do frontmatter de um arquivo (ou de um folder.yml), se existir.
 │   │   ├── ⚙️ ensureNotesInheritAiWrite(bookPath) — Migração 5: em `notes/`, só o `notes/folder.yml` define `aiWrite`; os arquivos e as subpastas herdam dele (a permissão é resolvida subindo de pasta em pasta até a raiz do livro).
 │   │   ├── ⚙️ walk(dir)
+│   │   ├── ⚙️ mergeEventsIndexIntoTimeline(bookPath) — O "Índice de Eventos" e a "Linha do Tempo" são a mesma coisa: a linha do tempo é o índice da categoria. Livros antigos têm os dois arquivos: os eventos que só o índice listava passam para a linha do tempo (o sistema a reordena depois) e o índice é removido; os links para ele passam a apontar para a linha do tempo.
 │   │   ├── ⚙️ ensureEventsCategory(bookPath) — Migração 6: categoria de eventos (`assets/events`) e linha do tempo dentro dela. Cria a pasta com os arquivos do modelo (se faltarem), move `assets/timeline.md` (e o rascunho) para `assets/events/timeline.md` e corrige os links para ele.
 │   │   ├── ⚙️ bodyOf(text) — Corpo de um arquivo Markdown sem o frontmatter e com quebras de linha normalizadas.
 │   │   ├── ⚙️ ensureChapterLayout(bookPath) — Migração 7: cada capítulo passa a ter só três arquivos — `1_outline.md` (Esboço, antigo `1_script.md`), `2_draft.md` (Manuscrito, inalterado) e `3_analysis.md` (Análise, que reúne a antiga pasta `backlog`: análise, planejamento e foreshadowing). O conteúdo escrito pelo autor nunca é perdido: os arquivos do backlog que ainda são os do modelo são descartados; os editados viram seções da análise. Tudo é registrado no changelog (com o conteúdo, para rollback) e os links antigos são atualizados.
@@ -82,6 +90,10 @@
 │   │   ├── ⚙️ setupFileWatcher(mainWindow) — Configura e inicia o observador do sistema de arquivos para a pasta de livros.
 │   │   ├── ⚙️ startWatching() — Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
 │   │   └── ⚙️ withFileWatcherPaused(task) — Executa uma operação que renomeia ou apaga PASTAS com o observador pausado. No Windows o Chokidar mantém as pastas observadas abertas, o que impede renomeá-las (EPERM); por isso o observador é fechado durante a operação e recriado depois. Eventos ocorridos nesse intervalo não são enviados (quem pediu a operação atualiza a interface). @template T
+│   ├── first-run.ts — [Primeira abertura do app: instala o livro padrão "Manual de Uso" (modelo em `templates/manual`, gerado por]
+│   │   ├── ⚙️ nextBookFolder(dir) — Próximo nome livre de pasta de livro (`book_NNN`).
+│   │   ├── ⚙️ installManualBook() — Instala o Manual de Uso se ainda não foi instalado neste computador.
+│   │   └── ⚙️ takeFirstRunBook() — Devolve (uma única vez) o caminho do Manual de Uso recém-instalado, para o app abri-lo na primeira abertura.
 │   ├── ipc-handlers.ts — [Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).]
 │   │   ├── ⚙️ setupIpcHandlers(mainWindow) — Configura todos os ouvintes de eventos IPC do processo principal.
 │   │   ├── ⚙️ withInherited(meta, inherited) — Preenche, em `meta`, as permissões que ele não define com as herdadas.
@@ -96,6 +108,12 @@
 │   │   ├── ⚙️ ensureBooksDir() — Garante que a pasta de livros exista (a primeira execução do app instalado começa com ela vazia).
 │   │   ├── ⚙️ templatesDir() — Pasta com o modelo (template) de livro.
 │   │   └── ⚙️ iconPath() — Ícone da janela.
+│   ├── puter.ts — [Puter pela biblioteca oficial (`@heyputer/puter.js`, versão Node). O token fica só aqui, no processo principal; a]
+│   │   ├── ⚙️ client(token) — Cliente do Puter autenticado com o token.
+│   │   ├── ⚙️ serializeError(error) — Converte o erro (objeto simples da biblioteca ou Error) em algo serializável pelo IPC.
+│   │   ├── ⚙️ contentText(content) — Normaliza o conteúdo de uma mensagem (texto ou blocos) para texto.
+│   │   ├── ⚙️ puterChat({ token, model, messages, tools }) — Conversa com um modelo pelo Puter.
+│   │   └── ⚙️ puterModels({ token }) — Lista os modelos de chat disponíveis para a conta.
 │   ├── skills-store.ts — [Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário]
 │   │   ├── ⚙️ root()
 │   │   ├── ⚙️ listSkillFiles() — Lê todas as skills salvas.
@@ -142,6 +160,11 @@
 │   └── preload.ts — [Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.]
 ├── [renderer]
 │   ├── [ai]
+│   │   ├── abort.ts — [Interrupção da IA: o sinal de cancelamento da resposta em andamento, compartilhado pelos provedores (que o passam ao]
+│   │   │   ├── ⚙️ setActiveSignal(signal) — Define (ou limpa) o sinal da resposta em andamento.
+│   │   │   ├── ⚙️ activeSignal()
+│   │   │   ├── ⚙️ abortError() — Erro de interrupção pelo autor.
+│   │   │   └── ⚙️ raceAbort(promise, signal) — Espera uma promessa, mas rejeita na hora se o sinal for acionado (mesmo que o provedor não consiga cancelar a conexão).
 │   │   ├── aiGateway.ts — [Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.]
 │   │   │   ├── ⚙️ worthFallback(error) — Indica se o erro justifica tentar outro modelo.
 │   │   │   ├── ⚙️ accountExtras(account) — Campos extras da conta repassados ao provedor (endereço do servidor, modo de tools, contexto).
@@ -161,6 +184,9 @@
 │   │   │   ├── ⚙️ describeStatus(name, status, detail) — Mensagem legível para os status HTTP mais comuns.
 │   │   │   ├── ⚙️ collectClaudeHeaders(headers) — Reúne os cabeçalhos de limite de uso da Anthropic.
 │   │   │   └── ⚙️ parseClaudeRateLimits(headers) — Extrai os limites de uso informados pela Anthropic nos cabeçalhos de uma resposta bem-sucedida.
+│   │   ├── compact.ts — ["Otimizar instruções": enxuga os textos de instrução que o app envia à IA (prompt de sistema, descrição das tools e]
+│   │   │   ├── ⚙️ compactInstructions(text) — Enxuga um texto de instruções.
+│   │   │   └── ⚙️ compactDescription(description) — Descrição curta de uma tool: as duas primeiras frases, no máximo 240 caracteres.
 │   │   ├── debugLog.ts — [Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do]
 │   │   │   ├── ⚙️ scheduleSave() — Grava os recentes no livro (com a espera de agrupamento).
 │   │   │   ├── ⚙️ ensureDebugLoaded(bookPath) — Garante que os recentes do livro estão carregados do disco (chamar antes de registrar turnos). Ao trocar de livro, o registro passa a ser o daquele livro.
@@ -185,7 +211,8 @@
 │   │   │   └── ⚙️ toSaved(profile, values) — Estrutura a gravar em `aiSettings.analysis` para um perfil ou um conjunto personalizado.
 │   │   ├── [prompts]
 │   │   │   └── index.ts — [Monta o prompt de sistema único, reutilizado por todos os provedores de IA.]
-│   │   │        └── ⚙️ buildSystemPrompt(state) — Prompt base (arquivo único) + contexto atual do app (livro, arquivo aberto e skills).
+│   │   │        ├── ⚙️ buildSystemPrompt(state, compact = false, bookMap = "") — Prompt base (arquivo único) + contexto atual do app (livro, arquivo aberto e skills).
+│   │   │        └── ⚙️ buildBookMap(files, unchanged = null) — Mapa do livro para o contexto da IA: título e caminho dos arquivos que ela pode ler, para saber o que existe sem precisar listar nem perguntar. Fora índices e modelos. Só dados do livro aberto.
 │   │   ├── [providers]
 │   │   │   ├── [claude]
 │   │   │   │   ├── client.ts — [Cliente HTTP da API da Anthropic.]
@@ -211,11 +238,15 @@
 │   │   │   ├── index.ts — [Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).]
 │   │   │   │   └── ⚙️ getProviderInfo(id)
 │   │   │   ├── [mock]
-│   │   │   │   ├── index.ts — [Provedor Mock (somente para testes). Não chama nenhuma API: responde de forma]
+│   │   │   │   ├── index.ts — [Assistente embutido do Astra (provedor interno "mock"). Não é uma IA: não chama nenhuma API e responde de forma]
+│   │   │   │   │   ├── ⚙️ welcomeText() — Apresentação do assistente (primeira mensagem de cada sessão): uma citação sorteada e o aviso de que não é uma IA.
+│   │   │   │   │   ├── ⚙️ isFirstOfSession(history)
 │   │   │   │   │   ├── ⚙️ parseCommand(prompt) — Converte o prompt em um plano: uma chamada de ferramenta ou uma resposta direta.
 │   │   │   │   │   ├── ⚙️ formatResults(results) — Formata o resultado das ferramentas como resposta final em Markdown.
-│   │   │   │   │   └── ⚙️ sendRequest({ prompt, systemPrompt = "", toolContext }) — Simula uma requisição ao provedor, executando ferramentas reais quando o comando pedir.
-│   │   │   │   └── models.ts — [Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).]
+│   │   │   │   │   └── ⚙️ sendRequest({ prompt, systemPrompt = "", history = [], toolContext }) — Simula uma requisição ao provedor, executando ferramentas reais quando o comando pedir.
+│   │   │   │   ├── models.ts — [Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).]
+│   │   │   │   └── quotes.ts — [Citações de grandes escritores, curtas e inspiracionais. O assistente embutido do Astra abre cada sessão do chat com]
+│   │   │   │        └── ⚙️ randomQuote() — Sorteia uma citação.
 │   │   │   ├── [ollama]
 │   │   │   │   └── index.ts — [Provedor Ollama (modelos locais). Usa a API nativa (`/api/chat`), que permite definir o tamanho do contexto —]
 │   │   │   │        ├── ⚙️ run({ simulated, prompt, history, config, systemPrompt, tools, toolContext }) — Uma passada completa no modo nativo ou simulado.
@@ -225,13 +256,16 @@
 │   │   │   │   └── index.ts — [Provedor ChatGPT (OpenAI) (API compatível com a OpenAI).]
 │   │   │   ├── openaiCompat.ts — [Cliente e provedor genéricos para APIs compatíveis com a OpenAI (`/chat/completions`): ChatGPT, Groq, Puter, LM]
 │   │   │   │   ├── ⚙️ requestJson({ provider, label, url, body, apiKey, model = "" }) — Faz uma chamada HTTP e converte falhas (rede, status) em {@link AiApiError} legíveis.
-│   │   │   │   ├── ⚙️ createCompatProvider({ id, label, baseUrl: defaultUrl }) — Cria o provedor (`sendRequest` e `listModels`) para um serviço compatível com a OpenAI.
+│   │   │   │   ├── ⚙️ createCompatProvider({ id, label, baseUrl: defaultUrl, request = requestJson, models: modelsFn = null }) — Cria o provedor (`sendRequest` e `listModels`) para um serviço compatível com a OpenAI.
 │   │   │   │   ├── ⚙️ run({ simulated, prompt, history, config, systemPrompt, tools, toolContext }) — Uma passada completa (laço de tools) no modo nativo ou simulado.
 │   │   │   │   ├── ⚙️ sendRequest(args)
 │   │   │   │   ├── ⚙️ listModels(config)
 │   │   │   │   └── ⚙️ safeJson(value) — Lê JSON de forma tolerante (argumentos de tool vindos como texto).
 │   │   │   └── [puter]
-│   │   │        └── index.ts — [Provedor Puter (API compatível com a OpenAI).]
+│   │   │        └── index.ts — [Provedor Puter, pela biblioteca oficial `puter.js` (que roda no processo principal; o token não sai de lá). A conversa]
+│   │   │             ├── ⚙️ puterError(error, model = "") — Converte o erro devolvido pelo processo principal em {@link AiApiError} legível.
+│   │   │             ├── ⚙️ request({ body, apiKey, model }) — Transporte: o chat passa pela biblioteca oficial, no processo principal.
+│   │   │             └── ⚙️ models(config) — Lista de modelos da conta.
 │   │   ├── simulatedTools.ts — [Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o]
 │   │   │   ├── ⚙️ describeTool(tool) — Resumo de uma tool em uma linha (nome, parâmetros e descrição curta).
 │   │   │   ├── ⚙️ buildSimulatedToolsPrompt(definitions) — Trecho extra do prompt de sistema que ensina o modelo a pedir tools por texto.
@@ -241,6 +275,7 @@
 │   │   │   └── ⚙️ looksLikeNoToolSupport(error) — Indica se o erro parece ser a recusa do envio de `tools` (modelo sem suporte).
 │   │   ├── [skills]
 │   │   │   └── index.ts — [Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.]
+│   │   │        ├── ⚙️ autoSkillColor(key) — Cor sugerida para uma skill, calculada do nome (sempre a mesma), com o mesmo método das cores das tags.
 │   │   │        ├── ⚙️ parseSkill(raw, origin) — Converte o texto de um arquivo de skill no objeto da skill.
 │   │   │        ├── ⚙️ setCustomSkills(list) — Define as skills da biblioteca (chamado pelo SkillService ao carregar e a cada mudança).
 │   │   │        ├── ⚙️ builtinSkills()
@@ -254,7 +289,7 @@
 │   │   ├── toolTiers.ts — [Quantas tools vão para o modelo a cada pedido, definido pelo perfil de uso da IA (`toolsMode`). As definições das]
 │   │   │   ├── ⚙️ oneLine(def) — Resumo de uma linha da tool (a primeira frase da descrição).
 │   │   │   └── 📦 class ToolView — Conjunto de tools oferecido ao modelo (mesma interface do registro de tools que os provedores usam).
-│   │   │       ├── ⚙️ constructor(mode, bookPath, allow = null) — Método Construtor
+│   │   │       ├── ⚙️ constructor(mode, bookPath, allow = null, compact = false) — Método Construtor
 │   │   │       ├── ⚙️ fullNames()
 │   │   │       ├── ⚙️ getDefinitions() — Definições completas enviadas ao modelo neste momento.
 │   │   │       ├── ⚙️ specsToolDefinition()
@@ -272,6 +307,7 @@
 │   │   │   │   └── ⚙️ registerChatTools(registry) — Registra a ferramenta de botões do chat.
 │   │   │   ├── creationTools.ts — [Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.]
 │   │   │   │   ├── ⚙️ assertValuesFromAuthor(spec, values, conversation = {}) — Confere que cada campo obrigatório preenchido pela IA veio do autor: o valor precisa ser o padrão do campo ou aparecer (ignorando maiúsculas/acentos) nas mensagens recentes da conversa. Isso impede a IA de inventar respostas SEM obrigá-la a perguntar de novo o que o autor já disse — a causa do ciclo infinito de confirmações. @throws {Error} Se um campo obrigatório tem um valor que não consta na conversa.
+│   │   │   │   ├── ⚙️ assertAiKind(kind) — Recusa pedidos de criação de livro (a IA só trabalha dentro do livro aberto). @throws {Error} Se for `book` ou um tipo desconhecido.
 │   │   │   │   ├── ⚙️ assertAiCanCreate(kind, folder, ctx) — Garante que a IA pode criar o item no destino (a pasta precisa ter `aiWrite` ativo no folder.yml). @throws {Error} Se a IA não tem permissão de escrita na pasta de destino.
 │   │   │   │   ├── ⚙️ resolveEntityFolder(folder, ctx) — Resolve e valida a pasta de uma ficha, listando as opções quando ela é inválida ou omitida. @throws {Error} Se a pasta não aceita fichas.
 │   │   │   │   └── ⚙️ registerCreationTools(registry) — Registra as ferramentas de criação guiada.
@@ -334,6 +370,9 @@
 │   │   │   │       ├── ⚙️ constructor(selector, context, params, parent = null) — Método Construtor
 │   │   │   │       ├── ⚙️ buildContext() — Contexto entregue às páginas.
 │   │   │   │       ├── ⚙️ setupListeners() — Liga os ouvintes (eventos da central e do teclado).
+│   │   │   │       ├── ⚙️ setSwitcher(true)
+│   │   │   │       ├── ⚙️ setSwitcher(false)
+│   │   │   │       ├── ⚙️ setSwitcher(false)
 │   │   │   │       ├── ⚙️ open(id, tab) — Abre uma central.
 │   │   │   │       ├── ⚙️ close() — Fecha a central.
 │   │   │   │       ├── ⚙️ panel() — Página da central aberta.
@@ -381,6 +420,7 @@
 │   │   │        │       ├── ⚙️ mount(el, masterHtml + stats + (s.total === 0 ? empty : worstHtml)
 │   │   │        │       ├── ⚙️ askAnalyze(pending) — Confirmação (com a estimativa de tokens) antes de rodar a análise da IA.
 │   │   │        │       ├── ⚙️ setTimeout(()
+│   │   │        │       ├── ⚙️ fixWithAi(category) — "Corrigir tudo": pede à skill nativa que avalie cada issue (da categoria, ou de todas) e escolha a solução de cada um. A execução mostra a janela de permissão com a estimativa de tokens.
 │   │   │        │       ├── ⚙️ askAiFix() — Janela de aviso antes de pedir à IA que corrija os pendentes.
 │   │   │        │       ├── ⚙️ renderCategory(tab, el) — Lista de cards de uma categoria, com filtro por tipo.
 │   │   │        │       ├── ⚙️ spellingHtml() — Opções da correção ortográfica (ligar/desligar e idioma), as mesmas das Configurações.
@@ -423,16 +463,22 @@
 │   │   │        │   ├── shortcuts.ts — [Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e]
 │   │   │        │   │   ├── ⚙️ keysHtml(combo) — Teclas de uma combinação como "chips" (`Ctrl` `Shift` `Y`).
 │   │   │        │   │   └── ⚙️ renderShortcuts(ctx, el) — Aba Atalhos.
-│   │   │        │   ├── skillsTab.ts — [Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Mercado", por enquanto]
+│   │   │        │   ├── skillsTab.ts — [Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Loja", por enquanto]
+│   │   │        │   │   ├── ⚙️ toolTable(registry, selected, change, disabled = false) — Tabela de tools com caixas de seleção personalizadas (nome, descrição curta e a caixa, bem alinhados).
+│   │   │        │   │   ├── ⚙️ filterItems(scope, selector, query) — Esconde os itens (com `data-search`) que não contêm o texto buscado.
+│   │   │        │   │   ├── ⚙️ readableOn(hex) — Cor do texto legível sobre uma cor de fundo (claro ou escuro, pela luminância).
+│   │   │        │   │   ├── ⚙️ trigChip(change, t, on, disabled) — Caixa de seleção de um gatilho (mesmo visual das tools).
 │   │   │        │   │   └── 📦 class SkillsTab — Aba Skills.
 │   │   │        │   │       ├── ⚙️ constructor(ctx) — Método Construtor
+│   │   │        │   │       ├── ⚙️ isOpen(id, fallback) — Seção retrátil aberta? (o que o autor abriu ou fechou vale; senão, o padrão).
 │   │   │        │   │       ├── ⚙️ dispose() — Fechou a central.
 │   │   │        │   │       ├── ⚙️ topHtml() — Chips das duas listas, botão de criar e a opção geral de permissão.
 │   │   │        │   │       ├── ⚙️ topHandlers()
 │   │   │        │   │       ├── ⚙️ cardHtml(s, where) — Cartão resumido de uma skill.
 │   │   │        │   │       ├── ⚙️ cardHandlers() — Manipulador do clique no cartão.
 │   │   │        │   │       ├── ⚙️ renderLibrary(el) — Lista "Minhas skills".
-│   │   │        │   │       ├── ⚙️ renderMarket(el) — Mercado (catálogo offline).
+│   │   │        │   │       ├── ⚙️ renderMarket(el) — Loja (catálogo offline).
+│   │   │        │   │       ├── ⚙️ applyQuery(el) — Reaplica a busca depois de redesenhar a lista.
 │   │   │        │   │       ├── ⚙️ startEdit(s) — Abre o formulário para editar uma skill.
 │   │   │        │   │       └── ⚙️ renderForm(el) — Formulário de criação e edição.
 │   │   │        │   └── templates.ts — [Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo]
@@ -446,8 +492,10 @@
 │   │   │                 ├── ⚙️ getTabs()
 │   │   │                 ├── ⚙️ getHeader(tab)
 │   │   │                 ├── ⚙️ dispose() — Fechou a central: descarta edições em andamento.
+│   │   │                 ├── ⚙️ settingHandlers(this.ctx, ()
 │   │   │                 ├── ⚙️ askUninstall() — Janela de confirmação da desinstalação (com a opção de exportar os livros antes).
 │   │   │                 ├── ⚙️ renderProductivity(el)
+│   │   │                 ├── ⚙️ attachChartTip(root, shown, x, y) — Tooltip do gráfico: segue o cursor e mostra o valor do dia mais próximo.
 │   │   │                 └── ⚙️ renderBackup(el)
 │   │   ├── [Chat]
 │   │   │   ├── ChatComponent.ts — [Componente responsável pela renderização estrutural do chat do assistente de IA]
@@ -456,6 +504,7 @@
 │   │   │   │       ├── ⚙️ onInit()
 │   │   │   │       ├── ⚙️ initStarryBackground()
 │   │   │   │       ├── ⚙️ setupListeners() — Configura os ouvintes de eventos específicos do chat.
+│   │   │   │       ├── ⚙️ playPing()
 │   │   │   │       ├── ⚙️ setInterval(()
 │   │   │   │       ├── ⚙️ applyChatBackground(isDark) — Define o fundo do chat conforme o tema e a preferência do usuário (estrelas, nebulosa, órbitas ou cor sólida).
 │   │   │   │       ├── ⚙️ setStarsPalette(getExtraColors(theme, "stars")
@@ -474,6 +523,7 @@
 │   │   │   │       ├── ⚙️ setChatLoadingState(isLoading) — Define o estado visual de carregamento do chat (bloqueando ou liberando a digitação).
 │   │   │   │       ├── ⚙️ toggleWorkingIndicator(show) — Mostra/remove o indicador "A IA está trabalhando…" ao final das mensagens.
 │   │   │   │       ├── ⚙️ setWorkingLabel(label) — Altera o texto do indicador de trabalho, se ele estiver visível.
+│   │   │   │       ├── ⚙️ openAppLink(href, this.uiBus)
 │   │   │   │       ├── ⚙️ updateUsageBar(usage) — Atualiza a faixa de consumo de tokens da sessão, o uso de contexto e o limite de uso da IA.
 │   │   │   │       ├── ⚙️ updateLimitLine(usage, fmt) — Preenche a linha de limite de uso abaixo da faixa de tokens: - limite atingido (cota estourada, com contagem regressiva); - restante informado pela API (ex.: Claude); - uso de hoje contado pelo app (a API do Gemini não informa a cota restante).
 │   │   │   │       ├── ⚙️ triggerSendMessage() — Captura o texto do input e dispara o evento de envio de mensagem via uiBus.
@@ -483,7 +533,7 @@
 │   │   │   │       ├── ⚙️ setupScrollListener() — Configura o evento de rolagem para disparar o infinite scroll com delay de 1s. Se o usuário rolar para baixo antes de 1s, a busca é cancelada.
 │   │   │   │       ├── ⚙️ clearTimeout(this.scrollTimer)
 │   │   │   │       ├── ⚙️ formatDateLabel(timestamp) — Converte o timestamp para uma string formatada de data (DD/MM/YYYY).
-│   │   │   │       ├── ⚙️ createMessageElement({ role, content, buttons }) — Cria a estrutura DOM de uma mensagem individual renderizada via template Handlebars.
+│   │   │   │       ├── ⚙️ createMessageElement({ role, content, buttons, timestamp }) — Cria a estrutura DOM de uma mensagem individual renderizada via template Handlebars.
 │   │   │   │       ├── ⚙️ prepareButtons(buttons) — Prepara os botões de uma mensagem para o template, descartando qualquer evento fora da lista permitida (as mensagens vêm de um log em disco e de uma IA, então nunca emitimos eventos arbitrários).
 │   │   │   │       ├── ⚙️ createDateDividerElement(dateText) — Cria o elemento visual do divisor de data no chat via template Handlebars.
 │   │   │   │       └── ⚙️ createStartOfChatElement() — Cria o elemento visual indicando o início absoluto do histórico de conversa via template Handlebars.
@@ -918,6 +968,10 @@
 │   │   │   │   └── ⚙️ onToggleNotesAiWrite(state, services) — Bloqueia/libera a escrita da IA em todas as anotações (alterna `aiWrite` no `folder.yml` de `notes`; arquivos e subpastas herdam).
 │   │   │   ├── historyHandler.ts — [Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no]
 │   │   │   │   └── ⚙️ onHistoryOpen(state, changelog, services) — Abre o modal com o histórico de versões do arquivo aberto no editor.
+│   │   │   ├── importFileHandler.ts — [Importar livro de um arquivo (Word, LibreOffice, PDF, texto): o processo principal extrai título e capítulos; aqui o autor]
+│   │   │   │   ├── ⚙️ startImportFromFile(state, creationHandlerApi, creationService) — Escolhe o arquivo, extrai os capítulos e abre a tela de revisão.
+│   │   │   │   ├── ⚙️ openReview(state, creationService, result) — Janela de revisão: título do livro e lista de capítulos editável.
+│   │   │   │   └── ⚙️ finishPendingImport(payload, state, creationService) — Livro criado pelo assistente: se havia uma importação pendente, grava os capítulos nele e abre o livro.
 │   │   │   ├── linkHandler.ts — [Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e]
 │   │   │   │   └── ⚙️ onAutoLink(state) — Trata o clique no botão "Linkar termos".
 │   │   │   ├── logViewerHandler.ts — [Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.]
@@ -946,6 +1000,8 @@
 │   │   │       ├── ⚙️ constructor() — Cria uma instância do AppContainer e inicializa suas dependências. @constructor
 │   │   │       ├── ⚙️ setupEscapeKey({ modalManager: this.modalManager })
 │   │   │       ├── ⚙️ async(component)
+│   │   │       ├── ⚙️ setupWindowTitle() — Título da janela (aparece na barra de tarefas do Windows): "Nome do Livro - Astra Writer"; sem livro, só "Astra Writer".
+│   │   │       ├── ⚙️ update()
 │   │   │       └── ⚙️ setupGlobalEvents() — Configura ouvintes globais de eventos na janela (arrastar arquivos, restrições de TAB, etc.).
 │   │   ├── splash.ts — [Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela]
 │   │   │   ├── ⚙️ initSplash() — Prepara a abertura conforme o tema salvo (claro: fundo da barra de título e letras chumbo) e começa a carregar as fontes. Não anima nada: a tela fica vazia até {@link hideSplash}.
@@ -1052,7 +1108,10 @@
 │   │   │       ├── ⚙️ publishUsage() — Publica o consumo de tokens atual (e a janela de contexto) para a interface.
 │   │   │       ├── ⚙️ setLimit(provider, model, limit) — Guarda (ou limpa) o limite de uso conhecido do provedor/modelo ativo.
 │   │   │       ├── ⚙️ learnDailyQuota(provider, model, error.quotaValue)
+│   │   │       ├── ⚙️ abortCurrent() — Interrompe a resposta da IA em andamento (botão de parar do chat).
 │   │   │       ├── ⚙️ resetUsage() — Zera o consumo de tokens (nova sessão de chat).
+│   │   │       ├── ⚙️ setActiveSignal(controller.signal)
+│   │   │       ├── ⚙️ setActiveSignal(null)
 │   │   │       └── ⚙️ saveMessage(message) — Salva uma nova mensagem no arquivo de log da sessão atual do livro ativo.
 │   │   ├── analysisService.ts — [Análise do livro pela IA, pensada para gastar poucos tokens:]
 │   │   │   ├── ⚙️ estimateTokens(chars) — Estimativa grosseira de tokens de um texto.
@@ -1198,8 +1257,11 @@
 │   │   │       ├── ⚙️ status() — Estado do cronômetro: `running`, `paused` (pelo autor), `away` (ausente) ou `idle` (nada contado ainda).
 │   │   │       ├── ⚙️ tick() — Passa um segundo.
 │   │   │       ├── ⚙️ closeRecord() — Fecha o registro atual.
+│   │   │       ├── ⚙️ goalMs()
+│   │   │       ├── ⚙️ chime() — Som suave de conclusão (duas notas, sintetizado: não depende de arquivo de áudio).
+│   │   │       ├── ⚙️ setTimeout(()
 │   │   │       ├── ⚙️ toggle() — Play/pause do autor.
-│   │   │       ├── ⚙️ reset() — Zera o cronômetro: o registro atual termina e a próxima contagem abre outro.
+│   │   │       ├── ⚙️ reset() — Zera o cronômetro (funciona como "stop"): o registro atual termina e a contagem espera o autor apertar play.
 │   │   │       ├── ⚙️ setAuto(on) — Liga ou desliga o modo automático.
 │   │   │       ├── ⚙️ deleteRecord(id) — Apaga um registro (se for o atual, o cronômetro recomeça do zero).
 │   │   │       ├── ⚙️ clearRecords() — Apaga todos os registros.
@@ -1234,14 +1296,19 @@
 │   │   │       ├── ⚙️ fire(id, payload = {}, dedupeMs = 8000) — Um gatilho disparou: pede a execução das skills recorrentes ativas que o usam.
 │   │   │       ├── ⚙️ request(skill, options = {}) — Pede a execução de uma skill (entra na fila; pede permissão se for o caso).
 │   │   │       ├── ⚙️ requestFromAi(skill) — Pedido da IA durante a resposta: a skill só é executada (com a permissão do autor) quando a IA termina de responder.
-│   │   │       └── ⚙️ flushPending() — Executa as skills que a IA pediu.
+│   │   │       ├── ⚙️ flushPending() — Executa as skills que a IA pediu.
+│   │   │       ├── ⚙️ bookDir()
+│   │   │       ├── ⚙️ relOf(path) — Caminho relativo ao livro de um caminho (absoluto ou relativo).
+│   │   │       ├── ⚙️ askInputs(skill) — Janela com uma pergunta (campo de texto) para cada informação que a skill pede ao autor.
+│   │   │       ├── ⚙️ resolve(value)
+│   │   │       └── ⚙️ finish(answers)
 │   │   ├── skillService.ts — [Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).]
 │   │   │   ├── 📦 class SkillService — Serviço da biblioteca de skills.
 │   │   │   │   ├── ⚙️ constructor(state) — Método Construtor
 │   │   │   │   ├── ⚙️ setCustomSkills(this.installed()
 │   │   │   │   ├── ⚙️ installed() — Skills instaladas (as do app, as incluídas do catálogo e as do usuário), cada uma já com a versão em uso (a copia editada, se houver) e as preferências do usuário aplicadas.
 │   │   │   │   ├── ⚙️ get(slug) — Skill instalada por identificador.
-│   │   │   │   ├── ⚙️ market() — Catálogo (mercado) com o estado de instalação de cada skill.
+│   │   │   │   ├── ⚙️ market() — Catálogo (loja) com o estado de instalação de cada skill.
 │   │   │   │   ├── ⚙️ prefs(slug) — Preferências do usuário de uma skill.
 │   │   │   │   ├── ⚙️ setPrefs(slug, patch) — Altera preferências de uma skill (gatilhos, tools, permissão, ativa).
 │   │   │   │   ├── ⚙️ setCustomSkills(this.installed()
@@ -1267,6 +1334,10 @@
 │   │            ├── ⚙️ profiles() — Perfis disponíveis (do app e do usuário).
 │   │            └── ⚙️ profileForMode(aiMode) — Perfil padrão de um modo da IA.
 │   └── [utils]
+│        ├── appLinks.ts — [Links do app: endereços `app:` que, em vez de abrir um arquivo ou um site, abrem uma janela do próprio app (a gaveta]
+│        │   ├── ⚙️ isAppLink(href) — Indica se um endereço é um link do app.
+│        │   ├── ⚙️ parseAppLink(href) — Interpreta um link do app.
+│        │   └── ⚙️ openAppLink(href, uiBus) — Abre a janela de um link do app.
 │        ├── appSettings.ts — [Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,]
 │        │   ├── ⚙️ coerceSetting(def, value) — Valida e ajusta um valor ao tipo da definição. @throws {Error} Se o valor não serve.
 │        │   └── 📦 class AppSettingsStore — Armazenamento das configurações do app.
@@ -1279,6 +1350,11 @@
 │        ├── autoLinkText.ts — [Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e]
 │        │   ├── ⚙️ linkSegment(text, terms) — Linka os termos em um trecho de texto livre (sem links nem código).
 │        │   └── ⚙️ applyAutoLinksToMarkdown(body, terms) — Cria links internos para as ocorrências dos termos no corpo Markdown. Títulos também são linkados; não mexe em blocos de código, código inline, imagens nem textos que já são links.
+│        ├── backlinks.ts — [Citações (retrolinks): em quais arquivos do livro um arquivo é citado por um link Markdown, com o parágrafo de cada]
+│        │   ├── ⚙️ invalidateBacklinks() — Descarta o índice (algo mudou nos arquivos).
+│        │   ├── ⚙️ targetOf(href) — Caminho do livro (minúsculo, sem barra inicial) apontado por um link, ou null se não for um link interno.
+│        │   ├── ⚙️ buildIndex(bookPath) — Monta o índice de citações do livro.
+│        │   └── ⚙️ citationsOf(bookPath, rel) — Citações de um arquivo em outros arquivos do livro.
 │        ├── bookFiles.ts — [Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos]
 │        │   ├── ⚙️ flattenBookTree(tree, bookPath) — Achata a árvore de arquivos do livro em uma lista de arquivos Markdown oficiais.
 │        │   ├── ⚙️ fileTitle(file) — Título de exibição de um arquivo.
@@ -1348,6 +1424,8 @@
 │        │   ├── ⚙️ parseMarkdown(fileContent, isYmlOnly = false) — Converte Frontmatter YAML em Objeto JS e retorna o corpo do Markdown separadamente.
 │        │   ├── ⚙️ splitFrontmatter(fileContent) — Separa o bloco de Frontmatter (texto bruto, intacto) do corpo do Markdown.
 │        │   └── ⚙️ stringifyFrontmatter(metadata, body) — Reconstrói o bloco Frontmatter YAML e anexa ao corpo em Markdown para salvamento.
+│        ├── sounds.ts — [Sons curtos do app, sintetizados com a Web Audio API (sem arquivos de áudio): um aviso suave de "mensagem nova".]
+│        │   └── ⚙️ playPing() — Toca um aviso suave (duas notas curtas e agudas).
 │        ├── template.ts — [Funções puras para interpretar arquivos-modelo (templates) do livro.]
 │        │   ├── ⚙️ slugify(text) — Gera um slug simples (minúsculo, sem acentos, separado por hífen).
 │        │   ├── ⚙️ normalizeOptions(raw) — Opções de um `select` a partir do frontmatter: cada item é um texto (valor = rótulo) ou `{value, label}`.

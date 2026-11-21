@@ -8,7 +8,7 @@ import { appSettings } from "../../../../utils/appSettings.js";
 import { esc, switchRow } from "../panelKit.js";
 
 /** Unidade mostrada ao lado do valor de cada controle deslizante. */
-const UNITS = { "ui.zoom": "%", "ui.night.intensity": "%", "speech.rate": "×", "editor.fontSize": " px", "productivity.idleMinutes": " min", "backup.everyHours": " h" };
+const UNITS = { "ui.zoom": "%", "ui.night.intensity": "%", "speech.rate": "×", "editor.fontSize": " px", "productivity.idleMinutes": " min", "productivity.goalMinutes": " min", "backup.everyHours": " h" };
 
 /**
  * Linha de uma configuração (texto à esquerda, controle à direita).

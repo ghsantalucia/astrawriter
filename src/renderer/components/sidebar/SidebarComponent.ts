@@ -46,6 +46,11 @@ export class SidebarComponent extends Component {
             icon: "fa-solid fa-file-import",
             event: "book:import",
           },
+          {
+            label: "Importar de um arquivo (Word, PDF, texto)",
+            icon: "fa-solid fa-file-word",
+            event: "book:import-file",
+          },
         ],
       },
     );

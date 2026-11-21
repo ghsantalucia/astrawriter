@@ -16,7 +16,7 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `write_file` | `bookTools.js` | Substitui o corpo de um arquivo | Rascunho `.md.temp` |
 | `append_to_file` | `bookTools.js` | Acrescenta texto ao final de um arquivo | Rascunho `.md.temp` |
 | `replace_in_file` | `bookTools.js` | Troca um trecho exato por outro | Rascunho `.md.temp` |
-| `start_creation` | `creationTools.js` | Descreve os campos para criar livro/capítulo/ficha/anotação | Não |
+| `start_creation` | `creationTools.js` | Descreve os campos para criar capítulo/ficha/anotação no livro aberto (a IA **não** cria livros) | Não |
 | `complete_creation` | `creationTools.js` | Cria o item com as respostas do autor | **Sim** (arquivos oficiais) |
 | `show_buttons` | `chatTools.js` | Anexa botões clicáveis à resposta no chat | Não |
 | `load_skill` | `skillTools.js` | Carrega as instruções de uma skill sob demanda | Não |
@@ -24,7 +24,6 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `open_settings` | `systemTools.ts` | Abre a gaveta de configurações | Não |
 | `open_file_in_editor` | `systemTools.ts` | Abre um arquivo do livro no editor | Não |
 | `open_file_history` | `systemTools.ts` | Abre a janela de histórico do arquivo aberto | Não |
-| `open_new_book_wizard` | `systemTools.ts` | Abre o assistente de novo livro | Não |
 | `request_sync` | `systemTools.ts` | Abre a janela de sincronização para o autor aprovar | Não |
 | `list_settings` | `systemTools.ts` | Lista todas as configurações (valor, onde ficam, classe a/b/c) | Não |
 | `set_setting` | `systemTools.ts` | Altera uma configuração (a: direto; b: com permissão; c: só orienta) | Configuração do app |
@@ -38,6 +37,7 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `run_analysis` | `systemTools.ts` | Roda a análise do livro (com permissão e estimativa de tokens) | `.system` |
 | `set_review_options` | `systemTools.ts` | Liga/desliga revisões e correção ortográfica (com permissão) | Configuração |
 | `backup_now` | `systemTools.ts` | Backup dos livros agora (com permissão) | Pasta de backup |
+| `propose_skill` | `skillTools.ts` | Prepara uma skill e abre o formulário de criação já preenchido (o autor revisa e cria; a IA nunca cria sozinha) | Não |
 | `list_skills` | `systemTools.ts` | Lista a biblioteca de skills | Não |
 | `run_skill` | `systemTools.ts` | Pede a execução de uma skill (sempre com autorização do autor) | Conforme a skill |
 | `get_tool_specs` | `toolTiers.ts` | Entrega a especificação completa de tools do sumário e as libera (só nos modos Sumário e Mais usadas) | Não |
@@ -55,7 +55,7 @@ apenas traduz essa definição para o seu formato. Erros nunca derrubam a conver
 | `read_changelog` | `historyTools.js` | Consulta o changelog do livro (só metadados) | Não |
 | `read_ai_error_log` | `historyTools.js` | Consulta o log de erros da IA (sem chaves de API) | Não |
 | `toggle_advanced_files` | `projectTools.js` | Mostra/oculta os arquivos avançados no explorer | `config.json` (preferência de exibição) |
-| `get_book_config` | `projectTools.js` | Lê o `config.json` de um livro | Não |
+| `get_book_config` | `projectTools.js` | Lê o `config.json` do livro aberto (só ele) | Não |
 | `list_ai_models` | `projectTools.js` | Lista as contas de IA do autor (apelido, provedor, modelo, ativa) e o catálogo de modelos (sem chaves) | Não |
 | `register_issues` | `issueTools.js` | Registra na Central de Revisões contradições, problemas temporais, gramática e dicas | Não (só `.system/review/`) |
 | `list_issues` | `issueTools.js` | Lista as pendências da Central de Revisões (inclui as do sistema) | Não |
@@ -188,8 +188,8 @@ Troca um trecho exato do corpo por outro.
 ## Tools de criação guiada (`creationTools.js`)
 
 Usam o mesmo `CreationService` do assistente (wizard) da interface, então o resultado é idêntico ao de criar pela tela.
-Tipos (`kind`): `book` (livro), `chapter` (capítulo), `entity` (ficha de personagem/ambiente/sistema — exige `folder`) e
-`note` (anotação).
+Tipos (`kind`): `chapter` (capítulo), `entity` (ficha de personagem/ambiente/sistema — exige `folder`) e
+`note` (anotação). **A IA nunca cria livros** (nem abre o assistente de novo livro): ela trabalha só dentro do livro aberto, e `kind: book` é recusado. Criar livros é só do autor, pela interface.
 
 ### `start_creation`
 
@@ -238,7 +238,6 @@ resposta normalmente.
 | `edit-variables` | Abre as variáveis do arquivo aberto | — |
 | `new-chapter` | Abre o assistente de capítulo | — |
 | `new-note` | Abre a criação de anotação | — |
-| `new-book` | Abre o assistente de livro | — |
 | `new-entity` | Abre o assistente de ficha | `folder` |
 
 ## Quantas tools vão à IA (perfil de uso, `toolTiers.ts`)
@@ -247,8 +246,8 @@ As definições das tools pesam em todo pedido (e no limite de tokens por minuto
 
 | Modo | Perfil | O que vai ao modelo |
 | --- | --- | --- |
-| `minimal` | Mínimo | `show_buttons` e `read_file` (respeita a permissão de leitura de cada arquivo) |
-| `summary` | Econômico | Só `show_buttons` e `get_tool_specs`; o prompt traz 1 linha por tool |
+| `minimal` | Mínimo | **Só leitura:** `show_buttons` e `read_file` (respeita a permissão de leitura de cada arquivo). Sem `get_tool_specs` e sem edição; o prompt avisa a IA disso e manda oferecer um botão para trocar o perfil |
+| `summary` | Econômico | `show_buttons`, `get_tool_specs`, e `replace_in_file` e `append_to_file` completas (edição pontual); o prompt traz 1 linha por tool para as demais |
 | `popular` | Equilibrado | As tools mais usadas completas, mais o sumário das outras |
 | `all` | Completo e Ultra | Todas as tools |
 
@@ -272,7 +271,7 @@ Carrega, sob demanda, as instruções completas de uma skill (`src/renderer/ai/s
 
 - **Parâmetros:** `name` (string, obrigatório).
 - **Erros:** skill inexistente (a mensagem lista as disponíveis).
-- **Skills atuais:** `revisao-de-consistencia`.
+- **Skills:** a Loja traz `reduzir-trechos-prolixos`, `avaliar-ritmo-da-historia`, `sugerir-fichas-ausentes` e `revisar-e-padronizar-escrita`; o app não instala skills por padrão.
 
 ---
 
@@ -351,7 +350,7 @@ Fazem o que o usuário faz no explorer, com os mesmos serviços (`FolderService`
 
 ### `get_book_config`
 
-- **Parâmetros:** `book` (nome da pasta; opcional = livro atual). Somente leitura.
+- **Parâmetros:** nenhum. Lê só o livro aberto: a IA não tem acesso a outros livros. Somente leitura.
 
 ### `list_ai_models`
 
@@ -361,7 +360,7 @@ Fazem o que o usuário faz no explorer, com os mesmos serviços (`FolderService`
 
 ## Tools da Central de Revisões (`issueTools.js`)
 
-A Central de Revisões guarda tudo dentro do livro, em `.system/review/` (`state.json` cache da varredura, `registered.json` issues da IA, `dismissed.json` dispensados e `dictionary.json`). Um **issue** tem categoria (`links`, `spelling`, `timeline`, `contradictions`, `tips`), **tipo** (a tag: `grammar`, `synonym`, `timeline-conflict`, `fact-conflict`, `possible-conflict`, `style-tip`, `clarity-tip` podem ser registrados pela IA), severidade (`error` vermelho confirmado; `warning` amarelo possível/sugestão; dicas são sempre amarelas), arquivo, trecho exato, mensagem e, se houver, `replacement` (habilita "Corrigir").
+A Central de Revisões guarda tudo dentro do livro, em `.system/review/` (`state.json` cache da varredura, `registered.json` issues da IA, `dismissed.json` dispensados e `dictionary.json`). Um **issue** tem categoria (`links`, `spelling`, `timeline`, `contradictions`, `tips`), **tipo** (a tag: `grammar`, `synonym`, `timeline-conflict`, `fact-conflict`, `possible-conflict`, `style-tip`, `clarity-tip`, `verbose-tip` (trecho prolixo), `pacing-tip` (ritmo), `missing-entity-tip` (ficha ausente) e `grounding-tip` (época/mundo real) podem ser registrados pela IA), severidade (`error` vermelho confirmado; `warning` amarelo possível/sugestão; dicas são sempre amarelas), arquivo, trecho exato, mensagem e, se houver, `replacement` (habilita "Corrigir").
 
 ### `register_issues`
 
@@ -423,12 +422,11 @@ declará-la ali com a classe de risco.
   errors, skills); system (general, update, appearance, accessibility, editor, productivity, shortcuts, templates, backup).
 - **`open_settings`:** abre a gaveta de configurações.
 
-### `open_file_in_editor` / `open_file_history` / `open_new_book_wizard` / `request_sync`
+### `open_file_in_editor` / `open_file_history` / `request_sync`
 
 - **`open_file_in_editor`:** `path` relativo ao livro. Combine com `open_file_history` (abre o histórico do arquivo aberto)
   para ver o histórico de um arquivo específico.
-- **`open_new_book_wizard`:** abre o assistente de livro novo (só a pedido do autor).
-- **`request_sync`:** abre a janela de sincronização. A IA nunca sincroniza sozinha.
+- **`request_sync`:** abre a janela de sincronização **se houver rascunhos pendentes**; sem rascunhos, devolve que não há nada a sincronizar (e a janela não abre), e uma segunda chamada na mesma resposta é recusada. A IA nunca sincroniza sozinha, e a sincronização não é pré-requisito para editar.
 
 ### `list_settings` / `set_setting` / `guide_user`
 
@@ -446,8 +444,9 @@ declará-la ali com a classe de risco.
 
 ### Skills: `list_skills` / `run_skill`
 
-- **`list_skills`:** biblioteca do autor (identificador, tipo, gatilhos, se roda sozinha e quantas execuções).
-- **`run_skill`:** `name`. A execução começa quando a IA termina a resposta e **depende da autorização do autor** (janela com
+- **`propose_skill`:** `title`, `name`, `description`, `instructions` (obrigatórios) e `details`, `kind`, `triggers`, `tools`, `tags`, `inputs` (perguntas ao autor antes de executar) e `optimize` (false para skills com amostras de escrita) e `web` (true para a skill poder pesquisar na internet). A descrição manda a IA **entrevistar** o autor e pedir exemplos antes de chamar. Abre o formulário em Central de IA → Skills; tools e gatilhos inexistentes são descartados.
+- **`list_skills`:** biblioteca do autor, com **descrição** de cada skill (quando usar), identificador, tipo, gatilhos, modos, se é nativa, se está ativa, se **pede informações ao autor** (`asksAuthorForInfo`), se roda sozinha e quantas execuções. Entra entre as tools "mais usadas" (perfis Equilibrado+).
+- **`run_skill`:** `name` (veja `list_skills`). Entra entre as tools "mais usadas". Se a skill pede informações, uma janela com os campos aparece para o autor (a IA não pergunta). A execução começa quando a IA termina a resposta e **depende da autorização do autor** (janela com
   as tools que a skill usa e a estimativa de tokens), exceto skills recorrentes que ele configurou para rodar sozinhas.
   Durante a execução a IA só tem as tools que a skill declara.
 
@@ -463,3 +462,14 @@ declará-la ali com a classe de risco.
 6. Teste com o provedor **Mock** (`/ajuda` lista os comandos de teste) antes de usar um modelo real.
    O Mock tem o comando genérico `/tool <nome> | <json>` que executa **qualquer** tool com argumentos reais, por exemplo
    `/tool move_file | {"path":"notes/note_001.md","destination":"notes/ideias"}`.
+
+## Contexto enviado a cada conversa
+
+Além do prompt de sistema, o contexto traz o **Mapa do livro**: caminho e título dos arquivos que a IA pode ler (`aiRead`), sem índices e modelos, até 80 arquivos (o resto vai por `list_files`), com `[só leitura]` nos que ela não pode alterar. O mapa é lido na hora de cada mensagem e só inclui o livro aberto. O prompt diz que a leitura dos arquivos do livro já está autorizada (dentro das permissões) e que a IA deve explorar antes de perguntar.
+
+## Mapa de arquivos nas execuções de skill
+
+Em execuções de skill, `list_files` devolve `status: "inalterado desde a última execução"` nos arquivos cujo hash (SHA-1) é o mesmo da última
+execução bem-sucedida da skill, e o **Mapa do livro** do prompt traz o mesmo aviso. O pedido da skill inclui a instrução fixa de **não reler nem
+reanalisar** arquivos inalterados, exceto se as instruções da skill disserem o contrário ou se for indispensável para atualizar outro arquivo.
+Os hashes ficam em `.system/skills-state.json` do livro (por skill); mudar o texto/versão da skill ou a Sinopse invalida tudo.

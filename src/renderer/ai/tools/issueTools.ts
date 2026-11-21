@@ -37,7 +37,7 @@ export function registerIssueTools(registry) {
                 type: "string",
                 enum: AI_TYPES,
                 description:
-                  "Tipo: grammar, synonym, timeline-conflict, fact-conflict (contradição certa), possible-conflict (talvez), style-tip, clarity-tip.",
+                  "Tipo: grammar, synonym, timeline-conflict, fact-conflict (contradição certa), possible-conflict (talvez), e as dicas (sempre amarelas): style-tip, clarity-tip, verbose-tip (trecho prolixo), pacing-tip (ritmo), missing-entity-tip (ficha ausente), grounding-tip (época/mundo real).",
               },
               file: { type: "string", description: "Arquivo (relativo à raiz do livro) onde está o problema principal." },
               excerpt: {

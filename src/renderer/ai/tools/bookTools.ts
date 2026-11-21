@@ -109,6 +109,10 @@ export function registerBookTools(registry) {
       if (!tree) throw new Error("Não foi possível ler a estrutura do livro.");
       const files = [];
       collectFiles(tree, "", files);
+      // Execução de skill: o mapa já diz quais arquivos não mudaram desde a última vez
+      if (ctx.unchanged?.size) {
+        for (const f of files) if (ctx.unchanged.has(f.path)) f.status = "inalterado desde a última execução";
+      }
       // Changelog: a listagem é uma leitura da IA sobre o livro inteiro
       await ctx.changelog?.recordBookRead("list_files", {
         count: files.length,
@@ -131,6 +135,7 @@ export function registerBookTools(registry) {
       assertPermission(located, "aiRead");
       const { body } = await readCurrent(located, ctx);
       await ctx.changelog?.recordAiRead(located.originalPath, "read_file");
+      ctx.readFiles?.add(normalizePath(located.originalPath).replace(`${normalizePath(ctx.state.currentBookPath).replace(/\/+$/, "")}/`, ""));
       if (body.length <= MAX_READ_CHARS) return body;
       return `${body.slice(0, MAX_READ_CHARS)}\n\n[... arquivo truncado em ${MAX_READ_CHARS} caracteres]`;
     },

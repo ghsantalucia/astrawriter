@@ -997,3 +997,63 @@ body:not(.dark-theme)
 .toastui-editor-toolbar-group:has(.dw-tb-right) {
   margin-left: auto;
 }
+
+/* Citações do arquivo (cabeçalho da caixa de dados e janela de citações) */
+.file-data-cited {
+  margin-left: 8px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.file-data-cited[hidden] {
+  display: none;
+}
+.file-data-cited:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.cit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.cit-hint {
+  margin: 0 0 4px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+.cit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cit-item:hover {
+  border-color: var(--accent);
+}
+.cit-item strong {
+  font-size: 0.85rem;
+}
+.cit-item span {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.cit-item mark {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: inherit;
+}

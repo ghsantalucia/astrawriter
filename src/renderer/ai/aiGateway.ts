@@ -5,12 +5,13 @@
 
 import { CONCISE_NOTE, compactInstructions } from "./compact.js";
 import { getProviderInfo } from "./providers/index.js";
-import { buildSystemPrompt } from "./prompts/index.js";
+import { buildBookMap, buildSystemPrompt } from "./prompts/index.js";
+import { flattenBookTree } from "../utils/bookFiles.js";
 import { chatOnlyRegistry } from "./aiTools.js";
 import { ToolView } from "./toolTiers.js";
 import { addDailyUsage } from "./usageTracker.js";
 import { setHistoryLimit } from "./toolLoop.js";
-import { resolveAnalysis } from "./profiles.js";
+import { resolveAnalysis, PROFILES } from "./profiles.js";
 import {
   currentToolCount,
   ensureDebugLoaded,
@@ -119,9 +120,26 @@ export async function processPrompt({ prompt, history = [] }, state, toolContext
   // Tools enviadas: nenhuma além das do chat (apenas conversa) ou as do modo do perfil (mínimo, sumário, mais usadas, todas)
   const tools = profile.chatOnly ? chatOnlyRegistry : new ToolView(profile.toolsMode, state.currentBookPath || null, toolContext?.allowedTools || null, profile.compact);
   toolContext = { ...toolContext, toolView: tools };
-  const baseSystem = buildSystemPrompt(state, profile.compact);
+  // Mapa do livro aberto (o que existe), lido na hora para refletir arquivos criados há pouco
+  let bookMap = "";
+  try {
+    if (state.currentBookPath && !profile.chatOnly) {
+      const tree = await window.electronAPI.getTree(state.currentBookPath);
+      bookMap = buildBookMap(flattenBookTree(tree, state.currentBookPath), toolContext?.unchanged);
+    }
+  } catch {
+    // sem mapa: a IA usa list_files
+  }
+  // Perfil de uso atual: a IA precisa saber o que ele permite para explicar o motivo quando o autor pedir algo que ele não cobre
+  const profileInfo = PROFILES.find((p) => p.id === profile.profile);
+  const PROFILE_NOTE =
+    "\n\n# Perfil de uso da IA\n" +
+    `Perfil atual: ${profileInfo?.label || "Personalizado"}${profile.chatOnly ? " (apenas conversa: sem nenhuma tool)" : ""}. ${profileInfo?.description || ""}\n` +
+    "Se o autor pedir algo que este perfil não permite (tool não liberada, sem edição, sem análise ou apenas conversa), diga o motivo, explique que ele pode trocar o perfil em Central de IA → Perfil e análises e ofereça um botão para isso (show_buttons, action open-central, central ai, tab analysis). Nunca finja ter feito o que o perfil não deixa.";
+  const baseSystem = buildSystemPrompt(state, profile.compact, bookMap);
   const systemPrompt =
     (profile.compact ? compactInstructions(baseSystem) + CONCISE_NOTE : baseSystem) +
+    PROFILE_NOTE +
     (profile.chatOnly ? CHAT_ONLY_NOTE : tools.promptNote());
   let lastError = null;
 
