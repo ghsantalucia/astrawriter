@@ -107,3 +107,8 @@ release/
 /docs/.personal
 /docs/dist
 release-build/
+
+# Ignora relatórios de testes
+/tests/reports
+/playwright-report
+/test-results

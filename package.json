@@ -19,7 +19,15 @@
     "event-map": "node scripts/event-map.js > maps/event-map.txt",
     "docs": "npm run file-map && npm run code-map && npm run event-map && npm run docs:web",
     "format": "prettier --write \"src/**/*.{js,ts,json,css,md}\"",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "start:debug": "electron-forge start -- --remote-debugging-port=9222",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "npx playwright show-report tests/reports/playwright"
   },
   "keywords": [],
   "author": {
@@ -44,7 +52,11 @@
     "jsdoc": "^4.0.5",
     "prettier": "^3.9.9",
     "typescript": "^7.0.2",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "@playwright/test": "^1.64.1",
+    "@vitest/ui": "^2.1.9",
+    "happy-dom": "^21.0.3",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@fontsource/cinzel-decorative": "^5.3.0",
