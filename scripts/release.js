@@ -1,11 +1,13 @@
 /**
  * @file scripts/release.js
- * @description Gera as duas versões do app para Windows, já auditadas:
+ * @description Gera as versões do app para Windows, já auditadas:
  *   1. regenera o livro padrão "Manual de Uso" (a partir do guia do usuário);
- *   2. `electron-forge make`: empacota e gera o INSTALADOR (Setup.exe + nupkg + RELEASES, usados na atualização automática) e
- *      o ZIP PORTÁTIL (descompacte e execute "Astra Writer.exe");
+ *   2. `electron-forge make`: empacota o app, gera o ZIP PORTÁTIL e o pacote Squirrel (nupkg + RELEASES), que só serve para
+ *      atualizar quem instalou a 1.0.0 pelo instalador antigo;
  *   3. audita o pacote (nenhuma chave de API, nenhum livro, nenhum dado de teste, nenhum caminho do computador de quem gerou);
- *   4. copia o resultado para `release/` com nomes limpos.
+ *   4. `electron-builder --prepackaged`: gera o INSTALADOR COM ASSISTENTE (NSIS: escolha da pasta e dos atalhos) mais o
+ *      latest.yml e o blockmap (atualização automática do electron-updater);
+ *   5. copia o resultado para `release/` com nomes limpos.
  * Uso: npm run release      (feche o app antes: ele trava a pasta `out/`)
  */
 
@@ -26,28 +28,38 @@ function run(command, args) {
 }
 
 if (!process.env.SKIP_MAKE) {
-console.log('\n📖 1/4 Gerando o livro padrão "Manual de Uso"...');
-run('node', ['scripts/build-manual.js']);
+  console.log('\n📖 1/5 Gerando o livro padrão "Manual de Uso"...');
+  run('node', ['scripts/build-manual.js']);
 
-console.log('\n📦 2/4 Empacotando e gerando instalador + versão portátil (Electron Forge)...');
-fs.rmSync(path.join(outDir, 'make'), { recursive: true, force: true });
-run('npx', ['electron-forge', 'make']);
+  console.log('\n📦 2/5 Empacotando (Electron Forge): versão portátil e pacote de atualização da 1.0.0...');
+  fs.rmSync(path.join(outDir, 'make'), { recursive: true, force: true });
+  run('npx', ['electron-forge', 'make']);
 }
 
-console.log('\n🔎 3/4 Auditando o pacote (vazamento de dados)...');
+console.log('\n🔎 3/5 Auditando o pacote (vazamento de dados)...');
 run('node', ['scripts/audit-package.js']);
 
-console.log('\n📁 4/4 Copiando para release/ ...');
+console.log('\n🧙 4/5 Gerando o instalador com assistente (NSIS)...');
+const builderOut = path.join(root, 'release-build');
+fs.rmSync(builderOut, { recursive: true, force: true });
+const packaged = fs.readdirSync(outDir).find((n) => /-win32-x64$/.test(n));
+run('npx', ['electron-builder', '--win', 'nsis', '--x64', '--prepackaged', `"${path.join(outDir, packaged)}"`, '--publish', 'never']);
+
+console.log('\n📁 5/5 Copiando para release/ ...');
 const releaseDir = path.join(root, 'release');
 fs.rmSync(releaseDir, { recursive: true, force: true });
 fs.mkdirSync(releaseDir, { recursive: true });
 const make = path.join(outDir, 'make');
-const squirrel = path.join(make, 'squirrel.windows', 'x64');
 const copies = [];
+// Instalador com assistente + latest.yml e blockmap (electron-updater)
+for (const name of fs.readdirSync(builderOut)) {
+  if (/^AstraWriter-Setup-.*\.(exe|blockmap)$/i.test(name) || name === 'latest.yml') copies.push([path.join(builderOut, name), name]);
+}
+// Pacote Squirrel: só o .nupkg e o RELEASES (atualizam quem instalou a 1.0.0 pelo instalador antigo); o Setup.exe do Squirrel não é publicado
+const squirrel = path.join(make, 'squirrel.windows', 'x64');
 if (fs.existsSync(squirrel)) {
   for (const name of fs.readdirSync(squirrel)) {
-    // Setup.exe (instalador), .nupkg e RELEASES (atualização automática)
-    if (/\.(exe|nupkg)$/i.test(name) || name === 'RELEASES') copies.push([path.join(squirrel, name), name]);
+    if (/\.nupkg$/i.test(name) || name === 'RELEASES') copies.push([path.join(squirrel, name), name]);
   }
 }
 const zipDir = path.join(make, 'zip', 'win32', 'x64');
@@ -60,4 +72,4 @@ for (const [from, name] of copies) {
   fs.copyFileSync(from, path.join(releaseDir, name));
   console.log(`   ${name}  (${(fs.statSync(from).size / 1048576).toFixed(0)} MB)`);
 }
-console.log('\n✅ Pronto! Os arquivos estão em release/. Instale o Setup.exe numa máquina limpa para testar.');
+console.log(`\n✅ Pronto! Os arquivos estão em release/. Instale o AstraWriter-Setup-${version}.exe numa máquina limpa para testar.`);

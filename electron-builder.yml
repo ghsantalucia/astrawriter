@@ -1,26 +1,33 @@
-# Instalador do Windows (NSIS) gerado a partir do app já empacotado pelo Electron Forge.
+# Instalador do Windows (NSIS, com assistente) gerado a partir do app já empacotado pelo Electron Forge.
 # Uso: npm run release   (ver docs/guia-de-instalacao.md)
 appId: com.ghsantalucia.astrawriter
 productName: Astra Writer
 copyright: ghsantalucia
 directories:
-  output: release
+  output: release-build
   buildResources: build
+artifactName: AstraWriter-Setup-${version}.${ext}
 win:
+  executableName: Astra Writer
   target:
     - target: nsis
       arch: x64
   icon: public/icon.ico
 nsis:
-  oneClick: false                      # assistente completo (não instala direto)
-  perMachine: false                    # instala só para o usuário atual (sem pedir administrador)
-  allowToChangeInstallationDirectory: true   # pergunta onde instalar
+  oneClick: false                            # assistente completo (não instala direto)
+  perMachine: false                          # instala só para o usuário atual (não pede administrador)
+  allowToChangeInstallationDirectory: true   # o usuário escolhe a pasta
   allowElevation: true
-  createDesktopShortcut: always        # atalho na área de trabalho
-  createStartMenuShortcut: true
+  createDesktopShortcut: false               # os atalhos são criados pela página própria do assistente (build/installer.nsh)
+  createStartMenuShortcut: false
   shortcutName: Astra Writer
   installerIcon: public/icon.ico
   uninstallerIcon: public/icon.ico
   runAfterFinish: true
   deleteAppDataOnUninstall: false
+  differentialPackage: true
   include: build/installer.nsh
+publish:
+  provider: github
+  owner: ghsantalucia
+  repo: draftweaver

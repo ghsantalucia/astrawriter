@@ -63,11 +63,21 @@ export async function checkForUpdate() {
   }
 }
 
-// ========== Atualização automática (Squirrel + update.electronjs.org, para repositórios públicos do GitHub) ========== //
+// ========== Atualização automática ========== //
+// Dois formatos de instalação convivem: o instalador com assistente (NSIS, atualizado pelo electron-updater a partir do
+// latest.yml da release) e o instalador antigo da 1.0.0 (Squirrel, atualizado pelo update.electronjs.org). O app descobre qual
+// é o seu pela presença do Update.exe do Squirrel ao lado da pasta do app.
+
+/** @returns {boolean} true se este app foi instalado pelo Squirrel (versão 1.0.0). */
+function isSquirrelInstall() {
+  return fs.existsSync(path.resolve(path.dirname(process.execPath), "..", "Update.exe"));
+}
 
 let updaterWindow = null;
 let updaterReady = false;
 let updaterState = { state: "idle" };
+/** Atualizador em uso (Squirrel por padrão; electron-updater nas instalações NSIS). */
+let activeUpdater = autoUpdater;
 
 /**
  * Envia o estado da atualização para a interface.
@@ -92,21 +102,34 @@ export function configureAutoUpdate(win, enabled) {
   if (!updaterReady) {
     updaterReady = true;
     try {
-      autoUpdater.setFeedURL({
-        url: `https://update.electronjs.org/${REPO.owner}/${REPO.name}/${process.platform}-${process.arch}/${app.getVersion()}`,
-      });
-      autoUpdater.on("checking-for-update", () => publishUpdate({ state: "checking" }));
-      autoUpdater.on("update-available", () => publishUpdate({ state: "downloading" }));
-      autoUpdater.on("update-not-available", () => publishUpdate({ state: "latest" }));
-      autoUpdater.on("update-downloaded", (event, notes, name) => publishUpdate({ state: "ready", version: name, notes }));
-      autoUpdater.on("error", (error) => publishUpdate({ state: "error", error: String(error?.message || error) }));
+      if (process.platform === "win32" && !isSquirrelInstall()) {
+        // Instalador com assistente (NSIS): electron-updater lê o latest.yml da última release do GitHub
+        const { autoUpdater: nsis } = require("electron-updater");
+        activeUpdater = nsis;
+        nsis.autoDownload = true;
+        nsis.autoInstallOnAppQuit = true;
+        nsis.on("checking-for-update", () => publishUpdate({ state: "checking" }));
+        nsis.on("update-available", () => publishUpdate({ state: "downloading" }));
+        nsis.on("update-not-available", () => publishUpdate({ state: "latest" }));
+        nsis.on("update-downloaded", (info) => publishUpdate({ state: "ready", version: info?.version, notes: typeof info?.releaseNotes === "string" ? info.releaseNotes : "" }));
+        nsis.on("error", (error) => publishUpdate({ state: "error", error: String(error?.message || error) }));
+      } else {
+        autoUpdater.setFeedURL({
+          url: `https://update.electronjs.org/${REPO.owner}/${REPO.name}/${process.platform}-${process.arch}/${app.getVersion()}`,
+        });
+        autoUpdater.on("checking-for-update", () => publishUpdate({ state: "checking" }));
+        autoUpdater.on("update-available", () => publishUpdate({ state: "downloading" }));
+        autoUpdater.on("update-not-available", () => publishUpdate({ state: "latest" }));
+        autoUpdater.on("update-downloaded", (event, notes, name) => publishUpdate({ state: "ready", version: name, notes }));
+        autoUpdater.on("error", (error) => publishUpdate({ state: "error", error: String(error?.message || error) }));
+      }
     } catch (error) {
       publishUpdate({ state: "error", error: String(error?.message || error) });
       return { supported };
     }
   }
   try {
-    autoUpdater.checkForUpdates();
+    activeUpdater.checkForUpdates();
   } catch (error) {
     publishUpdate({ state: "error", error: String(error?.message || error) });
   }
@@ -123,7 +146,7 @@ export function getUpdateState() {
  * @returns {void}
  */
 export function installUpdate() {
-  if (updaterState.state === "ready") autoUpdater.quitAndInstall();
+  if (updaterState.state === "ready") activeUpdater.quitAndInstall();
 }
 
 // ========== Tamanho das pastas ========== //
@@ -227,7 +250,7 @@ export async function exportAllBooks(parent) {
 // ========== Desinstalação ========== //
 
 /**
- * Aciona o desinstalador do Squirrel (Windows) e fecha o app. Os livros ficam em Documentos/Astra Writer e permanecem.
+ * Aciona o desinstalador (Squirrel ou NSIS, Windows) e fecha o app. Os livros ficam em Documentos/Astra Writer e permanecem.
  * @returns {{success: boolean, error?: string}}
  */
 export function uninstallApp() {
@@ -235,9 +258,19 @@ export function uninstallApp() {
     return { success: false, error: "A desinstalação só está disponível no app instalado (Windows)." };
   }
   const updateExe = path.resolve(path.dirname(process.execPath), "..", "Update.exe");
-  if (!fs.existsSync(updateExe)) return { success: false, error: "O desinstalador não foi encontrado (o app foi instalado por outro meio?)." };
+  const dir = path.dirname(process.execPath);
+  const nsisUninstaller = fs.existsSync(dir) ? fs.readdirSync(dir).find((n) => /^Uninstall .*.exe$/i.test(n)) : null;
+  let command = null;
+  let args = [];
+  if (fs.existsSync(updateExe)) {
+    command = updateExe;
+    args = ["--uninstall"];
+  } else if (nsisUninstaller) {
+    command = path.join(dir, nsisUninstaller);
+  }
+  if (!command) return { success: false, error: "O desinstalador não foi encontrado (o app foi instalado por outro meio?)." };
   try {
-    spawn(updateExe, ["--uninstall"], { detached: true, stdio: "ignore" }).unref();
+    spawn(command, args, { detached: true, stdio: "ignore" }).unref();
     setTimeout(() => app.quit(), 300);
     return { success: true };
   } catch (error) {

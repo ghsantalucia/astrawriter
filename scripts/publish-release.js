@@ -58,7 +58,7 @@ const TOKEN = token();
       tag_name: tag,
       target_commitish: target,
       name: `Astra Writer ${version}`,
-      body: process.env.RELEASE_NOTES || `Astra Writer ${version}.\n\n- **AstraWriter-Setup.exe**: instalador (Windows).\n- **AstraWriter-portable-${version}-win-x64.zip**: versão portátil (descompacte e execute).\n- \`RELEASES\` e \`.nupkg\`: usados pela atualização automática (não precisa baixar).`,
+      body: process.env.RELEASE_NOTES || `Astra Writer ${version}.\n\n- **AstraWriter-Setup-${version}.exe**: instalador com assistente (escolha da pasta e dos atalhos).\n- **AstraWriter-portable-${version}-win-x64.zip**: versão portátil (descompacte e execute).\n- \`RELEASES\` e \`.nupkg\`: usados pela atualização automática (não precisa baixar).`,
       draft: false,
       prerelease: false,
     }), { 'content-type': 'application/json' })).json;

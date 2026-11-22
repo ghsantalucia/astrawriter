@@ -1,7 +1,7 @@
 {
   "name": "draftweaver-v2",
   "productName": "Astra Writer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Astra Writer: editor de livros com assistente de IA, para universos narrativos consistentes",
   "main": ".vite/build/main.js",
   "private": true,
@@ -58,6 +58,7 @@
     "dictionary-pt": "^4.0.0",
     "dompurify": "^3.4.17",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-updater": "^6.8.11",
     "gray-matter": "^4.0.3",
     "gsap": "^3.15.0",
     "handlebars": "^4.7.9",

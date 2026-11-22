@@ -106,3 +106,4 @@ release/
 # Ignora arquivos pessoais
 /docs/.personal
 /docs/dist
+release-build/
