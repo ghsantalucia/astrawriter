@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Abas "Acessibilidade" (tamanho da fonte do app, modo noturno e narrador) e "Editor" (tamanho e fontes do texto)
  * da Central do Sistema.

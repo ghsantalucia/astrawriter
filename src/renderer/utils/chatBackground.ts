@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.
  * Fica no armazenamento local do navegador (preferência de aparência, não do livro).
@@ -60,7 +58,7 @@ export function getExtraColors(theme, mode) {
   try {
     const all = JSON.parse(localStorage.getItem("chat_bg_colors") || "{}");
     const saved = all?.[`${theme}:${mode}`] || {};
-    return Object.fromEntries(Object.entries(saved).filter(([, v]) => /^#[0-9a-f]{6}$/i.test(v)));
+    return Object.fromEntries(Object.entries(saved).filter(([, v]) => /^#[0-9a-f]{6}$/i.test(v as string)));
   } catch {
     return {};
   }

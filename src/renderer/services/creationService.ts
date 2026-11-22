@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.
  *
@@ -210,7 +208,7 @@ export class CreationService {
    * @param {string} [params.folder] - Pasta da ficha, relativa ao livro (apenas `entity`).
    * @returns {Promise<{kind: string, title: string, submitLabel: string, allowSkip: boolean, context: Object, steps: import("../utils/template.js").WizardStep[]}>}
    */
-  async getSpec({ kind, folder } = {}) {
+  async getSpec({ kind, folder }: any = {}) {
     switch (kind) {
       case "book":
         return this.getBookSpec();
@@ -436,7 +434,7 @@ export class CreationService {
     const folders = [];
 
     const walk = (node, prefix) => {
-      for (const [name, sub] of Object.entries(node?.folders || {})) {
+      for (const [name, sub] of Object.entries<any>(node?.folders || {})) {
         const path = prefix ? `${prefix}/${name}` : name;
         if (sub.files?.template) {
           folders.push({
@@ -628,7 +626,7 @@ export class CreationService {
    * @returns {Promise<Object>} Resultado com `kind`, `path`, `title` e demais dados do item criado.
    */
   async create({ kind, folder, values = {}, source = "ui" }) {
-    const spec = await this.getSpec({ kind, folder });
+    const spec: any = await this.getSpec({ kind, folder });
     const missing = this.validate(spec, values);
     if (missing.length > 0) {
       throw new Error(
@@ -687,7 +685,7 @@ export class CreationService {
 
     // config.json do novo livro
     const title = resolveTitle(template, values) || "Novo livro";
-    let config = {};
+    let config: any = {};
     try {
       config = JSON.parse(
         (await this.readText(`${bookPath}/config.json`)) || "{}",
@@ -755,7 +753,7 @@ export class CreationService {
     // Perfil de templates do livro: esboço e análise do capítulo nascem com o corpo do perfil (as variáveis não mudam)
     const profileId = await this.templates.profileOfBook(book);
     for (const [kind, pattern] of [["chapter-outline", /outline\.md$/i], ["chapter-analysis", /analysis\.md$/i]]) {
-      const name = (await this.listDir(folderPath)).find((e) => !e.isDirectory && pattern.test(e.name))?.name;
+      const name = (await this.listDir(folderPath)).find((e) => !e.isDirectory && (pattern as RegExp).test(e.name))?.name;
       const body = await this.templates.body(profileId, kind);
       if (!name || body === null) continue;
       const file = `${folderPath}/${name}`;

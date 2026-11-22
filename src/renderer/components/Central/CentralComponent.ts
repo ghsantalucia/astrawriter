@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Componente "Central": janela grande com abas laterais (categorias), cabeçalho com o X e corpo com subtítulo e
  * conteúdo, sobre um overlay que bloqueia o app. É só o casco: quem sabe o que mostrar são as páginas
@@ -133,7 +132,7 @@ export class CentralComponent extends Component {
       if (item.dataset.central !== this.current?.id) this.open(item.dataset.central);
     });
     document.addEventListener("mousedown", (e) => {
-      if (!switcher.classList.contains("hidden") && !e.target.closest(".central-title-wrap")) setSwitcher(false);
+      if (!switcher.classList.contains("hidden") && !(e.target as Element).closest(".central-title-wrap")) setSwitcher(false);
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !switcher.classList.contains("hidden")) {
@@ -156,7 +155,7 @@ export class CentralComponent extends Component {
    * @param {string} [tab] - Aba inicial.
    * @returns {void}
    */
-  open(id, tab) {
+  open(id, tab?) {
     const Panel = PANELS[id];
     if (!Panel) return;
     this.current?.id !== id && this.panel()?.dispose?.();

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela renderização estrutural e lógica do explorer de arquivos.
  */
@@ -380,7 +378,7 @@ export class ExplorerComponent extends Component {
    * @param {{byFile?: Object}} [summary] - Resumo da Central de Revisões (padrão: o último recebido).
    * @returns {void}
    */
-  decorateIssues(summary) {
+  decorateIssues(summary?) {
     if (summary) this.issueSummary = summary;
     const byFile = this.issueSummary?.byFile || {};
     const book = normalizePath(this.state.currentBookPath || "").replace(/\/+$/, "");
@@ -590,7 +588,7 @@ export class ExplorerComponent extends Component {
     if (node.files) {
       for (const [fileKey, fileData] of Object.entries(node.files)) {
         // Ignora arquivos JSON de sistema na árvore visual de documentos
-        if (fileData.path && fileData.path.toLowerCase().endsWith(".json"))
+        if ((fileData as any).path && (fileData as any).path.toLowerCase().endsWith(".json"))
           continue;
 
         // O modelo (template.md) da pasta nunca aparece como arquivo
@@ -760,16 +758,16 @@ export class ExplorerComponent extends Component {
       bookRelative,
       title: meta.title,
     });
-    const li = this.createDOMElement(htmlString);
+    const li = this.createDOMElement(htmlString) as HTMLElement;
     li.dataset.dropFolder = bookRelative;
 
-    const span = li.querySelector(".folder-name");
+    const span = li.querySelector(".folder-name") as HTMLElement;
 
     // Pastas do usuário também podem ser arrastadas para dentro de outras (mesma categoria)
     if (!searchMode && meta.userRename === true) {
       span.draggable = true;
       span.dataset.draggable = "true";
-      span.addEventListener("dragstart", (e) => {
+      span.addEventListener("dragstart", (e: DragEvent) => {
         e.dataTransfer.setData("text/plain", bookRelative);
         e.dataTransfer.effectAllowed = "move";
         this._dragFolder = bookRelative;
@@ -784,7 +782,7 @@ export class ExplorerComponent extends Component {
 
     span.onclick = (e) => {
       // O botão "+" não deve abrir/fechar a pasta
-      if (e.target.closest(".folder-add-btn")) return;
+      if ((e.target as Element).closest(".folder-add-btn")) return;
       li.classList.toggle("collapsed");
 
       const folderIcon = span.querySelector(".icon-folder");
@@ -823,7 +821,7 @@ export class ExplorerComponent extends Component {
     const draft = folderNode.files["2_draft"];
     const absolutePath = normalizePath(draft.originalPath);
     const chapterDir = absolutePath.split("/").slice(0, -1).join("/");
-    const isTemp = Object.values(folderNode.files).some((f) => f.isTemp);
+    const isTemp = Object.values(folderNode.files).some((f: any) => f.isTemp);
     const html = this.compile(chapterNodeTpl, {
       title: meta.title,
       relativePath: `${normalizePath(relativePath)}/2_draft.md`,
@@ -833,8 +831,8 @@ export class ExplorerComponent extends Component {
       canDelete: true,
       chapterFolder: bookRel.split("/").pop(),
     });
-    const li = this.createDOMElement(html);
-    const span = li.querySelector(".file-name");
+    const li = this.createDOMElement(html) as HTMLElement;
+    const span = li.querySelector(".file-name") as HTMLElement;
     span.onclick = () => {
       this.element.querySelectorAll(".file-name").forEach((el) => el.classList.remove("active"));
       span.classList.add("active");
@@ -971,7 +969,7 @@ export class ExplorerComponent extends Component {
             }))
           : [],
     });
-    const li = this.createDOMElement(htmlString);
+    const li = this.createDOMElement(htmlString) as HTMLElement;
     if (match) {
       li.dataset.matchType = match.matchType;
       li.dataset.rank = String(match.rank);
@@ -985,7 +983,7 @@ export class ExplorerComponent extends Component {
     ) {
       li.draggable = true;
       li.dataset.draggable = "true";
-      li.addEventListener("dragstart", (e) => {
+      li.addEventListener("dragstart", (e: DragEvent) => {
         e.dataTransfer.setData("text/plain", absolutePath);
         e.dataTransfer.effectAllowed = "move";
         this._dragFile = absolutePath;
@@ -998,7 +996,7 @@ export class ExplorerComponent extends Component {
       });
     }
 
-    const span = li.querySelector(".file-name");
+    const span = li.querySelector(".file-name") as HTMLElement;
     span.onclick = (e) => {
       this.element
         .querySelectorAll(".file-name")

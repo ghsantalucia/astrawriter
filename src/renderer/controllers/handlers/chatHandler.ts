@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler para orquestração de eventos e mensagens do chat.
  */
@@ -108,7 +106,7 @@ export async function onSendMessage({ promptText }, aiService) {
     });
 
     // 7. Cria a estrutura da mensagem do assistente (com os botões que a IA pediu, se houver)
-    const assistantMessage = {
+    const assistantMessage: any = {
       role: "assistant",
       content: responseText,
       timestamp: new Date().toISOString(),

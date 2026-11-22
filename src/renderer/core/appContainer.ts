@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar
  * o ciclo de vida dos serviços e componentes utilizando o padrão de Inversão de Controle (IoC).
@@ -14,7 +12,9 @@ import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
 
 import { setupEscapeKey } from "../utils/escapeKey.js";
-import * as ComponentClass from "../components/index.js";
+import * as ComponentModules from "../components/index.js";
+
+const ComponentClass: any = ComponentModules;
 
 /**
  * Orquestrador principal da aplicação no processo de renderização.
@@ -38,7 +38,7 @@ export class AppContainer {
     // 1. Core e Serviços
     this.state = new State();
 
-    const context = {
+    const context: any = {
       uiBus: uiBus,
       domainBus: domainBus,
       state: this.state,
@@ -117,7 +117,7 @@ export class AppContainer {
 
     // Aguarda a inicialização e renderização de todos os componentes principais em paralelo
     const componentPromises = Object.values(this.components).map(
-      async (component) => {
+      async (component: any) => {
         if (component && typeof component.init === "function") {
           await component.init();
         }
@@ -168,7 +168,7 @@ export class AppContainer {
    * @private
    */
   setupWindowTitle() {
-    const update = (title) => {
+    const update = (title?: any) => {
       const name = String(title ?? this.state.currentBookMetadata?.book_title ?? "").trim();
       document.title = name ? `${name} - Astra Writer` : "Astra Writer";
     };
@@ -186,7 +186,7 @@ export class AppContainer {
     // Previne comportamento padrão de arrastar elementos na janela
     document.addEventListener(
       "dragstart",
-      (e) => {
+      (e: any) => {
         // Só o explorer permite arrastar (arquivos entre pastas)
         if (e.target.closest?.("[data-draggable='true']")) return;
         e.preventDefault();
@@ -197,7 +197,7 @@ export class AppContainer {
     // Impede que o TAB navegue pelos elementos do app fora do editor
     window.addEventListener(
       "keydown",
-      (e) => {
+      (e: any) => {
         if (e.key === "Tab") {
           const isInsideEditor =
             e.target.closest(".toastui-editor-defaultUI") ||

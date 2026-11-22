@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Verificadores determinísticos (sem IA) da Central de Revisões: links internos quebrados, palavras repetidas e
  * palavras desconhecidas. Trabalham sobre o texto Markdown bruto de um arquivo; as posições (`start`/`end`) são
@@ -91,7 +90,7 @@ export function lineOf(content, index) {
  * @param {Map<string, number>} base.seen - Contador de ocorrências do mesmo trecho (para ids distintos).
  * @returns {Object}
  */
-function buildIssue({ type, file, content, start, end, message, suggestion, extra, seen }) {
+function buildIssue({ type, file, content, start, end, message, suggestion, extra, seen }: { type: string; file: any; content: any; start: any; end: any; message: string; suggestion?: any; extra?: any; seen: Map<any, any> }) {
   const info = typeInfo(type);
   const excerpt = content.slice(start, end);
   const key = `${file}|${type}|${excerpt}`;

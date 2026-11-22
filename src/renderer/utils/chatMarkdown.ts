@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Conversão segura de Markdown (respostas da IA) em HTML para o chat.
  */
@@ -14,5 +12,5 @@ import DOMPurify from "dompurify";
  */
 export function renderChatMarkdown(markdown) {
   const html = marked.parse(markdown || "", { gfm: true, breaks: true });
-  return DOMPurify.sanitize(html);
+  return DOMPurify.sanitize(html as string);
 }

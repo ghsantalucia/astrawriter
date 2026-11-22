@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela renderização estrutural do chat do assistente de IA
  */
@@ -95,10 +93,10 @@ export class ChatComponent extends Component {
       if (e.key !== "Escape" || e.defaultPrevented) return;
       const drawer = document.getElementById("chat-container");
       if (!drawer?.classList.contains("expanded")) return;
-      if (!e.target.closest?.("#chat-container")) return;
+      if (!(e.target as Element).closest?.("#chat-container")) return;
       if (document.querySelector("#modal-container:not(.hidden)")) return;
       e.preventDefault();
-      document.activeElement?.blur?.();
+      (document.activeElement as HTMLElement | null)?.blur?.();
       this.toggleAiDrawer();
       this.uiBus.emit("explorer:keyboard-restore");
     });
@@ -179,13 +177,13 @@ export class ChatComponent extends Component {
     document
       .getElementById("ai-chat-messages")
       ?.addEventListener("click", (e) => {
-        const link = e.target.closest("a");
+        const link = (e.target as Element).closest("a");
         if (link) {
           e.preventDefault();
           this.openChatLink(link.getAttribute("href"));
         }
 
-        const replyBtn = e.target.closest(".chat-button.reply");
+        const replyBtn = (e.target as Element).closest(".chat-button.reply");
         if (replyBtn) {
           replyBtn.closest(".chat-buttons")?.classList.add("answered");
           replyBtn.classList.add("chosen");
@@ -441,8 +439,8 @@ export class ChatComponent extends Component {
    * @returns {void}
    */
   setChatLoadingState(isLoading) {
-    const textarea = document.getElementById("ai-chat-input");
-    const btnSend = document.getElementById("btn-send-ai");
+    const textarea = document.getElementById("ai-chat-input") as HTMLTextAreaElement;
+    const btnSend = document.getElementById("btn-send-ai") as HTMLButtonElement;
 
     if (textarea) {
       textarea.disabled = isLoading;
@@ -695,7 +693,7 @@ export class ChatComponent extends Component {
    * @returns {void}
    */
   triggerSendMessage() {
-    const textarea = document.getElementById("ai-chat-input");
+    const textarea = document.getElementById("ai-chat-input") as HTMLTextAreaElement;
     if (!textarea) return;
 
     const promptText = textarea.value.trim();

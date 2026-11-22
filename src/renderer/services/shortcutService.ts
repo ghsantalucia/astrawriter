@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Atalhos de teclado do app: as ações que têm atalho (com o padrão de cada uma), a personalização pelo usuário e o
  * despachante global. Há também a lista dos atalhos **fixos** (setas do explorer, Esc, atalhos do editor), que só são
@@ -16,9 +15,9 @@ export const SHORTCUT_ACTIONS = [
   { id: "file.export", group: "Arquivo", label: "Menu Exportar", default: "Ctrl+E", run: () => uiBus.emit("export:toggle-menu") },
   { id: "file.data", group: "Arquivo", label: "Dados do arquivo (abrir/fechar)", default: "Ctrl+D", run: () => uiBus.emit("file-data:toggle") },
   { id: "chapter.new", group: "Capítulo", label: "Novo capítulo", default: "Ctrl+Alt+N", run: () => uiBus.emit("chapter:create") },
-  { id: "chapter.draft", group: "Capítulo", label: "Ir ao Manuscrito", default: "Ctrl+Alt+1", run: () => document.querySelector('.chapter-tab[data-kind="draft"]')?.click() },
-  { id: "chapter.outline", group: "Capítulo", label: "Ir ao Esboço", default: "Ctrl+Alt+2", run: () => document.querySelector('.chapter-tab[data-kind="outline"]')?.click() },
-  { id: "chapter.analysis", group: "Capítulo", label: "Ir à Análise", default: "Ctrl+Alt+3", run: () => document.querySelector('.chapter-tab[data-kind="analysis"]')?.click() },
+  { id: "chapter.draft", group: "Capítulo", label: "Ir ao Manuscrito", default: "Ctrl+Alt+1", run: () => document.querySelector<HTMLElement>('.chapter-tab[data-kind="draft"]')?.click() },
+  { id: "chapter.outline", group: "Capítulo", label: "Ir ao Esboço", default: "Ctrl+Alt+2", run: () => document.querySelector<HTMLElement>('.chapter-tab[data-kind="outline"]')?.click() },
+  { id: "chapter.analysis", group: "Capítulo", label: "Ir à Análise", default: "Ctrl+Alt+3", run: () => document.querySelector<HTMLElement>('.chapter-tab[data-kind="analysis"]')?.click() },
   { id: "explorer.search", group: "Navegação", label: "Pesquisar no livro", default: "Ctrl+K", run: () => document.getElementById("explorer-search-input")?.focus() },
   { id: "chat.toggle", group: "Navegação", label: "Abrir/fechar o chat de IA", default: "Ctrl+Shift+A", run: () => uiBus.emit("ai-chat:toggle") },
   { id: "settings.open", group: "Centrais", label: "Configurações", default: "Ctrl+,", run: () => uiBus.emit("settings:open") },

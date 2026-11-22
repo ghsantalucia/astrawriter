@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal
  * para não precisar trafegar o conteúdo de todos os arquivos até o renderer.
@@ -80,7 +78,7 @@ function collectVariableValues(data) {
   for (const node of Object.values(data)) {
     if (!node || typeof node !== "object") continue;
     if ("content" in node || "placeholder" in node || "required" in node) {
-      if (node.content) values.push(String(node.content));
+      if ((node as any).content) values.push(String((node as any).content));
     } else {
       values.push(...collectVariableValues(node));
     }

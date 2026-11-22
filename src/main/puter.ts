@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Puter pela biblioteca oficial (`@heyputer/puter.js`, versão Node). O token fica só aqui, no processo principal; a
  * interface pede o chat e a lista de modelos por IPC. A resposta é devolvida no formato da OpenAI (`choices[0].message`),
@@ -56,12 +55,12 @@ function contentText(content) {
 export async function puterChat({ token, model, messages, tools }) {
   try {
     if (!token) return { ok: false, error: { status: 401, message: "Informe o token do Puter na conta." } };
-    const options = { normalize: true };
+    const options: any = { normalize: true };
     if (model) options.model = model;
     if (Array.isArray(tools) && tools.length) options.tools = tools;
     const result = await client(token).ai.chat(messages, options);
     const raw = result?.message ?? result?.choices?.[0]?.message ?? { content: result };
-    const message = { role: "assistant", content: contentText(raw.content) };
+    const message: any = { role: "assistant", content: contentText(raw.content) };
     if (Array.isArray(raw.tool_calls) && raw.tool_calls.length) message.tool_calls = raw.tool_calls;
     const usage = result?.usage || {};
     return {

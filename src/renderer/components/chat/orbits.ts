@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,
  * asteroides cruzando a tela e estrelas piscando, num canto do elemento (1/4 de círculo visível). Tudo é SVG animado
@@ -67,7 +65,7 @@ function rng(seed) {
  * @param {string} [style] - Estilo inline.
  * @returns {SVGElement}
  */
-function el(name, attrs, style) {
+function el(name, attrs?, style?) {
   const node = document.createElementNS(NS, name);
   for (const key in attrs) node.setAttribute(key, attrs[key]);
   if (style) node.setAttribute("style", style);

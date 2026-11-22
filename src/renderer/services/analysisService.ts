@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Análise do livro pela IA, pensada para gastar poucos tokens:
  *
@@ -142,7 +141,7 @@ export class AnalysisService {
     const tree = await window.electronAPI.getTree(this.book);
     const out = [];
     const walk = (node, prefix) => {
-      for (const [key, file] of Object.entries(node?.files || {})) {
+      for (const [key, file] of Object.entries<any>(node?.files || {})) {
         const rel = `${prefix}${key}.md`;
         if (!/\.md(\.temp)?$/i.test(file.originalPath || "")) continue;
         if (SKIP.some((re) => re.test(rel))) continue;
@@ -205,7 +204,7 @@ export class AnalysisService {
    * @param {number} [options.budgetTokens] - Orçamento estimado (padrão: o configurado).
    * @returns {Promise<{digests: number, verified: number, issues: number, stoppedBy: string|null}>}
    */
-  async run({ budgetTokens } = {}) {
+  async run({ budgetTokens }: any = {}) {
     if (this.running) throw new Error("Já existe uma análise em andamento.");
     if (!this.book) throw new Error("Nenhum livro selecionado.");
     this.running = true;
@@ -442,7 +441,7 @@ export class AnalysisService {
    * @param {Object} [payload] - `{ count }`.
    * @returns {Promise<void>}
    */
-  async offerAfterSync() {
+  async offerAfterSync(_payload?: any) {
     if (!this.book || this.running || !this.settings().onSync) return;
     const aiReady = Boolean(this.state.aiSettings?.providers?.[this.state.aiProvider]?.apiKey) || !getProviderInfo(this.state.aiProvider)?.requiresKey;
     if (!aiReady) return;
@@ -499,7 +498,7 @@ export class AnalysisService {
    * @param {string} [filter.attribute] - Trecho do atributo.
    * @returns {Promise<Object[]>}
    */
-  async searchFacts({ entity, attribute } = {}) {
+  async searchFacts({ entity, attribute }: any = {}) {
     const e = entity ? foldText(entity) : "";
     const a = attribute ? foldText(attribute) : "";
     const out = [];

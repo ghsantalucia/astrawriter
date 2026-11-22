@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Links do app: endereços `app:` que, em vez de abrir um arquivo ou um site, abrem uma janela do próprio app (a gaveta
  * de configurações ou uma aba de uma central). Não há tela para o usuário criar esses links: eles são usados nos arquivos
@@ -47,7 +46,7 @@ export function parseAppLink(href) {
  * @returns {boolean} Foi um link válido?
  */
 export function openAppLink(href, uiBus) {
-  const target = parseAppLink(href);
+  const target: any = parseAppLink(href);
   if (!target) return false;
   if (target.type === "settings") uiBus.emit("settings:open");
   else uiBus.emit("central:open", { central: target.central, tab: target.tab });

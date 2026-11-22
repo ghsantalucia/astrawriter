@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de
  * restauração de versões. A restauração sempre pede a confirmação do autor, com a comparação lado a lado, antes de
@@ -281,7 +279,7 @@ export function registerHistoryTools(registry) {
       );
       const blocked = new Set();
       const walk = (node, prefix) => {
-        for (const [key, f] of Object.entries(node?.files || {})) {
+        for (const [key, f] of Object.entries(node?.files || {}) as [string, any][]) {
           if (f.metadata?.aiRead !== true) blocked.add(`${prefix}${key}.md`);
         }
         for (const [name, sub] of Object.entries(node?.folders || {})) {

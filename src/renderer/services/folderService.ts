@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço das pastas do usuário e da movimentação de arquivos entre pastas.
  *
@@ -95,7 +93,7 @@ export class FolderService {
 
     const siblings =
       (await window.electronAPI.listDir(`${book}/${parentRel}`)) || [];
-    const taken = new Set(siblings.map((e) => e.name.toLowerCase()));
+    const taken = new Set<string>(siblings.map((e) => e.name.toLowerCase()));
     // Nome em disco genérico e numerado (folder_001, folder_002...); o nome digitado fica só no `title` do folder.yml
     let number = 1;
     for (const name of taken) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Lógica (sem IA) da linha do tempo a partir das fichas de eventos (`assets/events/`). Cada evento tem um momento
  * (`when`, texto livre como "ano 312" ou "durante a guerra") e relações de ordem com outros eventos (`after` e `before`,
@@ -102,7 +101,7 @@ function timelineIssue(type, file, message) {
  */
 export function analyzeTimeline(events) {
   const issues = [];
-  const byName = new Map();
+  const byName = new Map<any, any>();
   for (const e of events) {
     for (const name of [e.title, ...e.aliases]) {
       const key = foldText(name);
@@ -111,7 +110,7 @@ export function analyzeTimeline(events) {
   }
 
   // Aresta A -> B significa "A aconteceu antes de B"
-  const edges = new Map(events.map((e) => [e.rel, new Set()]));
+  const edges = new Map<any, Set<any>>(events.map((e) => [e.rel, new Set()]));
   const addEdge = (from, to) => {
     if (from.rel !== to.rel) edges.get(from.rel).add(to.rel);
   };
@@ -134,7 +133,7 @@ export function analyzeTimeline(events) {
     }
   }
 
-  const byRel = new Map(events.map((e) => [e.rel, e]));
+  const byRel = new Map<any, any>(events.map((e) => [e.rel, e]));
   const year = (e) => parseYear(e.when);
 
   // Momento que contradiz a ordem declarada
@@ -149,12 +148,12 @@ export function analyzeTimeline(events) {
   }
 
   // Ciclos (componentes fortemente conectados com mais de um evento)
-  const index = new Map();
-  const low = new Map();
-  const onStack = new Set();
-  const stack = [];
+  const index = new Map<any, number>();
+  const low = new Map<any, number>();
+  const onStack = new Set<any>();
+  const stack: any[] = [];
   let counter = 0;
-  const cyclic = new Set();
+  const cyclic = new Set<any>();
   const visit = (v) => {
     index.set(v, counter);
     low.set(v, counter);
@@ -193,7 +192,7 @@ export function analyzeTimeline(events) {
   for (const e of events) if (!index.has(e.rel)) visit(e.rel);
 
   // Eventos sem posição nenhuma (sem momento e sem relação com outros)
-  const linked = new Set();
+  const linked = new Set<any>();
   for (const [from, targets] of edges) {
     if (targets.size) linked.add(from);
     targets.forEach((t) => linked.add(t));
@@ -205,7 +204,7 @@ export function analyzeTimeline(events) {
   }
 
   // Sugestão de ordem: ordenação topológica (Kahn), desempatando por ano e título
-  const indegree = new Map(events.map((e) => [e.rel, 0]));
+  const indegree = new Map<any, number>(events.map((e) => [e.rel, 0]));
   for (const targets of edges.values()) targets.forEach((t) => indegree.set(t, indegree.get(t) + 1));
   const compare = (x, y) => {
     const ya = year(byRel.get(x));

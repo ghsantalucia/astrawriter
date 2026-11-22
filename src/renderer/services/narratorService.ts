@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Narrador: lê o arquivo aberto no editor em voz alta com as vozes do sistema (síntese de voz do Chromium, sem
  * internet e sem custo). O texto é limpo do Markdown e lido frase por frase (vozes longas travam em alguns sistemas).
@@ -106,7 +105,7 @@ export class NarratorService {
    * @private
    */
   async pickVoice() {
-    const all = await this.voices();
+    const all = (await this.voices()) as any[];
     const wanted = appSettings.get("speech.voice");
     return all.find((v) => v.name === wanted) || all.find((v) => /^pt(-|_)BR/i.test(v.lang)) || all.find((v) => /^pt/i.test(v.lang)) || null;
   }

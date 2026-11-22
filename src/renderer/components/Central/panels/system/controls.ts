@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Controles compartilhados pelas abas da Central do Sistema: uma linha de configuração para cada tipo de valor
  * (interruptor, número, lista de opções, horário, texto), ligada ao armazenamento de configurações (`appSettings`).
@@ -18,7 +17,7 @@ const UNITS = { "ui.zoom": "%", "ui.night.intensity": "%", "speech.rate": "×", 
  * @param {boolean} [options.disabled] - Desabilitada.
  * @returns {string}
  */
-export function settingRow(id, { hint, disabled = false } = {}) {
+export function settingRow(id, { hint, disabled = false }: { hint?: string; disabled?: boolean } = {}) {
   const def = appSettings.def(id);
   const value = appSettings.get(id);
   const text = `<span class="cn-switch-text"><strong>${esc(def.label)}</strong><small>${esc(hint ?? def.help)}</small></span>`;
@@ -48,7 +47,7 @@ export function settingRow(id, { hint, disabled = false } = {}) {
  * @param {() => void} [afterChange] - Chamado depois de gravar (redesenhar a aba, por exemplo).
  * @returns {Object<string, Function>}
  */
-export function settingHandlers(ctx, afterChange) {
+export function settingHandlers(ctx, afterChange?) {
   const save = (el, redraw) => {
     const id = el.dataset.id;
     const value = el.type === "checkbox" ? el.checked : el.value;

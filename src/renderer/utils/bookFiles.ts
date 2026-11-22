@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos
  * de link interno e termos (nome e apelidos) usados pelo link automático.
@@ -30,7 +28,7 @@ export function flattenBookTree(tree, bookPath) {
 
   const walk = (node) => {
     if (!node) return;
-    for (const [key, file] of Object.entries(node.files || {})) {
+    for (const [key, file] of Object.entries<any>(node.files || {})) {
       const original = normalizePath(file.originalPath || file.path || "");
       if (!original.toLowerCase().endsWith(".md")) continue;
       if (!original.startsWith(`${root}/`)) continue;

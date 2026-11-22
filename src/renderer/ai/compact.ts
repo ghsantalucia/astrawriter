@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file "Otimizar instruções": enxuga os textos de instrução que o app envia à IA (prompt de sistema, descrição das tools e
  * texto das skills) para gastar menos tokens, sem mudar o sentido. Nunca é aplicado ao texto do autor (capítulos, fichas,
@@ -6,7 +5,7 @@
  */
 
 /** Trocas seguras de expressões longas por curtas (a IA entende igual). */
-const SHORTEN = [
+const SHORTEN: Array<[RegExp, string]> = [
   [/\b(?:é importante|importante) (?:que você|lembrar|notar) (?:de )?(?:que )?/gi, ""],
   [/\bLembre-se de que\s+/gi, ""],
   [/\bPor favor,?\s+/gi, ""],

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.
  */
@@ -40,7 +39,7 @@ function worthFallback(error) {
  * @returns {Object}
  */
 export function accountExtras(account) {
-  const out = {};
+  const out: any = {};
   if (account.baseUrl) out.baseUrl = account.baseUrl;
   if (account.toolMode) out.toolMode = account.toolMode;
   if (account.numCtx) out.numCtx = account.numCtx;
@@ -140,7 +139,7 @@ export async function processPrompt({ prompt, history = [] }, state, toolContext
   const systemPrompt =
     (profile.compact ? compactInstructions(baseSystem) + CONCISE_NOTE : baseSystem) +
     PROFILE_NOTE +
-    (profile.chatOnly ? CHAT_ONLY_NOTE : tools.promptNote());
+    (profile.chatOnly ? CHAT_ONLY_NOTE : (tools as any).promptNote());
   let lastError = null;
 
   for (let i = 0; i < chain.length; i++) {

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.
  */
@@ -137,7 +135,7 @@ export async function onSyncOpenModal(fileService, state, onDone = null) {
           const checkedBoxes = modalInstance.element.querySelectorAll(
             ".sync-file-checkbox:checked",
           );
-          const pathsToSync = Array.from(checkedBoxes).map((cb) =>
+          const pathsToSync = Array.from(checkedBoxes).map((cb: Element) =>
             cb.getAttribute("data-path"),
           );
 

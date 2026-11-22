@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.
  *
@@ -24,6 +22,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { recordChange, CHANGELOG_DIR } from "./changelog.js";
 import { templatesDir } from "./paths.js";
+
+// `L` nunca foi definido neste módulo (o chamado cai sempre no catch e usa o modelo embutido); mantido como está.
+declare const L: (text: string) => string;
 
 /** Padrão do nome antigo de uma pasta de capítulo. */
 const LEGACY_CHAPTER = /^cap_(\d+)$/i;

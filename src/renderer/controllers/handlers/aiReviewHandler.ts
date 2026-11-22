@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)
  * com a versão nova (no editor completo do app, editável), destacando em verde o que a IA incluiu e em vermelho o que
@@ -130,7 +128,7 @@ function createAddedPlugin(added) {
  */
 function renderOld(body, removed) {
   const doc = new DOMParser().parseFromString(
-    DOMPurify.sanitize(marked.parse(body, { gfm: true })),
+    DOMPurify.sanitize(marked.parse(body, { gfm: true }) as string),
     "text/html",
   );
   const blocks = [...doc.body.children];
@@ -209,7 +207,7 @@ async function reviewFile(originalPath, fileService, state) {
       ? describeDataChanges(parseMarkdown(original ?? "").metadata, metadata)
       : [];
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     let kit = null;
     const added = new Set();
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo
  * usuário). Cada perfil tem o corpo de cada template de ficha e de capítulo. Daqui o usuário abre a janela de edição,
@@ -118,7 +117,7 @@ export class TemplatesTab {
           text: "Confirmar",
           class: "btn-primary",
           onClick: async (modal) => {
-            const name = document.getElementById("template-name-input")?.value.trim();
+            const name = (document.getElementById("template-name-input") as HTMLInputElement | null)?.value.trim();
             if (!name) return;
             modal.close();
             await onOk(name);

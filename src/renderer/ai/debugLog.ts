@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do
  * sistema, histórico e mensagem), o que voltou, as tools usadas (com argumentos e resultado), o consumo de tokens e quantas
@@ -22,7 +21,7 @@ const SAVE_DELAY_MS = 800;
 const exchanges = [];
 /** Turnos fixados do livro atual (cópias completas, gravadas em disco). @type {Array<Object>} */
 let pinned = [];
-const listeners = new Set();
+const listeners = new Set<() => void>();
 let seq = 0;
 
 /** Chamada em andamento (as tools executadas no meio dela são anexadas a ela). */
@@ -186,7 +185,7 @@ export function currentToolCount() {
  * @param {Error} [result.error] - Erro, se houve.
  * @returns {void}
  */
-export function finishExchange(exchange, { text, usage, error } = {}) {
+export function finishExchange(exchange, { text, usage, error }: { text?: any; usage?: any; error?: any } = {}) {
   exchange.response = clip(text || "", MAX_TEXT);
   exchange.usage = usage
     ? { input: usage.inputTokens ?? 0, output: usage.outputTokens ?? 0, requests: usage.requests ?? 1 }

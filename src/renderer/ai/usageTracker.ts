@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Contador local de uso diário da IA, por provedor e modelo.
  *
@@ -94,9 +92,9 @@ export function getUsageReport(days = 7) {
   try {
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "{}");
     const since = Object.keys(history).sort().slice(-days);
-    const total = {};
+    const total: Record<string, any> = {};
     for (const day of since) {
-      for (const [key, v] of Object.entries(history[day])) {
+      for (const [key, v] of Object.entries(history[day]) as [string, any][]) {
         const t = (total[key] ||= { requests: 0, input: 0, output: 0 });
         t.requests += v.requests;
         t.input += v.input;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Central do Livro: dados do livro (nome, modo da IA), visão geral e exclusão. Os dados ficam no `config.json` do livro.
  */
@@ -163,8 +162,8 @@ export class BookPanel {
         "export-kind": () => syncFormats(),
         "export-format": () => {},
         "export-go": async (btn) => {
-          const kind = root.querySelector('input[name="export-kind"]:checked')?.value;
-          const format = root.querySelector('input[name="export-format"]:checked')?.value;
+          const kind = (root.querySelector('input[name="export-kind"]:checked') as HTMLInputElement | null)?.value;
+          const format = (root.querySelector('input[name="export-format"]:checked') as HTMLInputElement | null)?.value;
           btn.disabled = true;
           const label = btn.innerHTML;
           btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exportando…';
@@ -182,10 +181,10 @@ export class BookPanel {
     );
     // O projeto completo não tem formato: a seção fica desativada
     const syncFormats = () => {
-      const project = root.querySelector('input[name="export-kind"]:checked')?.value === "project";
-      root.querySelector("#export-formats").style.opacity = project ? "0.45" : "";
-      root.querySelectorAll('input[name="export-format"]').forEach((i) => (i.disabled = project));
-      root.querySelector("#export-formats-note").hidden = !project;
+      const project = (root.querySelector('input[name="export-kind"]:checked') as HTMLInputElement | null)?.value === "project";
+      (root.querySelector("#export-formats") as HTMLInputElement).style.opacity = project ? "0.45" : "";
+      root.querySelectorAll<HTMLInputElement>('input[name="export-format"]').forEach((i) => (i.disabled = project));
+      (root.querySelector("#export-formats-note") as HTMLInputElement).hidden = !project;
     };
   }
 
@@ -259,7 +258,7 @@ export class BookPanel {
        </section>`,
       {
         "save-title": async () => {
-          const value = root.querySelector("#book-title-input").value.trim();
+          const value = (root.querySelector("#book-title-input") as HTMLInputElement).value.trim();
           if (!value)
             return this.ctx.toast("O livro precisa de um nome.", "error");
           const live = this.book ?? book; // a lista de livros pode ter sido recarregada desde o desenho da aba
@@ -270,7 +269,7 @@ export class BookPanel {
         },
         "open-ai": () => this.ctx.uiBus.emit("central:open", { central: "ai" }),
         "apply-profile": () => {
-          const id = root.querySelector("#book-template-profile").value;
+          const id = (root.querySelector("#book-template-profile") as HTMLInputElement).value;
           const label = profiles.find((p) => p.id === id)?.label || id;
           confirmModal(this.ctx.uiBus, {
             title: "Aplicar o perfil de templates?",

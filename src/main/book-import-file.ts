@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Importação de um livro a partir de um arquivo de texto (Word `.docx`, LibreOffice `.odt`, PDF, `.txt` ou `.md`).
  * Extrai o texto e tenta separar os capítulos pelos títulos. Nada é criado aqui: o resultado (título + capítulos) vai para a
@@ -92,7 +91,7 @@ function blocksFromOdt(xml) {
 export function splitChapters(blocks, fallbackTitle) {
   const warnings = [];
   const headings = blocks.filter((b) => b.type === "heading");
-  let isStart = () => false;
+  let isStart: (b: any) => boolean = () => false;
   const byRegex = headings.filter((h) => CHAPTER_RE.test(h.text));
   if (byRegex.length >= 2) {
     isStart = (b) => b.type === "heading" && CHAPTER_RE.test(b.text);

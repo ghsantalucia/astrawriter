@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Quantas tools vão para o modelo a cada pedido, definido pelo perfil de uso da IA (`toolsMode`). As definições das
  * tools são a maior parte do custo de um pedido (e contam no limite de tokens por minuto dos provedores), então:
@@ -51,7 +50,7 @@ const POPULAR_TOOLS = [
 export const SPECS_TOOL = "get_tool_specs";
 
 /** Tools liberadas (especificação pedida) na sessão atual. */
-const unlocked = new Set();
+const unlocked = new Set<string>();
 let unlockedBook = null;
 
 /**

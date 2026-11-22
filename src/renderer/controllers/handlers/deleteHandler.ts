@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:
  * pede a confirmação, executa a exclusão e atualiza editor, rascunhos pendentes, estado do livro e árvore.
@@ -201,7 +199,7 @@ async function afterDeletion({
   services,
   deletedPath,
   renumbered = [],
-}) {
+}: { state: any; services: any; deletedPath?: any; renumbered?: any[] }) {
   const book = normalizePath(state.currentBookPath).replace(/\/+$/, "");
   const content = `${book}/content`;
   const deleted = deletedPath ? normalizePath(deletedPath) : null;

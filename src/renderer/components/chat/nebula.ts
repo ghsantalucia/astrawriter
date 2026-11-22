@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.
  *
@@ -191,7 +189,7 @@ const DEFAULTS = {
  * @param {Object} [options] - `speed`, `seed`, `starDensity`, `nebulaScale`, `scale`, `maxDPR`, `maxFps`.
  * @returns {{canvas: HTMLCanvasElement, pause: () => void, resume: () => void, destroy: () => void}}
  */
-export function mountNebula(el, options = {}) {
+export function mountNebula(el, options: any = {}) {
   const o = { ...DEFAULTS, ...options };
   /** Paleta (0 a 1 por canal): cores principal, clara e de destaque. */
   const palette = { violet: [0.5, 0.17, 0.92], lilac: [0.8, 0.62, 0.98], pink: [1, 0.48, 0.8] };

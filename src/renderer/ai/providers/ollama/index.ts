@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Provedor Ollama (modelos locais). Usa a API nativa (`/api/chat`), que permite definir o tamanho do contexto —
  * o padrão do Ollama (4096 tokens) é pequeno demais para o prompt do app e cortaria o texto em silêncio. Modelos sem
@@ -29,7 +28,7 @@ async function run({ simulated, prompt, history, config, systemPrompt, tools, to
     toolContext,
 
     async callModel(messages) {
-      const body = {
+      const body: any = {
         model: config.model,
         messages,
         stream: false,

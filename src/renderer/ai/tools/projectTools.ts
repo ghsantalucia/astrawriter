@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o
  * `config.json` dos livros e os modelos de IA configurados (sem nunca expor chaves de API).
@@ -16,7 +14,7 @@ import { uiBus } from "../../events/uiBus.js";
  * @returns {Object} Item da lista de livros.
  * @throws {Error} Se o livro não existe.
  */
-function findBook(state, folderName) {
+function findBook(state, folderName?) {
   const books = state.bookList || [];
   if (!folderName) {
     const current = books.find(

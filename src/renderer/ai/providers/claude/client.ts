@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Cliente HTTP da API da Anthropic.
  */
@@ -61,7 +59,7 @@ export async function createMessage({
   tools = [],
   webSearch = false,
 }) {
-  const body = { model, max_tokens: CLAUDE_MAX_TOKENS, system, messages };
+  const body: any = { model, max_tokens: CLAUDE_MAX_TOKENS, system, messages };
   if (tools.length > 0) {
     body.tools = tools.map((t) => ({
       name: t.name,

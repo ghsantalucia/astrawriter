@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).
  */
@@ -144,7 +142,7 @@ export class ToolbarComponent extends Component {
     this.uiBus.on("export:toggle-menu", () => this.toggleExportMenu());
     this.uiBus.on("export:file", () => this.closeExportMenu());
     document.addEventListener("mousedown", (e) => {
-      if (!e.target.closest?.(".export-wrap")) this.closeExportMenu();
+      if (!(e.target as Element).closest?.(".export-wrap")) this.closeExportMenu();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") this.closeExportMenu();
@@ -231,7 +229,7 @@ export class ToolbarComponent extends Component {
    * @param {boolean} [force] - Estado desejado (padrão: alterna).
    * @returns {void}
    */
-  toggleExportMenu(force) {
+  toggleExportMenu(force?) {
     const menu = this.element?.querySelector("#export-menu");
     const btn = this.element?.querySelector("#btn-export");
     if (!menu || !btn || btn.disabled) return;
@@ -291,7 +289,7 @@ export class ToolbarComponent extends Component {
    * @param {string} [relativePath] - Caminho relativo do arquivo no disco (dica ao passar o mouse); omitido mantém o atual.
    * @returns {void}
    */
-  showFileTab(title, canEdit, relativePath) {
+  showFileTab(title, canEdit?, relativePath?) {
     const tab = this.element?.querySelector("#file-tab");
     if (!tab) return;
     tab.classList.toggle("hidden", !title || this._chapterMode);
@@ -316,7 +314,7 @@ export class ToolbarComponent extends Component {
    * @param {boolean} [canEdit] - Se a caneta (editar dados) deve aparecer na guia ativa.
    * @returns {boolean} Se o arquivo é de um capítulo (e as guias foram mostradas).
    */
-  showChapterTabs(relativePath, fullPath, canEdit) {
+  showChapterTabs(relativePath, fullPath?, canEdit?) {
     const box = this.element?.querySelector("#chapter-tabs");
     if (!box) return false;
     const match = String(relativePath || "").match(/(?:^|\/)content\/chapter_\d+\/(1_outline|2_draft|3_analysis)\.md$/i);
@@ -351,7 +349,7 @@ export class ToolbarComponent extends Component {
       if (typeof this.cleanupAnimation === "function") {
         this.cleanupAnimation();
       }
-      this.cleanupAnimation = initSaveButtonAnimation(btnSave);
+      this.cleanupAnimation = (initSaveButtonAnimation as any)(btnSave);
     }
   }
 

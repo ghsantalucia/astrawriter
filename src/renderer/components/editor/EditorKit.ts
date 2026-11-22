@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)
  * nasce por aqui, para ter sempre a mesma barra de ferramentas personalizada: link (arquivo do livro ou externo),
@@ -329,7 +327,7 @@ export class EditorKit {
     this.refresh();
     if (locked) {
       this.linkPopup.close();
-      document.activeElement?.blur?.();
+      (document.activeElement as HTMLElement | null)?.blur?.();
     }
   }
 

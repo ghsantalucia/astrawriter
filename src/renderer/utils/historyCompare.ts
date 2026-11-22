@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown
  * interpretado, e os trechos que diferem (removidos à esquerda, incluídos à direita) recebem um fundo sutil,
@@ -52,7 +50,7 @@ function renderSegments(segments, kind) {
     .filter((s) => s.text.trim() !== "")
     .map((segment) => {
       const html = DOMPurify.sanitize(
-        marked.parse(segment.text, { gfm: true }),
+        marked.parse(segment.text, { gfm: true }) as string,
       );
       return `<div class="diff-seg${segment.changed ? ` diff-seg-${kind}` : ""}">${html}</div>`;
     })

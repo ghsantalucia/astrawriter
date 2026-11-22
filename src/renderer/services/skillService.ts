@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).
  * Cada skill é um texto de instruções com metadados (autor, versão, tags, gatilhos, tools permitidas), que a IA executa
@@ -245,7 +244,7 @@ export class SkillService {
    */
   totalTokens(slug) {
     const stats = appSettings.get("skills.stats") || {};
-    return Object.entries(stats)
+    return Object.entries<any>(stats)
       .filter(([s]) => !slug || s === slug)
       .reduce((sum, [, v]) => sum + (v.runs || []).reduce((n, r) => n + (r.tokens || 0), 0), 0);
   }
@@ -358,7 +357,7 @@ export class SkillService {
    * @param {{slug?: string}} [options] - `slug`: skill em edição.
    * @returns {Promise<string>} Identificador da skill.
    */
-  async save(input, { slug } = {}) {
+  async save(input, { slug }: any = {}) {
     const name = String(input.slug || slug || "").trim().toLowerCase();
     if (!NAME_RE.test(name)) throw new Error("O nome da skill deve ter de 3 a 40 caracteres: letras minúsculas, números e hífens (ex.: revisar-dialogos).");
     if (!String(input.description || "").trim()) throw new Error("Descreva quando a IA deve usar esta skill.");

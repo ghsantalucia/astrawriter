@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Gerencia as animações da interface do chat de IA
  */
@@ -14,7 +12,7 @@ export function initStarryBackground() {
   const bodyContainer = document.getElementById("ai-body-container");
   if (!canvas || !bodyContainer) return;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = (canvas as HTMLCanvasElement).getContext("2d");
   let width = 0;
   let height = 0;
 
@@ -25,8 +23,8 @@ export function initStarryBackground() {
 
   function updateDimensions() {
     const prevHeight = height;
-    width = canvas.width = bodyContainer.clientWidth;
-    height = canvas.height = bodyContainer.clientHeight;
+    width = (canvas as HTMLCanvasElement).width = bodyContainer.clientWidth;
+    height = (canvas as HTMLCanvasElement).height = bodyContainer.clientHeight;
 
     // Se o container não tinha altura e agora ganhou (abriu a drawer),
     // ou se o array ainda está vazio, gera as estrelas com a nova altura
@@ -156,7 +154,7 @@ let shootRGB = [255, 255, 255];
  * @param {{star?: string, shooting?: string}} colors - Cores.
  * @returns {void}
  */
-export function setStarsPalette({ star, shooting } = {}) {
+export function setStarsPalette({ star, shooting }: { star?: any; shooting?: any } = {}) {
   const rgb = (hex, fallback) => {
     const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || "");
     return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : fallback;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Loja", por enquanto
  * offline), a página completa de cada skill (estilo página de plugin) e o formulário de criação e edição. Mostra gatilhos,
@@ -460,8 +459,8 @@ export class SkillsTab {
     );
     // Lembra das seções abertas/fechadas (marcar um gatilho redesenha a página; as seções não podem fechar)
     detailRoot.addEventListener("toggle", (e) => {
-      const id = e.target?.dataset?.fold;
-      if (id) this.folds.set(id, e.target.open);
+      const id = (e.target as any)?.dataset?.fold;
+      if (id) this.folds.set(id, (e.target as any).open);
     }, true);
     void fromMarket;
   }

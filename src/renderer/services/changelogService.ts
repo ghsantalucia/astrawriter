@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra
  * criações, alterações, exclusões, leituras e restaurações no changelog do livro (gravado pelo processo principal).
@@ -132,7 +130,7 @@ export class ChangelogService {
    * @returns {string|null}
    * @private
    */
-  resolveBook(filePath, bookPath) {
+  resolveBook(filePath, bookPath?) {
     const book = bookPath || this.state.currentBookPath;
     if (!book) return null;
     const normBook = normalizePath(book).replace(/\/+$/, "");
@@ -159,7 +157,7 @@ export class ChangelogService {
     actor,
     meta,
     bookPath,
-  }) {
+  }: any) {
     try {
       if (!this.isTracked(filePath)) return null;
       const book = this.resolveBook(filePath, bookPath);

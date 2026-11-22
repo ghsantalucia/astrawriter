@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Aplica as configurações de aparência e acessibilidade do app: zoom (tamanho da fonte do app), tema de cores,
  * modo noturno (filtro amarelado agendado), fontes do editor e cor da barra de título. Tudo é lido de `appSettings` e
@@ -53,10 +52,10 @@ export class AppearanceService {
    */
   init() {
     // O tema claro/escuro e o tema de cores têm donos próprios (ThemeManager e este serviço): as configurações apontam para eles
-    const theme = appSettings.def("ui.theme");
+    const theme: any = appSettings.def("ui.theme");
     theme.get = () => (document.body.classList.contains("dark-theme") ? "dark" : "light");
     theme.set = (value) => uiBus.emit("theme:toggle", { value: value === "dark" });
-    const preset = appSettings.def("ui.themePreset");
+    const preset: any = appSettings.def("ui.themePreset");
     preset.get = () => findTheme(appSettings.values["ui.themePreset"])?.id || preset.default;
     preset.set = (value) => {
       if (!findTheme(value)) throw new Error(`Tema "${value}" não encontrado.`);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Serviço da Central de Revisões: mantém a lista de issues do livro (problemas, inconsistências e sugestões),
  * dispensas, dicionário e o cache da varredura incremental.
@@ -244,7 +243,7 @@ export class IssueService {
    */
   knownWords() {
     const words = new Set(this.data?.dictionary.words || []);
-    for (const file of Object.values(this.data?.state.files || {})) {
+    for (const file of Object.values<any>(this.data?.state.files || {})) {
       for (const w of file.words || []) words.add(w);
     }
     return words;
@@ -265,9 +264,9 @@ export class IssueService {
       if (issue.type === "typo" && known.has(dictionaryKey(issue.word))) return;
       out.push(issue);
     };
-    for (const file of Object.values(this.data.state.files)) file.issues.forEach(push);
+    for (const file of Object.values<any>(this.data.state.files)) file.issues.forEach(push);
     this.data.registered.issues.forEach(push);
-    Object.values(this.external).forEach((list) => list.forEach(push));
+    Object.values<any>(this.external).forEach((list) => list.forEach(push));
     this.cache = out;
     return out;
   }
@@ -291,7 +290,7 @@ export class IssueService {
    * @param {"system"|"ai"} [filter.source] - Origem.
    * @returns {Object[]}
    */
-  list(filter = {}) {
+  list(filter: any = {}) {
     return this.all().filter(
       (i) =>
         (!filter.category || i.category === filter.category) &&
@@ -363,7 +362,7 @@ export class IssueService {
    * @returns {Array<{type: string, label: string, category: string, at: string}>}
    */
   dismissedTypes() {
-    return Object.entries(this.data?.dismissed.types || {}).map(([type, info]) => ({
+    return Object.entries<any>(this.data?.dismissed.types || {}).map(([type, info]) => ({
       type,
       label: typeInfo(type).label,
       category: typeInfo(type).category,
@@ -416,7 +415,7 @@ export class IssueService {
     const initial = !data.state.scanned && !types;
     const known = {};
     if (!types) {
-      for (const [rel, file] of Object.entries(data.state.files)) known[rel] = file.hash;
+      for (const [rel, file] of Object.entries<any>(data.state.files)) known[rel] = file.hash;
     }
 
     const files = await window.electronAPI.scanBook(book, known, types ? null : only);
@@ -509,7 +508,7 @@ export class IssueService {
    * @returns {void}
    */
   rebuildTimeline() {
-    const events = Object.values(this.data?.state.files || {})
+    const events = Object.values<any>(this.data?.state.files || {})
       .map((f) => f.event)
       .filter(Boolean);
     const { ordered, issues } = analyzeTimeline(events);
@@ -604,7 +603,7 @@ export class IssueService {
    * @private
    */
   describeFile(content, rel) {
-    let meta = {};
+    let meta: any = {};
     try {
       meta = parseMarkdown(content).metadata || {};
     } catch {
@@ -786,7 +785,7 @@ export class IssueService {
    * @private
    */
   removeIssue(id) {
-    for (const file of Object.values(this.data.state.files)) {
+    for (const file of Object.values<any>(this.data.state.files)) {
       file.issues = file.issues.filter((i) => i.id !== id);
     }
     this.data.registered.issues = this.data.registered.issues.filter((i) => i.id !== id);
@@ -859,7 +858,7 @@ export class IssueService {
     spellService.setBookWords(new Set(this.data.dictionary.words));
 
     let removed = 0;
-    for (const file of Object.values(this.data.state.files)) {
+    for (const file of Object.values<any>(this.data.state.files)) {
       const keep = file.issues.filter((i) => !(i.type === "typo" && dictionaryKey(i.word) === key));
       removed += file.issues.length - keep.length;
       file.issues = keep;
@@ -947,7 +946,7 @@ export class IssueService {
         continue;
       }
 
-      const issue = {
+      const issue: any = {
         id,
         category: info.category,
         type,

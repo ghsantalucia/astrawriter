@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Central de IA: modelo ativo, fallback de modelos, relatório de uso, depuração do que é enviado e recebido (com as
  * tools usadas), skills do livro e configuração da análise do livro.
@@ -252,12 +251,12 @@ export class AiPanel {
         "new-provider": (select) => {
           const info = getProviderInfo(select.value);
           const list = modelsOf(this.state, select.value);
-          root.querySelector("#new-model").value = info?.defaultModel || "";
+          (root.querySelector("#new-model") as HTMLInputElement).value = info?.defaultModel || "";
           root.querySelector("#new-model-list").innerHTML = list.map((m) => `<option value="${esc(m.id)}">${esc(m.label || m.id)}</option>`).join("");
-          root.querySelector("#new-key").disabled = !info?.requiresKey && !info?.editableUrl;
-          root.querySelector("#new-key").placeholder = info?.requiresKey ? "Cole a chave" : "Chave (opcional)";
-          root.querySelector("#new-url-field").hidden = !info?.editableUrl;
-          root.querySelector("#new-url").value = info?.defaultUrl || "";
+          (root.querySelector("#new-key") as HTMLInputElement).disabled = !info?.requiresKey && !info?.editableUrl;
+          (root.querySelector("#new-key") as HTMLInputElement).placeholder = info?.requiresKey ? "Cole a chave" : "Chave (opcional)";
+          (root.querySelector("#new-url-field") as HTMLInputElement).hidden = !info?.editableUrl;
+          (root.querySelector("#new-url") as HTMLInputElement).value = info?.defaultUrl || "";
           root.querySelector("#new-hint").textContent = info?.hint || "";
         },
         baseurl: async (input) => {
@@ -286,10 +285,10 @@ export class AiPanel {
         },
         key: (btn) => {
           this.editingKey = btn.dataset.id;
-          const box = root.querySelector("#key-editor");
+          const box = root.querySelector("#key-editor") as HTMLElement;
           box.hidden = false;
-          root.querySelector("#key-input").value = "";
-          root.querySelector("#key-input").focus();
+          (root.querySelector("#key-input") as HTMLInputElement).value = "";
+          (root.querySelector("#key-input") as HTMLInputElement).focus();
         },
         "copy-key": async (btn) => {
           const account = accounts.find((a) => a.id === btn.dataset.id);
@@ -302,28 +301,28 @@ export class AiPanel {
           }
         },
         "key-cancel": () => {
-          root.querySelector("#key-editor").hidden = true;
+          (root.querySelector("#key-editor") as HTMLInputElement).hidden = true;
         },
         "key-save": async () => {
           const account = accounts.find((a) => a.id === this.editingKey);
-          const value = root.querySelector("#key-input").value.trim();
+          const value = (root.querySelector("#key-input") as HTMLInputElement).value.trim();
           if (!account || !value) return this.ctx.toast("Cole a chave de API.", "error");
           await this.ai.saveAccount({ id: account.id, provider: account.provider, nickname: account.nickname, apiKey: value });
           this.ai.listModels(account.provider, account.id).catch(() => null);
           this.ctx.toast("Chave salva.", "success");
         },
         add: async () => {
-          const provider = root.querySelector("#new-provider").value;
+          const provider = (root.querySelector("#new-provider") as HTMLInputElement).value;
           const info = getProviderInfo(provider);
-          const apiKey = root.querySelector("#new-key").value.trim();
+          const apiKey = (root.querySelector("#new-key") as HTMLInputElement).value.trim();
           if (info?.requiresKey && !apiKey) return this.ctx.toast("Cole a chave de API da conta.", "error");
           try {
             const id = await this.ai.saveAccount({
               provider,
-              nickname: root.querySelector("#new-nick").value,
+              nickname: (root.querySelector("#new-nick") as HTMLInputElement).value,
               apiKey,
-              model: root.querySelector("#new-model").value.trim(),
-              baseUrl: info?.editableUrl ? root.querySelector("#new-url").value : undefined,
+              model: (root.querySelector("#new-model") as HTMLInputElement).value.trim(),
+              baseUrl: info?.editableUrl ? (root.querySelector("#new-url") as HTMLInputElement).value : undefined,
               numCtx: info?.defaultContext,
               activate: accounts.length === 0,
             });
@@ -412,7 +411,7 @@ export class AiPanel {
        </section>`,
       {
         toggle: (input) => save({ enabled: input.checked, chain }),
-        add: () => save({ enabled: fb.enabled, chain: [...chain, { accountId: root.querySelector("#fb-account").value }] }),
+        add: () => save({ enabled: fb.enabled, chain: [...chain, { accountId: (root.querySelector("#fb-account") as HTMLInputElement).value }] }),
         remove: (btn) => save({ enabled: fb.enabled, chain: chain.filter((_, i) => i !== Number(btn.dataset.i)) }),
         up: (btn) => {
           const i = Number(btn.dataset.i);

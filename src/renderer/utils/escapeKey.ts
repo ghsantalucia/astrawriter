@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Tecla Esc global: fecha, um por vez, a camada aberta mais acima (gaveta de configurações, janela/modal, central ou
  * gaveta do chat). Funciona como o "X" da camada; janelas que obrigam uma decisão (modal sem "X") não fecham com Esc, e
@@ -26,7 +25,7 @@ export function setupEscapeKey({ modalManager }) {
       if (document.body.dataset.recordingShortcut) return;
       // Menus e painéis que tratam o próprio Esc
       if (document.querySelector(".dropdown.open, .export-menu:not(.hidden), .central-switcher:not(.hidden)")) return;
-      if (e.target?.closest?.(OWN_ESCAPE)) return;
+      if ((e.target as Element | null)?.closest?.(OWN_ESCAPE)) return;
 
       const consume = () => {
         e.preventDefault();
@@ -57,9 +56,9 @@ export function setupEscapeKey({ modalManager }) {
       }
 
       // 4. Gaveta do chat (só se o foco não estiver escrevendo no editor)
-      if (document.getElementById("chat-container")?.classList.contains("expanded") && !e.target?.closest?.("#markdown-editor")) {
+      if (document.getElementById("chat-container")?.classList.contains("expanded") && !(e.target as Element | null)?.closest?.("#markdown-editor")) {
         consume();
-        document.activeElement?.blur?.();
+        (document.activeElement as HTMLElement | null)?.blur?.();
         uiBus.emit("ai-chat:toggle");
         uiBus.emit("explorer:keyboard-restore");
       }

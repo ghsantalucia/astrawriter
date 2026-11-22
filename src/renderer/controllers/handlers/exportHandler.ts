@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.
  */
@@ -18,7 +16,7 @@ const FORMAT_LABELS = { md: "Markdown", docx: "Word", pdf: "PDF" };
  * @returns {string}
  */
 function toExportHtml(markdown) {
-  const html = DOMPurify.sanitize(marked.parse(markdown, { gfm: true }));
+  const html = DOMPurify.sanitize(marked.parse(markdown, { gfm: true }) as string);
   const doc = new DOMParser().parseFromString(html, "text/html");
   doc.querySelectorAll("a").forEach((link) => {
     const href = link.getAttribute("href") || "";

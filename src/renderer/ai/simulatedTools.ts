@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o
  * formato no prompt, lê os pedidos de tool no texto da resposta e devolve os resultados como mensagens comuns; o laço
@@ -14,7 +13,7 @@ function describeTool(tool) {
   const props = tool.parameters?.properties || {};
   const required = new Set(tool.parameters?.required || []);
   const params = Object.entries(props)
-    .map(([key, schema]) => `${key}${required.has(key) ? "" : "?"}: ${schema.type || "any"}`)
+    .map(([key, schema]: [string, any]) => `${key}${required.has(key) ? "" : "?"}: ${schema.type || "any"}`)
     .join(", ");
   const description = String(tool.description || "").replace(/\s+/g, " ").slice(0, 220);
   return `- ${tool.name}(${params}) — ${description}`;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,
  * atualizações, backup, cronômetro, skills... Ficam no armazenamento local do app.
@@ -155,7 +154,7 @@ class AppSettingsStore {
    * @returns {*}
    */
   get(id) {
-    const def = byId.get(id);
+    const def: any = byId.get(id);
     if (def?.get) return def.get();
     if (id in this.values) return this.values[id];
     if (def) return def.default;
@@ -169,7 +168,7 @@ class AppSettingsStore {
    * @returns {*} O valor gravado.
    */
   set(id, value) {
-    const def = byId.get(id);
+    const def: any = byId.get(id);
     const next = def ? coerceSetting(def, value) : value;
     if (def?.set) def.set(next);
     else {

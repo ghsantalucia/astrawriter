@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Cliente e provedor genéricos para APIs compatíveis com a OpenAI (`/chat/completions`): ChatGPT, Groq, Puter, LM
  * Studio, llama.cpp, vLLM e qualquer outro servidor desse padrão. Cada provedor concreto (pastas `openai`, `groq`...) só
@@ -34,7 +33,7 @@ const trimUrl = (baseUrl) => String(baseUrl || "").replace(/\/+$/, "");
  * @param {string} [params.model] - Modelo (aparece nas mensagens).
  * @returns {Promise<Object>} JSON da resposta.
  */
-export async function requestJson({ provider, label, url, body, apiKey, model = "" }) {
+export async function requestJson({ provider, label, url, body, apiKey, model = "" }: { provider: any; label: any; url: string; body?: any; apiKey?: any; model?: string }) {
   let response;
   try {
     response = await fetch(url, {
@@ -100,7 +99,7 @@ export function createCompatProvider({ id, label, baseUrl: defaultUrl, request =
       toolContext,
 
       async callModel(messages) {
-        const body = { model: config.model, messages };
+        const body: any = { model: config.model, messages };
         // Lidas a cada rodada: tools liberadas durante a conversa entram na rodada seguinte
         const definitions = tools.getDefinitions();
         if (!simulated && definitions.length) {

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela
  * cadente → texto parado → fade-out, revelando a interface.
@@ -17,7 +15,7 @@ const HOLD_DURATION = 680;
 const FADE_DURATION = 510;
 
 /** Promessa do carregamento das fontes (criada em {@link initSplash}). */
-let fontsReady = Promise.resolve();
+let fontsReady: Promise<unknown> = Promise.resolve();
 
 /**
  * Prepara a abertura conforme o tema salvo (claro: fundo da barra de título e letras chumbo) e começa a carregar as

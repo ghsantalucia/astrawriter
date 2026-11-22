@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
  */
@@ -202,7 +200,7 @@ export class EditorComponent extends Component {
       placeholder: "Selecione um arquivo...",
       getFiles: () => this.getBookFiles(),
       getCurrentRel: () => this.getCurrentRel(),
-      getProblemRanges: (doc) => this.computeProblemRanges(doc),
+      getProblemRanges: (doc?) => this.computeProblemRanges(doc),
       onChange: () => this.handleEditorChange(),
     });
     this.state.editor = this.kit.editor;
@@ -755,17 +753,17 @@ export class EditorComponent extends Component {
 
     this.tagInput = new TagInput(box.querySelector(".file-data-tag-input"), {
       getKnownTags: () => this.getKnownTags(),
-    });
+    } as any);
 
     box.querySelector(".file-data-head").addEventListener("click", (e) => {
       // Clicar em "citado em X arquivos" abre a lista de citações (e não abre/fecha a caixa)
-      if (e.target.closest?.(".file-data-cited")) {
+      if ((e.target as Element).closest?.(".file-data-cited")) {
         e.stopPropagation();
         this.openCitations();
         return;
       }
       // Clicar numa tag do cabeçalho pesquisa por ela (e não abre/fecha a caixa)
-      const chip = e.target.closest?.(".tag-chip[data-tag]");
+      const chip = (e.target as Element).closest?.(".tag-chip[data-tag]") as HTMLElement | null;
       if (chip) {
         e.stopPropagation();
         this.searchByTag(chip.dataset.tag);
@@ -781,7 +779,7 @@ export class EditorComponent extends Component {
       });
       const values = {};
       box.querySelectorAll("[data-field]").forEach((input) => {
-        values[input.dataset.field] = input.value;
+        values[(input as HTMLInputElement).dataset.field] = (input as HTMLInputElement).value;
       });
       values[TAGS_FIELD_ID] = this.tagInput.getTags().join(",");
       this.uiBus.emit("variables:inline-save", { values });
@@ -793,7 +791,7 @@ export class EditorComponent extends Component {
    * @param {boolean} [force] - Estado desejado (padrão: alterna).
    * @returns {void}
    */
-  toggleDataBox(force) {
+  toggleDataBox(force?) {
     if (!this.dataBox || this.dataBox.classList.contains("hidden")) return;
     const open = force ?? this.dataBox.querySelector("form").hidden;
     this.dataBox.querySelector("form").hidden = !open;
@@ -896,7 +894,7 @@ export class EditorComponent extends Component {
       if (!btn) return;
       const c = list[Number(btn.dataset.i)];
       document.removeEventListener("click", onClick, true);
-      [...document.querySelectorAll(".modal-close-btn")].pop()?.click();
+      [...document.querySelectorAll<HTMLElement>(".modal-close-btn")].pop()?.click();
       this.uiBus.emit("editor:open-file", {
         path: `${this.state.currentBookPath}/${c.rel}`,
         reveal: { term: c.label, occurrence: c.occurrence },
@@ -985,7 +983,7 @@ export class EditorComponent extends Component {
   searchByTag(tag) {
     const input = document.getElementById("explorer-search-input");
     if (!input) return;
-    input.value = `#${tag}`;
+    (input as HTMLInputElement).value = `#${tag}`;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.focus();
   }

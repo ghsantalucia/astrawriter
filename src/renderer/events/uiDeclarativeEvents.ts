@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * Inicializa o escutador global de eventos no documento.
  */
@@ -8,7 +6,7 @@ export function initDeclarativeEvents(uiBus) {
   const SUPPORTED_EVENTS = ["click", "change", "input", "submit", "focus"];
 
   SUPPORTED_EVENTS.forEach((eventType) => {
-    document.addEventListener(eventType, (e) => {
+    document.addEventListener(eventType, (e: any) => {
       const attributeName = `event-${eventType}`;
       const targetElement = e.target.closest(`[${attributeName}]`);
 

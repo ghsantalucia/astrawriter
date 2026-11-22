@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Aba "Aparência" da Central do Sistema: tema claro/escuro, temas de cores (predefinidos e do usuário, com editor
  * gráfico de cores) e o tema do chat de IA (4 fundos, cada um com cores personalizáveis).

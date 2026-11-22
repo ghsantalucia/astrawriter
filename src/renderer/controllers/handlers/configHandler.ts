@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler para gerenciar alterações no arquivo config.json dos projetos.
  */
@@ -114,11 +112,11 @@ const SPELL_LANGUAGE_KEY = "app_spell_language";
  */
 export async function applySavedSpellLanguage() {
   const language = localStorage.getItem(SPELL_LANGUAGE_KEY) || "pt-BR";
-  const select = document.getElementById("spell-language-select");
+  const select = document.getElementById("spell-language-select") as HTMLSelectElement | null;
   if (select) select.value = language;
 
   const enabled = isSpellcheckEnabled();
-  const toggle = document.getElementById("spellcheck-toggle");
+  const toggle = document.getElementById("spellcheck-toggle") as HTMLInputElement | null;
   if (toggle) toggle.checked = enabled;
 }
 

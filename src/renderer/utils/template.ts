@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Funções puras para interpretar arquivos-modelo (templates) do livro.
  *
@@ -138,7 +136,7 @@ export function flattenVariables(data, prefix = []) {
   const variables = [];
   if (!data || typeof data !== "object") return variables;
 
-  for (const [key, node] of Object.entries(data)) {
+  for (const [key, node] of Object.entries<any>(data)) {
     const path = [...prefix, key];
 
     if (isVariableLeaf(node)) {
@@ -174,7 +172,7 @@ export const TITLE_FIELD_ID = "__title";
  */
 export function editableFields(metadata, { title = false } = {}) {
   const variables = flattenVariables(metadata?.data);
-  const fields = variables.map((v) => ({
+  const fields: any[] = variables.map((v) => ({
     id: v.id,
     label: v.placeholder || v.id,
     placeholder: v.placeholder,

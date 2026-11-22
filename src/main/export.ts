@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do
  * Electron (impressão de uma janela invisível); o Word usa a biblioteca html-to-docx a partir do HTML do texto.
@@ -147,7 +145,7 @@ const ZIP_SKIP_DIRS = new Set([".system", ".git", "node_modules"]);
  * @param {{drafts?: boolean}} [options] - `drafts: true` inclui os rascunhos `.temp` (usado no backup).
  * @returns {Promise<void>}
  */
-export async function addDirToZip(zip, dir, prefix, options = {}) {
+export async function addDirToZip(zip, dir, prefix, options: any = {}) {
   const entries = await fs.promises.readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = path.join(dir, entry.name);

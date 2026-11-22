@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
  */
@@ -74,7 +72,7 @@ export class AiService {
     fileService,
     creationService,
     changelogService,
-    extra = {},
+    extra: any = {},
   ) {
     this.state = state;
     this.fileService = fileService;
@@ -192,7 +190,7 @@ export class AiService {
    * @returns {Promise<boolean>}
    * @private
    */
-  async applyAccountChange(mutate, actor) {
+  async applyAccountChange(mutate, actor?) {
     const previous = { provider: this.state.aiProvider, model: this.getActiveModel() };
     mutate();
     this.materialize();
@@ -658,7 +656,7 @@ export class AiService {
       return false;
     }
 
-    const logEntry = {
+    const logEntry: any = {
       role: message.role,
       content: message.content,
       timestamp: message.timestamp || new Date().toISOString(),
@@ -746,7 +744,7 @@ export class AiService {
       if (!folderTree || !folderTree.files) return [];
 
       // Como `files` agora é um dicionário, usamos Object.values() para varrer os arquivos
-      return Object.values(folderTree.files)
+      return Object.values<any>(folderTree.files)
         .filter(
           (file) => file.path && file.path.toLowerCase().endsWith(".json"),
         )

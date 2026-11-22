@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.
  */
@@ -425,7 +423,7 @@ export class UiController {
    * @returns {void}
    * @private
    */
-  openCreationWizard(kind, folder) {
+  openCreationWizard(kind, folder?) {
     creation.onCreateRequested(
       { kind, folder },
       this.state,

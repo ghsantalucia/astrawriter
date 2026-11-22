@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.
  * Toda escrita vai para o rascunho (.md.temp); o autor sincroniza depois.
@@ -65,7 +63,7 @@ export async function saveDraft(located, frontmatter, body, ctx) {
 
 /** Percorre a árvore listando os .md que a IA pode ler. */
 function collectFiles(node, prefix, out) {
-  for (const [key, file] of Object.entries(node.files || {})) {
+  for (const [key, file] of Object.entries(node.files || {}) as [string, any][]) {
     if (!/\.md(\.temp)?$/i.test(file.originalPath || "")) continue;
     if (key === TEMPLATE_FILE_KEY) continue; // modelos de criação não são conteúdo do livro
     const located = { metadata: file.metadata || {} };

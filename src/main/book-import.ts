@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é
  * tratado como dado não confiável: caminhos que saem da pasta do livro são recusados, o tamanho e a quantidade de arquivos
@@ -60,7 +59,7 @@ export async function importBook(parent) {
     return { success: false, error: "Não foi possível ler o arquivo: ele não parece ser um zip válido." };
   }
 
-  const files = Object.values(zip.files).filter((f) => !f.dir);
+  const files = (Object.values(zip.files) as any[]).filter((f) => !f.dir);
   // A pasta do livro é a que contém o config.json (na raiz do zip ou dentro de uma única pasta)
   const configEntry = files
     .filter((f) => /(^|\/)config\.json$/.test(f.name) && f.name.split("/").length <= 2)

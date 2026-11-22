@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Importar livro de um arquivo (Word, LibreOffice, PDF, texto): o processo principal extrai título e capítulos; aqui o autor
  * revisa o que foi identificado (renomeia, junta com o anterior ou remove capítulos errados) e segue o assistente de criação de
@@ -102,7 +101,7 @@ export function openReview(state, creationService, result) {
         text: "Continuar para a criação do livro",
         class: "btn-primary",
         onClick: (modal) => {
-          const title = (document.getElementById("imp-title")?.value || "").trim();
+          const title = ((document.getElementById("imp-title") as HTMLInputElement | null)?.value || "").trim();
           const kept = chapters.map((c) => ({ title: c.title.trim() || "Sem título", text: c.text })).filter((c) => c.text || c.title);
           if (!title) return uiBus.emit("toast:show", { message: "Dê um título ao livro.", type: "error" });
           if (kept.length === 0) return uiBus.emit("toast:show", { message: "O livro precisa de pelo menos um capítulo.", type: "error" });

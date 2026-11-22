@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Execução de skills: manual ("executar agora"), por gatilho (skills recorrentes) ou a pedido da IA. Toda execução
  * respeita a permissão: cada skill tem "pedir permissão antes de ativar" (ligado por padrão) e há a opção geral "todas as
@@ -65,7 +64,7 @@ export class SkillRunnerService {
 
   /** Liga os gatilhos aos eventos do app. @returns {void} */
   init() {
-    const fire = (id, payload) => this.fire(id, payload);
+    const fire = (id, payload, _dedupeMs?: any) => this.fire(id, payload);
     uiBus.on("book:changed", () => fire("book-open", {}));
     uiBus.on("sync:completed", (p) => fire("sync", p));
     uiBus.on("file:opened", (p) => fire("file-open", { path: p?.relativePath || p?.fullPath }));
@@ -75,9 +74,9 @@ export class SkillRunnerService {
     uiBus.on("temp-file:saved", (path) => fire("file-save", { path: String(path) }, 60_000));
     // Fichas e capítulos
     domainBus.on("file:created", (p) => this.fireFile("created", p));
-    domainBus.on("chapter:created", (p) => this.fireFile("created", { ...p, relativePath: `content/${p.folderName}/2_draft.md` }));
+    domainBus.on("chapter:created", (p: any) => this.fireFile("created", { ...p, relativePath: `content/${p.folderName}/2_draft.md` }));
     domainBus.on("file:deleted", (p) => this.fireFile("deleted", p));
-    domainBus.on("chapter:deleted", (p) => this.fireFile("deleted", { ...p, relativePath: `content/${p.folderName}/2_draft.md` }));
+    domainBus.on("chapter:deleted", (p: any) => this.fireFile("deleted", { ...p, relativePath: `content/${p.folderName}/2_draft.md` }));
     uiBus.on("temp-file:synced", (path) => this.fireFile("updated", { path: String(path?.filePath || path) }));
     // A IA terminou a resposta: as skills que ela pediu para rodar entram em fila
     domainBus.on("ai:turn-finished", () => this.flushPending());
@@ -106,7 +105,7 @@ export class SkillRunnerService {
    * @param {number} [dedupeMs=8000] - Ignora o mesmo gatilho/arquivo repetido dentro deste tempo.
    * @returns {void}
    */
-  fire(id, payload = {}, dedupeMs = 8000) {
+  fire(id, payload: any = {}, dedupeMs = 8000) {
     if (!this.state.currentBookPath && id !== "app-start") return;
     if (this.active || Date.now() - this.lastEnd < COOLDOWN_MS) return;
     const key = `${id}|${payload.path || ""}`;
@@ -131,7 +130,7 @@ export class SkillRunnerService {
    * @param {{trigger?: string, payload?: Object, manual?: boolean, byAi?: boolean}} [options] - Origem da execução.
    * @returns {Promise<{ran: boolean, ok?: boolean, text?: string, tokens?: number}>}
    */
-  request(skill, options = {}) {
+  request(skill, options: any = {}) {
     const job = async () => {
       // Gatilho com arquivo: só roda se o arquivo mudou desde a última vez que esta skill rodou nele (ou se as diretrizes mudaram)
       if (options.trigger && options.payload?.path && !options.manual && !(await this.hasChanged(skill, options.payload.path))) {
@@ -208,7 +207,7 @@ export class SkillRunnerService {
    * @param {Object} options - Origem da execução.
    * @returns {Promise<{ran: boolean, ok: boolean, text?: string, tokens?: number}>}
    */
-  async run(skill, options = {}) {
+  async run(skill, options: any = {}) {
     const ai = this.services.ai;
     const skills = this.services.skills;
     const bookTokens = await skills.bookTokens();
@@ -371,7 +370,7 @@ export class SkillRunnerService {
             text: "Continuar",
             class: "btn-primary",
             onClick: (modal) => {
-              const fields = [...document.querySelectorAll("[data-skill-input]")];
+              const fields = [...document.querySelectorAll<HTMLInputElement>("[data-skill-input]")];
               const answers = skill.inputs.map((question, i) => ({ question, answer: (fields.find((f) => Number(f.dataset.skillInput) === i)?.value || "").trim() }));
               if (answers.some((a) => !a.answer)) {
                 uiBus.emit("toast:show", { message: "Preencha todos os campos para continuar.", type: "error" });

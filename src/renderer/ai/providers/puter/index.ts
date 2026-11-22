@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Provedor Puter, pela biblioteca oficial `puter.js` (que roda no processo principal; o token não sai de lá). A conversa
  * e a lista de modelos vão por IPC. Usa o mesmo laço de tools do provedor compatível com a OpenAI (tools nativas, com o modo
@@ -33,7 +32,7 @@ function puterError(error, model = "") {
 }
 
 /** Transporte: o chat passa pela biblioteca oficial, no processo principal. */
-async function request({ body, apiKey, model }) {
+async function request({ body, apiKey, model }: { body?: any; apiKey?: any; model?: any; [k: string]: any }) {
   const result = await window.electronAPI.puterChat({
     token: apiKey,
     // "auto": não escolhe modelo; o Puter usa o padrão da conta (contas gratuitas podem não ter acesso a todos)

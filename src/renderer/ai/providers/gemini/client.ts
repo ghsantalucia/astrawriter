@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Cliente HTTP da API Gemini (generateContent).
  */
@@ -44,7 +42,7 @@ export async function generateContent({
   tools = [],
   webSearch = false,
 }) {
-  const body = {
+  const body: any = {
     systemInstruction: { parts: [{ text: system }] },
     contents,
     generationConfig: { maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS },

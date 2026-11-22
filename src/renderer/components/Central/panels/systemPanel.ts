@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Central do Sistema: configurações do app (não do livro): geral, atualização, aparência, acessibilidade, editor,
  * produtividade, atalhos de teclado, backup e templates. As configurações simples vêm do registro único

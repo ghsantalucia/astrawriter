@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.
  *
@@ -27,7 +25,7 @@ const EVIDENCE_MESSAGES = 6;
  * @returns {void}
  * @throws {Error} Se um campo obrigatório tem um valor que não consta na conversa.
  */
-function assertValuesFromAuthor(spec, values, conversation = {}) {
+function assertValuesFromAuthor(spec, values, conversation: { prompt?: string; history?: Array<{ content?: string }> } = {}) {
   const corpus = foldText(
     [
       ...(conversation.history || [])

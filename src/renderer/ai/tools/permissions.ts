@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).
  *
@@ -168,7 +166,7 @@ export async function locateFolder(state, segments) {
  */
 export function collectFolderFiles(node, prefix) {
   const out = [];
-  for (const [key, file] of Object.entries(node.files || {})) {
+  for (const [key, file] of Object.entries(node.files || {}) as [string, any][]) {
     if (!/\.md(\.temp)?$/i.test(file.originalPath || "")) continue;
     out.push({
       relPath: `${prefix}/${key}.md`,

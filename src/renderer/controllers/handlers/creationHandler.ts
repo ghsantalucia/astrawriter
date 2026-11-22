@@ -17,7 +17,7 @@ import * as variablesHandler from "./variablesHandler.js";
  * @returns {Promise<void>}
  */
 export async function onCreateRequested(
-  { kind, folder, prefill },
+  { kind, folder, prefill }: { kind: any; folder?: any; prefill?: any },
   state,
   creationService,
 ) {

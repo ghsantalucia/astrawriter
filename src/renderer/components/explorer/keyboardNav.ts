@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Navegação do explorer pelo teclado. Depois de clicar no explorer:
  *  - ↑ ↓ percorrem os itens visíveis da aba atual com o mesmo destaque do hover (sem selecionar/abrir o arquivo);
@@ -49,7 +47,7 @@ export class ExplorerKeyboard {
 
     root.addEventListener("mousedown", (e) => this.onMouseDown(e));
     document.addEventListener("mousedown", (e) => {
-      if (!root.contains(e.target) && !this.chatHeader()?.contains(e.target)) {
+      if (!root.contains(e.target as Node) && !this.chatHeader()?.contains(e.target as Node)) {
         this.deactivate();
       }
     });
@@ -164,7 +162,7 @@ export class ExplorerKeyboard {
     setTimeout(() => {
       const active = document.activeElement;
       if (active?.tagName === "BUTTON" && this.root.contains(active)) {
-        active.blur();
+        (active as HTMLElement).blur();
       }
     });
   }

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
  */
@@ -139,7 +137,7 @@ const createWindow = () => {
   });
 
   // Configuração do menu superior nativo
-  const templateMenu = [
+  const templateMenu: Electron.MenuItemConstructorOptions[] = [
     { role: "fileMenu", label: "Arquivo" },
     { role: "editMenu", label: "Editar" },
     { role: "viewMenu", label: "Exibir" },

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.
  */
@@ -174,7 +172,7 @@ export class FileService {
   async saveTempFile(fullPath, content, options = {}) {
     if (!fullPath) return { success: false, error: "Caminho inválido." };
     const tempPath = this.getTempPath(fullPath);
-    const actor = options.actor || this.changelog?.userActor();
+    const actor = (options as any).actor || this.changelog?.userActor();
 
     // A base da sessão (conteúdo antes do 1º salvamento) precisa ser lida antes de gravar o rascunho
     const session = this.changelog
@@ -221,7 +219,7 @@ export class FileService {
 
         // Varre os arquivos do diretório atual se existirem
         if (node.files) {
-          for (const [fileKey, fileData] of Object.entries(node.files)) {
+          for (const [fileKey, fileData] of Object.entries<any>(node.files)) {
             // Se o arquivo for um temp ativo
             if (fileData && fileData.isTemp) {
               const tempPath = fileData.path;
