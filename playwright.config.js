@@ -17,5 +17,5 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   outputDir: "tests/reports/playwright/test-results",
   reporter: [["list"], ["html", { outputFolder: "tests/reports/playwright/html", open: "never" }]],
-  use: { trace: "retain-on-failure" },
+  use: { trace: "off" },
 });

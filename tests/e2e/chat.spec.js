@@ -233,7 +233,6 @@ test("se o autor fecha a janela de sincronização, a IA não edita e avisa no c
 });
 
 test("com rascunho pendente depois da recusa de sincronizar, o botão Sincronizar deveria estar ativo", async () => {
-  test.fail(true, "bug conhecido (pendente): Sincronizar continua desativado com .md.temp existente depois de fechar a janela de sincronização exigida pela IA");
   const { page } = app;
   expect(fs.existsSync(draftPath() + ".temp")).toBe(true);
   await expect(page.locator("#btn-save")).toBeEnabled({ timeout: 4000 });

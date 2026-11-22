@@ -141,6 +141,8 @@ export class BookService {
     book.ai_lock = locked;
     if (norm(this.state.currentBookPath) === norm(bookPath)) {
       this.state.aiLockState = locked;
+      // A lista de livros pode ter sido recarregada durante o bloqueio: o objeto do livro atual também precisa acompanhar
+      if (this.state.currentBookMetadata) this.state.currentBookMetadata.ai_lock = locked;
     }
     await this.updateConfig(book.fullPath);
   }
