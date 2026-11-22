@@ -259,8 +259,9 @@ export class BookPanel {
           const value = root.querySelector("#book-title-input").value.trim();
           if (!value)
             return this.ctx.toast("O livro precisa de um nome.", "error");
-          book.book_title = value;
-          await this.ctx.services.book.updateConfig(book.fullPath);
+          const live = this.book ?? book; // a lista de livros pode ter sido recarregada desde o desenho da aba
+          live.book_title = value;
+          await this.ctx.services.book.updateConfig(live.fullPath);
           uiBus_titleChanged(this.ctx, value, book.fullPath);
           this.ctx.toast("Nome do livro salvo.", "success");
         },
@@ -274,15 +275,17 @@ export class BookPanel {
             html: `<p>Os templates de personagem, ambiente, conceito e evento <strong>deste livro</strong> passam a ser os do perfil <strong>${esc(label)}</strong>, e os próximos capítulos nascem com o esboço e a análise dele. Se você tinha editado os templates deste livro, essas edições serão substituídas. Fichas e capítulos que já existem não mudam.</p>`,
             onConfirm: async () => {
               const count = await this.ctx.services.templates.applyToBook(book.fullPath, id);
-              book.template_profile = id;
-              await this.ctx.services.book.updateConfig(book.fullPath);
+              const live = this.book ?? book;
+              live.template_profile = id;
+              await this.ctx.services.book.updateConfig(live.fullPath);
               this.ctx.toast(`Perfil “${label}” aplicado (${count} templates atualizados).`, "success");
             },
           });
         },
         mode: async (input) => {
-          book.ai_mode = input.value;
-          await this.ctx.services.book.updateConfig(book.fullPath);
+          const live = this.book ?? book;
+          live.ai_mode = input.value;
+          await this.ctx.services.book.updateConfig(live.fullPath);
           this.ctx.toast(
             `Modo da IA: ${AI_MODES.find((m) => m.id === input.value)?.label}.`,
             "success",

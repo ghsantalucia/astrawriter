@@ -8,6 +8,7 @@
 import { uiBus } from "../../events/uiBus.js";
 import { normalizePath, uniqueId } from "../../utils/helpers.js";
 import * as bookHandler from "./bookHandler.js";
+import * as fileHandler from "./fileHandler.js";
 import * as variablesHandler from "./variablesHandler.js";
 
 /**
@@ -123,6 +124,8 @@ async function openCreated(result, state, services) {
 
   // A árvore precisa estar atualizada antes de o explorer selecionar o novo arquivo
   await onTreeChanged(result, state, services.book);
+  // O item novo nasce como rascunho (.md.temp): o botão Sincronizar precisa saber disso já
+  await fileHandler.handlePendingTempFiles(services.file);
   uiBus.emit("editor:open-file", { path: normalizePath(result.path) });
 }
 

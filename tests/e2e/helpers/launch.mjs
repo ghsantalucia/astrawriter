@@ -47,17 +47,19 @@ export function seedData({ books = true } = {}) {
 
 /**
  * Abre o app e conecta o Playwright.
- * @param {{books?: boolean}} [opts] - Opções da semente de dados.
+ * @param {{books?: boolean, dataDir?: string, keepData?: boolean}} [opts] - Semente de dados; `dataDir` reabre dados existentes; `keepData` preserva a pasta ao fechar.
  * @returns {Promise<{page: import('@playwright/test').Page, dataDir: string, bookDir: string|null, close: () => Promise<void>}>}
  */
 export async function launchApp(opts = {}) {
-  const { dataDir, bookDir } = seedData(opts);
+  // `dataDir` existente: reabre o app sobre os mesmos dados (não semeia nem apaga a pasta ao fechar)
+  const reuse = Boolean(opts.dataDir);
+  const { dataDir, bookDir } = reuse ? { dataDir: opts.dataDir, bookDir: path.join(opts.dataDir, "books", "book_001") } : seedData(opts);
   const port = nextPort++;
   const child = spawn(`npx electron-forge start -- --remote-debugging-port=${port}`, {
     cwd: ROOT,
     shell: true,
     stdio: "ignore",
-    env: { ...process.env, ASTRA_DATA_DIR: dataDir, NODE_ENV: "development" },
+    env: { ...process.env, ASTRA_DATA_DIR: dataDir, ASTRA_HIDDEN: process.env.ASTRA_E2E_VISIBLE ? "0" : "1", NODE_ENV: "development" },
   });
 
   const kill = () => {
@@ -95,7 +97,17 @@ export async function launchApp(opts = {}) {
     page,
     dataDir,
     bookDir,
-    async close() {
+    /**
+     * Fecha o app. `graceful: true` pede ao app para fechar a janela (grava localStorage e configurações como num fechamento
+     * normal); sem isso, o processo é encerrado à força.
+     * @param {{graceful?: boolean}} [closeOpts]
+     */
+    async close(closeOpts = {}) {
+      if (closeOpts.graceful) {
+        const exited = new Promise((resolve) => child.once("exit", resolve));
+        await page.evaluate(() => window.close()).catch(() => {});
+        await Promise.race([exited, new Promise((r) => setTimeout(r, 10000))]);
+      }
       try {
         await browser.close();
       } catch {
@@ -103,7 +115,7 @@ export async function launchApp(opts = {}) {
       }
       kill();
       await new Promise((r) => setTimeout(r, 1500));
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      if (!reuse && !opts.keepData) fs.rmSync(dataDir, { recursive: true, force: true });
     },
   };
 }

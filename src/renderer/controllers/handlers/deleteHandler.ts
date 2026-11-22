@@ -58,7 +58,10 @@ export async function onFileDeleteRequest(payload, state, deletion, services) {
   const book = normalizePath(state.currentBookPath).replace(/\/+$/, "");
   const rel = path.slice(book.length + 1);
 
-  const text = await window.electronAPI.readFile(path);
+  // Arquivo novo ainda não sincronizado: só existe o rascunho (.temp)
+  const text =
+    (await window.electronAPI.readFile(path)) ??
+    (await window.electronAPI.readFile(`${path}.temp`));
   if (text === null) return;
   const { metadata } = parseMarkdown(text);
 

@@ -99,6 +99,11 @@ export async function syncMultipleFiles(
  * Varre o sistema de arquivos via FileService e abre o modal de sincronização.
  */
 export async function onSyncOpenModal(fileService, state, onDone = null) {
+  // O que o autor acabou de digitar (ainda no temporizador do autosave) entra na lista de pendências
+  await new Promise((resolve) => {
+    uiBus.emit("editor:flush-save", { done: resolve });
+    setTimeout(resolve, 1500);
+  });
   const tempFiles = await fileService.getPendingTempFiles();
 
   if (tempFiles.length === 0) {
@@ -357,13 +362,14 @@ export async function onFileGet(req, state, fileService) {
 }
 
 // Solicita o salvamento de um arquivo temporário (.temp) via IPC
-export async function onSaveTemp(path, content, fileService) {
+export async function onSaveTemp(path, content, fileService, onSaved = null) {
   const result = await fileService.saveTempFile(path, content);
   if (result.success) {
     uiBus.emit("temp-file:saved", normalizePath(path));
   } else {
     uiBus.emit("temp-file:saving-error", { path, error: result.err });
   }
+  onSaved?.();
 }
 
 /**
@@ -470,5 +476,13 @@ export async function onSyncRequireAll({ onDone }, fileService, state) {
     message: "Sincronize os rascunhos pendentes para a IA poder editar.",
     type: "info",
   });
-  await onSyncOpenModal(fileService, state, onDone);
+  // Ao terminar ou desistir, recalcula o que ainda está pendente (o botão Sincronizar acompanha o disco)
+  await onSyncOpenModal(fileService, state, async (...args) => {
+    try {
+      await handlePendingTempFiles(fileService);
+    } catch {
+      // a lista é só informativa; a IA segue o fluxo mesmo assim
+    }
+    return onDone?.(...args);
+  });
 }

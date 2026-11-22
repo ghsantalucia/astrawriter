@@ -159,8 +159,8 @@ export class UiController {
     });
 
     // Solicita o salvamento de um arquivo temporário (.temp) via IPC
-    uiBus.on("file:save-temp", async ({ path, content }) => {
-      file.onSaveTemp(path, content, this.services.file);
+    uiBus.on("file:save-temp", async ({ path, content, onSaved }) => {
+      file.onSaveTemp(path, content, this.services.file, onSaved);
     });
 
     // Evento disparado quando um arquivo é aberto com sucesso

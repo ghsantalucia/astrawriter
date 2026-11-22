@@ -98,6 +98,18 @@ export class EditorComponent extends Component {
     this.uiBus.on("editor:refresh-stats", () => this.updateStats());
 
     // Reseta e bloqueia o editor sempre que um novo livro/projeto for selecionado
+    // Antes de listar as pendências para sincronizar: grava já o que está no temporizador do autosave
+    this.uiBus.on(
+      "editor:flush-save",
+      ({ done }) => {
+        if (!this.autoSaveTimer && !this.pendingSavePath) return done?.();
+        if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+        this.autoSaveTimer = null;
+        this.pendingSavePath = null;
+        this.triggerAutoSave(done);
+      },
+      false,
+    );
     this.uiBus.on("editor:reset", () => {
       this.resetEditorState();
     });
@@ -388,9 +400,11 @@ export class EditorComponent extends Component {
    * @async
    * @returns {Promise<void>}
    */
-  async triggerAutoSave() {
-    if (!this.state || !this.state.currentFilePath || !this.state.editor)
+  async triggerAutoSave(onSaved = null) {
+    if (!this.state || !this.state.currentFilePath || !this.state.editor) {
+      onSaved?.();
       return;
+    }
 
     this.uiBus.emit("toolbar:save-status", "saving");
     const contentToSave = stringifyFrontmatter(
@@ -401,6 +415,7 @@ export class EditorComponent extends Component {
     this.uiBus.emit("file:save-temp", {
       path: this.state.currentFilePath,
       content: contentToSave,
+      onSaved,
     });
   }
 
