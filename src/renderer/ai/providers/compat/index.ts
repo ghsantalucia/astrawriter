@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Provedor Compatível com OpenAI (API compatível com a OpenAI).
  */

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.
  */

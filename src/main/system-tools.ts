@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Ferramentas do sistema usadas pela Central do Sistema: versão e verificação de atualização (releases do GitHub),
  * atualização automática, tamanho das pastas do app, backup dos livros em uma pasta, exportação de todos os livros e

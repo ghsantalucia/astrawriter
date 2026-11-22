@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Catálogo das categorias e dos tipos de issue da Central de Revisões.
  *

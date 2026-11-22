@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e
  * explicação dos fixos (setas do explorer, Esc, atalhos do editor).

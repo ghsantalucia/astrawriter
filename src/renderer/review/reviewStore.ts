@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Persistência da Central de Revisões. Tudo fica dentro da pasta do livro, em `.system/review/` (e os digests em
  * `.system/digests/`), longe dos arquivos que o autor vê.

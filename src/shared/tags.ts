@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado
  * e cor automática (sempre a mesma para a mesma tag, por hash). Compartilhado entre o processo principal e a interface.

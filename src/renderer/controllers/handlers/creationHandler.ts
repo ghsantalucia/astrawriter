@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação
  * enviada por ele e mantém a interface sincronizada (lista de livros e árvore de arquivos).

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Citações (retrolinks): em quais arquivos do livro um arquivo é citado por um link Markdown, com o parágrafo de cada
  * citação. O índice do livro todo é montado sob demanda (uma leitura de cada arquivo) e guardado até algo mudar.

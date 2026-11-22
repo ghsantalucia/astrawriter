@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Perfis de template: o corpo dos templates de fichas e de capítulos muda conforme o perfil (assistente, co-autor,
  * autônomo ou um criado pelo usuário); as variáveis (frontmatter) são sempre as do template base e nunca mudam. Este

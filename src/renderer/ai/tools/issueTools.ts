@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Ferramentas da IA para a Central de Revisões: registrar o que ela encontrou (contradições, problemas
  * temporais, gramática, dicas), consultar a lista de pendências e marcar como resolvidas as que ela corrigiu.

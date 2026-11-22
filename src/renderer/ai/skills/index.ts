@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
  *

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Provedor Groq (API compatível com a OpenAI).
  */

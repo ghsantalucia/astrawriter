@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.
  * Fazem o mesmo que o botão de caneta do explorer e o botão "Auto-link" da toolbar. Tudo é salvo como rascunho

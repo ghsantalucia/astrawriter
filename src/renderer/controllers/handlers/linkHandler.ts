@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e
  * pede ao editor para transformá-los em links internos (marcados como automáticos até a sincronização).

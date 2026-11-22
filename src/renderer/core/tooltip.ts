@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma
  * dica estilizada que aparece logo depois de o mouse parar sobre ele (pequeno atraso), no lugar da dica nativa do navegador.

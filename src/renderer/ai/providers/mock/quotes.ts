@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Citações de grandes escritores, curtas e inspiracionais. O assistente embutido do Astra abre cada sessão do chat com
  * uma delas (sorteada); no futuro podem aparecer em outros lugares do app. Traduções livres para o português; as de autores

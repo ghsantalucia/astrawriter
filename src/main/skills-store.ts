@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário
  * (`skills/<id>.md`), cada uma em um arquivo Markdown com frontmatter (metadados) e o texto das instruções no corpo.

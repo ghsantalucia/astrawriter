@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Janela de edição de templates: uma janela grande com uma instância do editor do app e a lista de todos os templates
  * de um perfil (com nomes legíveis). No lugar de sincronizar há "Salvar template"; um aviso fixo deixa claro que o que se

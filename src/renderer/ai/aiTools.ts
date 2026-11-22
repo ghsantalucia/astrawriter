@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
  * Para adicionar uma ferramenta, crie um módulo em /ai/tools com `registerXTools(registry)` e chame-o aqui.

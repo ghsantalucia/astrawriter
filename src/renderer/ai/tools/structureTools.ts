@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo
  * que o usuário faz no explorer (usam os mesmos serviços e regras) e conferem as permissões da IA em cada ação.

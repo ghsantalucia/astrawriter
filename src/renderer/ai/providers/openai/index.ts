@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Provedor ChatGPT (OpenAI) (API compatível com a OpenAI).
  */

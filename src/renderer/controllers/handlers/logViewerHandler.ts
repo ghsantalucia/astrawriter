@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.
  */

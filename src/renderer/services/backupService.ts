@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Backup dos livros em uma pasta escolhida (um zip por livro, com os rascunhos não sincronizados). A pasta pode ser a
  * de um serviço de nuvem instalado no computador (Google Drive, OneDrive, Dropbox), que sobe as cópias sozinho.

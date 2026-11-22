@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).
  *

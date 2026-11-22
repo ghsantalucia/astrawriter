@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e
  * apelidos das fichas do livro. É a versão em texto do botão "Linkar termos" do editor, usada pela IA em arquivos que

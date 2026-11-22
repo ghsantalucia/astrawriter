@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Primeira abertura do app: instala o livro padrão "Manual de Uso" (modelo em `templates/manual`, gerado por
  * `scripts/build-manual.js`) na pasta de livros do usuário. Acontece uma única vez por usuário (um marcador na pasta de dados do

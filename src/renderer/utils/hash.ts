@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Hash de textos no renderer (SHA-1 em hexadecimal, via Web Crypto).
  */

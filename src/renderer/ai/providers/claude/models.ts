@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).
  */

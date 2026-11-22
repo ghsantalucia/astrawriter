@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não
  * reconhece e palavras repetidas em sequência ("de de"). Usado para o aviso levar o cursor de um problema ao próximo.

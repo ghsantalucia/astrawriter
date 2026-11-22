@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 // Importa o Font Awesome via JS para que o Vite processe todas as fontes .woff2 automaticamente
 import "@fortawesome/fontawesome-free/css/all.min.css";
 

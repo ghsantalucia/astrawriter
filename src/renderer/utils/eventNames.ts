@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Nomes de eventos para os campos "antes" e "depois" das fichas de eventos: normalização dos itens digitados e as
  * sugestões (eventos cadastrados e eventos citados que ainda não têm ficha).

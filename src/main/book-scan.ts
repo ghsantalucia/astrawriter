@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Varredura incremental de um livro para a Central de Revisões: lê os arquivos Markdown (o rascunho `.md.temp`
  * tem prioridade sobre o oficial) e devolve o conteúdo só dos que mudaram desde a última análise.

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo
  * botão de caneta do explorer, mesmo com o arquivo fechado) e pela caixa "Dados do arquivo" do editor.

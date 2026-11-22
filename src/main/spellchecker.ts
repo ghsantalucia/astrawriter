@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
  * dicionários dos pacotes dictionary-*. Roda no processo principal; o sublinhado do editor continua sendo do Chromium.

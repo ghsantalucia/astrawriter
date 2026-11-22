@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Digests: o "arquivo-sombra" de metadados de cada arquivo do livro, em `.system/digests/`. A IA lê cada arquivo UMA vez
  * e extrai um resumo estruturado (entidades, fatos atômicos e eventos). As análises seguintes (contradições, linha do

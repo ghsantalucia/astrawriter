@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.
  */

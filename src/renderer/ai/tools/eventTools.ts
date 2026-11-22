@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Ferramentas da IA para eventos e linha do tempo. As fichas de eventos (`assets/events/`) são criadas pelas tools de
  * criação (categoria `assets/events`) e guardam o momento (`when`) e a ordem (`after` / `before`). O sistema calcula uma

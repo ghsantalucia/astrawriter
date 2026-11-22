@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Ferramentas da IA que consultam os digests (arquivos-sombra de metadados em `.system/digests/`). Servem para a IA
  * conferir um arquivo ou um fato do livro sem reler capítulos inteiros, o que economiza muitos tokens.

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual
  * índice lista um arquivo, como montar a linha de link e como remover os links de arquivos excluídos.

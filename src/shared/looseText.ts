@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface
  * (destaque dos resultados). Ignora maiúsculas, acentos, pontuação (vírgulas, travessões, hífens...) e as palavras

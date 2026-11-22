@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no
  * changelog, mostra a comparação lado a lado e restaura uma versão anterior (o conteúdo guardado das versões

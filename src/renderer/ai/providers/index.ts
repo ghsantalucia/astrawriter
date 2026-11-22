@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).
  * Cada `id` corresponde a uma pasta em /ai/providers que exporta `sendRequest`

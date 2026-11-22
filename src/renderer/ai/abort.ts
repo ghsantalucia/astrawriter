@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Interrupção da IA: o sinal de cancelamento da resposta em andamento, compartilhado pelos provedores (que o passam ao
  * `fetch` das chamadas do chat) e pelo laço de tools. O autor interrompe pelo botão de parar do chat.

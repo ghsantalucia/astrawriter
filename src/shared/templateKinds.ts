@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Tipos de arquivo que têm template e perfis de template. Um perfil de template (assistente, co-autor, autônomo ou
  * um criado pelo usuário) define o **corpo** de cada template; as variáveis (frontmatter) são sempre as do template base

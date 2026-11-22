@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em
  * `<livro>/.system/changelog`, de forma que qualquer arquivo possa voltar a um estado anterior (rollback).

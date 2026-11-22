@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
  * O YAML é interpretado por completo (js-yaml), então objetos aninhados como `data:` sobrevivem a leituras e gravações.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Sons curtos do app, sintetizados com a Web Audio API (sem arquivos de áudio): um aviso suave de "mensagem nova".
  */

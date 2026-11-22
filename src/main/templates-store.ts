@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Armazenamento dos perfis de template. Os perfis que vêm com o app ficam em `templates/profiles/<perfil>/<tipo>.md`
  * (somente leitura); as edições do usuário e os perfis criados por ele ficam na pasta de dados do usuário

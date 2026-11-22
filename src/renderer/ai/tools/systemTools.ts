@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Tools do app para a IA: abrir telas e arquivos, conhecer e alterar configurações, consultar uso e ajuda, buscar no
  * livro e executar skills. Cada ação tem uma classe de risco:

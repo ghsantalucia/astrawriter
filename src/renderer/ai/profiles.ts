@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Perfis de uso da IA (como nas configurações de gráficos de um jogo): cada perfil define um conjunto de opções que
  * trocam qualidade/automação por economia de tokens. Mexer em uma opção manualmente leva ao perfil "Personalizado"

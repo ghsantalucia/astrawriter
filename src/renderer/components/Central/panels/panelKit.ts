@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de
  * eventos, janela de confirmação e formatação.

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):
  * decoração dos links internos (automático e arquivo inexistente), busca/substituição de texto e link automático.

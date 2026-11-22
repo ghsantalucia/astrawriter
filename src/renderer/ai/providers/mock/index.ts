@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Assistente embutido do Astra (provedor interno "mock"). Não é uma IA: não chama nenhuma API e responde de forma
  * determinística, por comandos. É o provedor que sempre existe (não pode ser removido), para o chat nunca ficar sem resposta:

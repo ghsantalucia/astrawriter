@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Temas de cores do app: temas predefinidos e temas criados pelo usuário. Um tema é só um conjunto de **variáveis de
  * cor** (para o modo claro e para o escuro): nunca há CSS livre, então um tema não pode alterar o comportamento nem o

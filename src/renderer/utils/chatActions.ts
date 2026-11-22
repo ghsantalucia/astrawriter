@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Catálogo das ações nativas que um botão do chat pode disparar.
  * Cada ação corresponde a um evento do uiBus (disparado via `event-click` do mini-framework declarativo),
