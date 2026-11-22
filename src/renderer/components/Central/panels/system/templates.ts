@@ -13,6 +13,8 @@ import { confirmModal, esc, mount } from "../panelKit.js";
  * @class
  */
 export class TemplatesTab {
+  declare ctx: any;
+
   /** @param {Object} ctx - Contexto da central. */
   constructor(ctx) {
     this.ctx = ctx;

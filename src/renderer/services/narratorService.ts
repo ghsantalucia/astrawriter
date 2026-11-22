@@ -56,6 +56,12 @@ export function splitSentences(text) {
  * @class
  */
 export class NarratorService {
+  declare index: any;
+  declare queue: any;
+  declare state: any;
+  declare status: any;
+  declare token: any;
+
   /**
    * @param {Object} state - Estado global (o editor aberto).
    */

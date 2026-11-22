@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.
  */
@@ -11,6 +9,8 @@ import { uiBus } from "../events/uiBus.js";
  * @class
  */
 export class ThemeManager {
+  declare theme: any;
+
   /**
    * Cria uma instância do ThemeManager.
    * @constructor

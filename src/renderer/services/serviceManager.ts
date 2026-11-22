@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Agregador central de serviços (Facade). Instancia e gerencia o acesso
  * a todos os serviços de domínio da aplicação de forma centralizada.
@@ -30,6 +28,28 @@ import { SkillRunnerService } from "./skillRunnerService.js";
  * @class
  */
 export class ServiceManager {
+  declare ai: any;
+  declare aiChanges: any;
+  declare analysis: any;
+  declare appearance: any;
+  declare backup: any;
+  declare book: any;
+  declare changelog: any;
+  declare creation: any;
+  declare deletion: any;
+  declare file: any;
+  declare folders: any;
+  declare issues: any;
+  declare narrator: any;
+  declare productivity: any;
+  declare search: any;
+  declare shortcuts: any;
+  declare skillRunner: any;
+  declare skills: any;
+  declare startup: any;
+  declare state: any;
+  declare templates: any;
+
   /**
    * Inicializa e agrupa todos os serviços da aplicação.
    * @param {Object} state - Instância do estado global da aplicação.

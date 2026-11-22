@@ -40,6 +40,21 @@ export function normalizeExternalUrl(url) {
  * @class
  */
 export class EditorKit {
+  declare editor: any;
+  declare existingCache: any;
+  declare findButton: any;
+  declare findPanel: any;
+  declare getCurrentRel: any;
+  declare getFiles: any;
+  declare getProblemRanges: any;
+  declare host: any;
+  declare linkButton: any;
+  declare linkPopup: any;
+  declare locked: any;
+  declare pm: any;
+  declare settingsButton: any;
+  declare viewButton: any;
+
   /**
    * @param {Object} options
    * @param {HTMLElement} options.el - Elemento onde o Toast UI Editor é criado.

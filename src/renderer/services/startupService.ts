@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Rotina de inicialização: assim que o app abre, em segundo plano e sem travar nada, verifica atualizações e faz o
  * backup automático (se estiver ligado e vencido). Só aparece janela quando há uma decisão a tomar (atualização pronta),
@@ -13,6 +12,10 @@ import { appSettings } from "../utils/appSettings.js";
  * @class
  */
 export class StartupService {
+  declare queue: any;
+  declare services: any;
+  declare updatePrompted: any;
+
   /**
    * @param {Object} services - Serviços (backup).
    */

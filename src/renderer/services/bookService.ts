@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.
  */
@@ -9,6 +7,9 @@ import { uiBus } from "../events/uiBus.js";
 import { normalizePath } from "../utils/helpers.js";
 
 export class BookService {
+  declare services: any;
+  declare state: any;
+
   /**
    * Cria uma instância do BookService.
    * @param {Object} state - Instância do gerenciador de estado global.

@@ -41,6 +41,23 @@ function getTodaySessionDate() {
  * @class
  */
 export class AiService {
+  declare abortController: any;
+  declare analysis: any;
+  declare backupService: any;
+  declare bookService: any;
+  declare changelogService: any;
+  declare creationService: any;
+  declare deletion: any;
+  declare fileService: any;
+  declare folders: any;
+  declare issues: any;
+  declare messageSeq: any;
+  declare productivityService: any;
+  declare saveQueue: any;
+  declare skillLibrary: any;
+  declare skillRunner: any;
+  declare state: any;
+
   /**
    * Cria uma instância do AiService.
    * @param {Object} state - Instância do gerenciador de estado global da aplicação.

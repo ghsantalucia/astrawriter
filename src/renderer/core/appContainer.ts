@@ -22,6 +22,14 @@ import * as ComponentClass from "../components/index.js";
  * @class
  */
 export class AppContainer {
+  declare components: any;
+  declare domainController: any;
+  declare modalManager: any;
+  declare services: any;
+  declare state: any;
+  declare themeManager: any;
+  declare uiController: any;
+
   /**
    * Cria uma instância do AppContainer e inicializa suas dependências.
    * @constructor

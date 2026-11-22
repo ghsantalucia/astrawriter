@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.
  */
@@ -15,6 +13,9 @@ import * as aiReview from "./handlers/aiReviewHandler.js";
  * @class
  */
 export class DomainController {
+  declare services: any;
+  declare state: any;
+
   /**
    * Cria uma instância do DomainController e registra os ouvintes de eventos de domínio.
    * @param {import('../services/serviceManager.js').ServiceManager} services - Instância centralizada dos serviços.

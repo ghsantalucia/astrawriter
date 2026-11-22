@@ -27,6 +27,9 @@ import * as templateEditor from "./handlers/templateEditorHandler.js";
  * @class
  */
 export class UiController {
+  declare services: any;
+  declare state: any;
+
   /**
    * Cria uma instância do UiController e registra os ouvintes de eventos da UI.
    * @param {ServiceManager} services - Instância centralizada dos serviços.

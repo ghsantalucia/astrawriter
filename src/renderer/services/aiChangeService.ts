@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Arquivos "alterados pela IA" (modo autônomo): como a IA grava direto, sem a janela de revisão, cada arquivo que
  * ela alterou ganha uma bolinha no explorer (e nas guias do capítulo) até o autor abri-lo. A bolinha some 3 segundos
@@ -20,6 +19,13 @@ export const SEEN_DELAY_MS = 3000;
  * @class
  */
 export class AiChangeService {
+  declare loaded: any;
+
+  declare bookPath: any;
+  declare paths: any;
+  declare state: any;
+  declare timers: any;
+
   /**
    * @param {Object} state - Estado global.
    */

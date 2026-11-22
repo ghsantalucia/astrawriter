@@ -39,6 +39,9 @@ export function inNightWindow(from, to, now = new Date()) {
  * @class
  */
 export class AppearanceService {
+  declare nightPreview: any;
+  declare nightTimer: any;
+
   constructor() {
     this.nightTimer = null;
     this.nightPreview = false;

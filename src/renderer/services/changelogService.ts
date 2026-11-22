@@ -26,6 +26,10 @@ const IGNORED_FILES = new Set(["config.json"]);
  * @class
  */
 export class ChangelogService {
+  declare autosaveSessions: any;
+  declare draftAuthors: any;
+  declare state: any;
+
   /**
    * Cria uma instância do ChangelogService.
    * @param {Object} state - Estado global da aplicação.

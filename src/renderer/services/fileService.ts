@@ -13,6 +13,9 @@ import { stripAutoLinkMarks } from "../components/Editor/editorTools.js";
  * @class
  */
 export class FileService {
+  declare changelog: any;
+  declare state: any;
+
   /**
    * Cria uma instância do FileService.
    * @param {Object} state - Instância do gerenciador de estado global da aplicação.

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).
  *
@@ -14,6 +12,16 @@ import { findMatches, replaceMatches } from "./editorTools.js";
  * @class
  */
 export class FindReplacePanel {
+  declare count: any;
+  declare current: any;
+  declare getPm: any;
+  declare getView: any;
+  declare input: any;
+  declare isReadOnly: any;
+  declare panel: any;
+  declare replaceInput: any;
+  declare term: any;
+
   /**
    * @param {HTMLElement} panel - Elemento do painel (markup em `templates/main.hbs`).
    * @param {Object} options

@@ -41,6 +41,9 @@ export const AI_MODES = [
  * @class
  */
 export class BookPanel {
+  declare ctx: any;
+  declare title: any;
+
   /**
    * @param {Object} ctx - Contexto da central.
    */

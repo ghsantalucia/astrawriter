@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar
  * (ir e voltar) e, ao concluir, emite `wizard:submit` no uiBus. É genérico: o conteúdo vem da lista de passos
@@ -19,6 +17,21 @@ import { flattenBookTree } from "../../utils/bookFiles.js";
  * @extends Component
  */
 export class WizardComponent extends Component {
+  declare destroyed: any;
+
+  declare busListeners: any;
+  declare busy: any;
+  declare config: any;
+  declare element: any;
+  declare eventInputs: any;
+  declare followers: any;
+  declare index: any;
+  declare state: any;
+  declare steps: any;
+  declare touched: any;
+  declare uiBus: any;
+  declare values: any;
+
   /**
    * Cria uma instância do WizardComponent.
    * @param {string} selector - Seletor CSS do container onde o wizard será renderizado.

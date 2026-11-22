@@ -67,6 +67,10 @@ export const TRIGGERS = new Map(TRIGGER_GROUPS.flatMap((g) => g.triggers).map((t
  * @class
  */
 export class SkillService {
+  declare files: any;
+  declare ready: any;
+  declare state: any;
+
   /**
    * @param {Object} state - Estado global.
    */

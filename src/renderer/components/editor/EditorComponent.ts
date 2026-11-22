@@ -42,6 +42,24 @@ const WORDS_PER_MINUTE = 200;
  * @class
  */
 export class EditorComponent extends Component {
+  declare autoSaveTimer: any;
+  declare dataBox: any;
+  declare element: any;
+  declare eventInputs: any;
+  declare filesCache: any;
+  declare ignoredRepeats: any;
+  declare ignoredWords: any;
+  declare kit: any;
+  declare misspelledWords: any;
+  declare pendingSavePath: any;
+  declare spellToken: any;
+  declare state: any;
+  declare statsTimer: any;
+  declare tagInput: any;
+  declare uiBus: any;
+  declare warnCursor: any;
+  declare writingMenu: any;
+
   /**
    * Cria uma instância da classe EditorComponent.
    * @constructor

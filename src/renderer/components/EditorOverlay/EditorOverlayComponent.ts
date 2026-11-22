@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela renderização estrutural do editor overlay
  */
@@ -13,6 +11,9 @@ import { Component } from "../Component.js";
  * @class
  */
 export class EditorOverlayComponent extends Component {
+  declare overlayStack: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância da classe
    * @param {string} selector - Seletor CSS do elemento do DOM onde será injetada.

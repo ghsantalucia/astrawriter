@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente de dropdown (lista suspensa) personalizado e reutilizável.
  * Suporta opções selecionáveis e "ações" (botões dentro do menu, ex.: "+ Criar novo livro").
@@ -17,6 +15,12 @@ import { Component } from "../Component.js";
  * @extends Component
  */
 export class DropdownComponent extends Component {
+  declare config: any;
+  declare element: any;
+  declare isOpen: any;
+  declare items: any;
+  declare value: any;
+
   /**
    * Cria uma instância do DropdownComponent.
    * @param {string} selector - Seletor CSS do container onde o dropdown será renderizado.

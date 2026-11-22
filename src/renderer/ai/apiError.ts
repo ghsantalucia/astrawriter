@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para
  * transformar respostas de erro em mensagens legíveis, identificando limites de cota (HTTP 429).
@@ -11,6 +9,15 @@
  * @extends Error
  */
 export class AiApiError extends Error {
+  declare details: any;
+  declare model: any;
+  declare provider: any;
+  declare quotaMetric: any;
+  declare quotaPeriod: any;
+  declare quotaValue: any;
+  declare retryAfterMs: any;
+  declare status: any;
+
   /**
    * @param {string} message - Mensagem legível para o usuário.
    * @param {Object} info

@@ -46,6 +46,15 @@ const HEADERS = {
  * @class
  */
 export class SystemPanel {
+  declare appearance: any;
+  declare ctx: any;
+  declare lastCheck: any;
+  declare openDays: any;
+  declare templates: any;
+  declare title: any;
+  declare updateState: any;
+  declare usageCache: any;
+
   /**
    * @param {Object} ctx - Contexto da central.
    */

@@ -44,6 +44,9 @@ export function categoryOf(bookRel) {
  * @class
  */
 export class FolderService {
+  declare changelog: any;
+  declare state: any;
+
   /**
    * @param {Object} state - Estado global da aplicação.
    * @param {import('./changelogService.js').ChangelogService} changelog - Serviço do changelog.

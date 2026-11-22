@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Registro de ferramentas (tool calling) independente de provedor.
  * As definições usam JSON Schema (o mesmo formato do MCP), então cada provedor
@@ -15,6 +13,8 @@
  */
 
 export class ToolRegistry {
+  declare tools: any;
+
   constructor() {
     /** @type {Map<string, ToolDefinition>} */
     this.tools = new Map();

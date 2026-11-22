@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou
  * Enter (ou ao sair do campo), com sugestões das tags já usadas no livro (navegáveis por setas e Enter).
@@ -33,6 +31,24 @@ export function tagChipHtml(tag, clickable = false) {
  * @class
  */
 export class TagInput {
+  declare input: any;
+
+  declare active: any;
+  declare chipsEl: any;
+  declare colored: any;
+  declare getKnownTags: any;
+  declare label: any;
+  declare listEl: any;
+  declare normalize: any;
+  declare onChange: any;
+  declare parse: any;
+  declare placeholder: any;
+  declare root: any;
+  declare stopEnter: any;
+  declare stripHash: any;
+  declare suggestions: any;
+  declare tags: any;
+
   /**
    * @param {HTMLElement} root - Elemento onde o campo é montado.
    * @param {Object} options

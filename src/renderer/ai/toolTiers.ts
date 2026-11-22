@@ -69,6 +69,10 @@ function oneLine(def) {
  * @class
  */
 export class ToolView {
+  declare allow: any;
+  declare compact: any;
+  declare mode: any;
+
   /**
    * @param {"minimal"|"summary"|"popular"|"all"} mode - Modo do perfil de uso.
    * @param {string|null} bookPath - Livro aberto (as tools liberadas valem para ele).

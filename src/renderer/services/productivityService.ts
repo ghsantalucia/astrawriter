@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Cronômetro de produtividade (entre as abas e a busca do explorer): conta o tempo em que o autor está de fato no
  * app. Manual (play/pause) ou automático (liga ao haver atividade; para sozinho com a janela sem foco ou depois de alguns
@@ -38,6 +37,15 @@ export function formatClock(ms) {
  * @class
  */
 export class ProductivityService {
+  declare current: any;
+  declare focused: any;
+  declare goalDone: any;
+  declare last: any;
+  declare lastActivity: any;
+  declare manualPaused: any;
+  declare records: any;
+  declare timer: any;
+
   constructor() {
     this.records = this.load();
     // Um registro que ficou aberto (o app foi fechado) termina onde parou

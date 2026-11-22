@@ -38,6 +38,15 @@ const PIN_SVG =
  * @class
  */
 export class AiPanel {
+  declare ctx: any;
+  declare debugTab: any;
+  declare editingKey: any;
+  declare openDebug: any;
+  declare skillsTab: any;
+  declare title: any;
+  declare unsubscribe: any;
+  declare usageDays: any;
+
   /**
    * @param {Object} ctx - Contexto da central.
    */

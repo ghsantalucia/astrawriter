@@ -38,6 +38,18 @@ const CENTRALS = [
  * @class
  */
 export class CentralComponent extends Component {
+  declare panels: any;
+
+  declare closeSwitcher: any;
+  declare current: any;
+  declare domainBus: any;
+  declare element: any;
+  declare refreshFrame: any;
+  declare renderToken: any;
+  declare services: any;
+  declare state: any;
+  declare uiBus: any;
+
   /**
    * @param {string} selector - Seletor do contêiner.
    * @param {Object} context - Contexto (state, uiBus, domainBus, services).

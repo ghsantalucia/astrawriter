@@ -34,6 +34,9 @@ const SWATCH = ["--bg-sidebar", "--bg-editor", "--surface", "--accent", "--text"
  * @class
  */
 export class AppearanceTab {
+  declare ctx: any;
+  declare editing: any;
+
   /** @param {Object} ctx - Contexto da central. */
   constructor(ctx) {
     this.ctx = ctx;

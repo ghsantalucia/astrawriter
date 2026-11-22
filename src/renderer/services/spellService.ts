@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
  * (Hunspell + dicionário do idioma escolhido); o sublinhado vermelho do editor continua sendo do corretor do Chromium.
@@ -12,6 +10,8 @@ const LANGUAGE_KEY = "app_spell_language";
  * @class
  */
 export class SpellService {
+  declare bookWords: any;
+
   constructor() {
     /** Palavras aceitas pelo autor no dicionário do livro atual (minúsculas). */
     this.bookWords = new Set();

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file scripts/renderer/events/eventUi.js
  * @description Mini-framework de delegação de eventos via atributos declarativos, extraindo dados de atributos data-* automaticamente.
@@ -13,6 +11,10 @@ import { initDeclarativeEvents } from "./uiDeclarativeEvents.js";
  * @description Gerenciador centralizado de eventos UI baseado em Mitt, com suporte a Pub/Sub, intenções e Request-Response assíncrono blindado contra race conditions.
  */
 export class UiEventBus {
+  declare bus: any;
+  declare eventHistory: any;
+  declare maxHistorySize: any;
+
   /**
    * @constructor
    * @description Inicializa a instância interna do Mitt, o armazenamento de histórico e os ouvintes.

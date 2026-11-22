@@ -111,6 +111,8 @@ export function checkCombo(combo, actionId, service) {
  * @class
  */
 export class ShortcutService {
+  declare recording: any;
+
   constructor() {
     /** Enquanto o usuário grava um novo atalho, os atalhos do app não disparam. */
     this.recording = false;

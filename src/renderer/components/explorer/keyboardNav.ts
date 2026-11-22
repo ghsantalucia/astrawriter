@@ -22,6 +22,14 @@ const BTN_CLASS = "kb-btn-focus";
  * @class
  */
 export class ExplorerKeyboard {
+  declare btn: any;
+  declare chat: any;
+  declare key: any;
+  declare lastRowKey: any;
+  declare on: any;
+  declare root: any;
+  declare shown: any;
+
   /**
    * @param {HTMLElement} root - Elemento do explorer (`#explorer-container`).
    */

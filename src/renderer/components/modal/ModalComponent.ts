@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Classe gerenciadora de modais em pilha (Stack).
  */
@@ -14,6 +12,14 @@ import { Component } from "../Component.js";
  * @extends {Component}
  */
 export class ModalComponent extends Component {
+  declare buttons: any;
+  declare content: any;
+  declare element: any;
+  declare id: any;
+  declare modalConfig: any;
+  declare onCloseCallback: any;
+  declare title: any;
+
   /**
    * Cria uma instância do ModalComponent.
    * @param {string} selector - Seletor CSS do container onde o modal será inserido (ex: '#modal-container').

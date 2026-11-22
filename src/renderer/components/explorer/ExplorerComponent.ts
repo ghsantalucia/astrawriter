@@ -33,6 +33,21 @@ const TAB_FOLDERS = ["notes", "content", "assets"];
  * @class
  */
 export class ExplorerComponent extends Component {
+  declare _activePath: any;
+  declare _autoOpenFile: any;
+  declare _currentSelectionTimer: any;
+  declare _dragFile: any;
+  declare _dragFolder: any;
+  declare _search: any;
+  declare _tempList: any;
+  declare _treeReady: any;
+  declare aiChanges: any;
+  declare element: any;
+  declare issueSummary: any;
+  declare keyboard: any;
+  declare state: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância da classe.
    * @param {string} selector - Seletor CSS do elemento do DOM onde será injetada.

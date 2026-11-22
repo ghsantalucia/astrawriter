@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.
  */
@@ -27,6 +25,20 @@ export const DEFAULT_TREE_METADATA = {
  * @class
  */
 export class State {
+  declare aiLimits: any;
+  declare aiModels: any;
+  declare aiProvider: any;
+  declare aiSettings: any;
+  declare aiUsage: any;
+  declare bookList: any;
+  declare currentBookMap: any;
+  declare currentBookMetadata: any;
+  declare currentBookPath: any;
+  declare currentFileMetadata: any;
+  declare currentFilePath: any;
+  declare editor: any;
+  declare pendingCreation: any;
+
   /**
    * Cria uma instância do gerenciador de estado.
    * @constructor

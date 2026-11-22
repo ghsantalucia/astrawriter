@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar
  * ambiguidade) e aba "Link externo" (URL e texto). Substitui o popup de link padrão do Toast UI Editor.
@@ -12,6 +10,19 @@ import { escapeHtml } from "../../utils/helpers.js";
  * @class
  */
 export class LinkPopup {
+  declare onClose: any;
+
+  declare active: any;
+  declare getSelectedText: any;
+  declare insert: any;
+  declare items: any;
+  declare popup: any;
+  declare results: any;
+  declare search: any;
+  declare searchInput: any;
+  declare textInput: any;
+  declare urlInput: any;
+
   /**
    * @param {HTMLElement} popup - Elemento do popup (markup em `templates/main.hbs`).
    * @param {Object} options

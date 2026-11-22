@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Classe gerenciadora da pilha de modais dinâmicos da aplicação.
  */
@@ -12,6 +10,11 @@ import { WizardComponent } from "../Wizard/WizardComponent.js";
  * @class
  */
 export class ModalManager {
+  declare activeModals: any;
+  declare containerElement: any;
+  declare context: any;
+  declare overlayElement: any;
+
   /**
    * Cria uma instância do ModalManager.
    * @param {string} selector - Seletor CSS do container global de modais (ex: '#modal-container').

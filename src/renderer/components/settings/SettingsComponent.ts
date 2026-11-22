@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Componente responsável pela renderização estrutural da drawer de configurações
  */
@@ -20,6 +18,11 @@ import {
  * @class
  */
 export class SettingsComponent extends Component {
+  declare element: any;
+  declare modelsByProvider: any;
+  declare state: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância da classe
    * @param {string} selector - Seletor CSS do elemento do DOM onde será injetada.

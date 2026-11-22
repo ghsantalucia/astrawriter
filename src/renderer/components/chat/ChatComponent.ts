@@ -36,6 +36,21 @@ import startMarkerTpl from "./templates/startMarker.hbs?raw";
  * @class
  */
 export class ChatComponent extends Component {
+  declare aiBusy: any;
+  declare bg: any;
+  declare bgKey: any;
+  declare currentOffset: any;
+  declare defaultPlaceholder: any;
+  declare domainBus: any;
+  declare hasMoreHistory: any;
+  declare inputNav: any;
+  declare isLoadingHistory: any;
+  declare lastUsage: any;
+  declare scrollTimer: any;
+  declare sendIconHtml: any;
+  declare state: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância da classe
    * @param {string} selector - Seletor CSS do elemento do DOM onde será injetada.

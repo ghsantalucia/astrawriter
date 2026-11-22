@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file Central de Revisões: página inicial (painel com números, mais graves, correção pela IA, tipos dispensados e
  * dicionário) e uma página por categoria, com os issues em cards (tag do tipo, arquivo, trecho, solução recomendada e
@@ -22,6 +21,12 @@ const AI_FIX_MESSAGE =
  * @class
  */
 export class IssuesPanel {
+  declare ctx: any;
+  declare filters: any;
+  declare limits: any;
+  declare pendingCache: any;
+  declare title: any;
+
   /**
    * @param {Object} ctx - Contexto da central (services, uiBus, refresh, close...).
    */

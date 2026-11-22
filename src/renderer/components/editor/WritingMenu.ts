@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao
  * dicionário. É um menu do próprio app, no mesmo visual das demais janelinhas.
@@ -10,6 +8,10 @@
  * @class
  */
 export class WritingMenu {
+  declare el: any;
+  declare onAway: any;
+  declare onKey: any;
+
   constructor() {
     this.el = null;
     this.onAway = (event) => {

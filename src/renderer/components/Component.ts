@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 import Handlebars from "handlebars";
 
 /**
@@ -9,6 +7,20 @@ import Handlebars from "handlebars";
  * @abstract
  */
 export class Component {
+  /** Hooks opcionais, implementados pelas subclasses. */
+  getContext?(): any;
+  onInit?(): any;
+
+  declare children: any;
+  declare domainBus: any;
+  declare element: any;
+  declare params: any;
+  declare parent: any;
+  declare selector: any;
+  declare state: any;
+  declare templateHtml: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância do componente.
    * @param {string} selector - Seletor CSS do container alvo no DOM.

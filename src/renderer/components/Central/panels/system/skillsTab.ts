@@ -96,6 +96,14 @@ function trigChip(change, t, on, disabled) {
  * @class
  */
 export class SkillsTab {
+  declare back: any;
+  declare ctx: any;
+  declare draft: any;
+  declare folds: any;
+  declare query: any;
+  declare slug: any;
+  declare view: any;
+
   /** @param {Object} ctx - Contexto da central. */
   constructor(ctx) {
     this.ctx = ctx;

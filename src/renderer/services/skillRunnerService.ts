@@ -39,6 +39,14 @@ export function fileTypeOf(path) {
  * @class
  */
 export class SkillRunnerService {
+  declare active: any;
+  declare lastEnd: any;
+  declare pending: any;
+  declare queue: any;
+  declare recent: any;
+  declare services: any;
+  declare state: any;
+
   /**
    * @param {Object} services - Serviços (skills, ai).
    * @param {Object} state - Estado global.

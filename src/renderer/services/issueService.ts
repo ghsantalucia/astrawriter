@@ -56,6 +56,23 @@ const NO_SPELLING = [/^notes\/manual-completo\.md$/i, /(^|\/)index\.md$/i, /^ass
  * @class
  */
 export class IssueService {
+  declare loaded: any;
+
+  declare bookPath: any;
+  declare cache: any;
+  declare changelog: any;
+  declare data: any;
+  declare external: any;
+  declare fileService: any;
+  declare pendingAll: any;
+  declare pendingOnly: any;
+  declare rerun: any;
+  declare scanning: any;
+  declare state: any;
+  declare timeline: any;
+  declare timelineTimer: any;
+  declare timer: any;
+
   /**
    * @param {Object} state - Estado global.
    * @param {import('./changelogService.js').ChangelogService} changelog - Serviço do changelog.

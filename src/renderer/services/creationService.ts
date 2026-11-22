@@ -113,6 +113,11 @@ function sanitizeFolder(folder) {
  * @class
  */
 export class CreationService {
+  declare _paths: any;
+  declare changelog: any;
+  declare state: any;
+  declare templates: any;
+
   /**
    * Cria uma instância do CreationService.
    * @param {Object} state - Instância do gerenciador de estado global.

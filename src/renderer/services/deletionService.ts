@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Migração JS → TS: o arquivo já é TypeScript, mas ainda não está tipado. Ao tipá-lo, remova a linha acima.
 /**
  * @file Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.
  *
@@ -35,6 +33,9 @@ const pad = (n, width = 3) => String(n).padStart(width, "0");
  * @class
  */
 export class DeletionService {
+  declare changelog: any;
+  declare state: any;
+
   /**
    * @param {Object} state - Estado global da aplicação.
    * @param {import('./changelogService.js').ChangelogService} changelog - Serviço do changelog.

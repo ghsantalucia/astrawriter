@@ -124,6 +124,8 @@ export function coerceSetting(def, value) {
  * @class
  */
 class AppSettingsStore {
+  declare values: any;
+
   constructor() {
     this.values = {};
     try {

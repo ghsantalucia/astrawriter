@@ -57,6 +57,15 @@ export function estimateTokens(chars) {
  * @class
  */
 export class AnalysisService {
+  declare cancelled: any;
+
+  declare changelog: any;
+  declare fileService: any;
+  declare issues: any;
+  declare progress: any;
+  declare running: any;
+  declare state: any;
+
   /**
    * @param {Object} state - Estado global.
    * @param {import('./changelogService.js').ChangelogService} changelog - Changelog.

@@ -17,6 +17,18 @@ import { normalizePath } from "../../utils/helpers.js";
  * @extends Component
  */
 export class ToolbarComponent extends Component {
+  declare _chapterMode: any;
+  declare _hasPendingChanges: any;
+  declare _openPath: any;
+  declare _tabPath: any;
+  declare _tempListReady: any;
+  declare _tempPaths: any;
+  declare aiChanges: any;
+  declare cleanupAnimation: any;
+  declare element: any;
+  declare state: any;
+  declare uiBus: any;
+
   /**
    * Cria uma instância do ToolbarComponent.
    * @param {string} selector - Seletor CSS do container alvo no DOM.
