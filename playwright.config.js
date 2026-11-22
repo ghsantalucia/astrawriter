@@ -1,34 +1,21 @@
 // @ts-check
 import { defineConfig } from "@playwright/test";
 
+/**
+ * Testes E2E do Astra Writer. Cada arquivo `*.spec.js` abre o app (modo desenvolvimento, via Electron Forge) com uma pasta de
+ * dados isolada (`ASTRA_DATA_DIR`) e o controla pelo Playwright (ver tests/e2e/helpers/launch.mjs). Rode com `npm run test:e2e`.
+ */
 export default defineConfig({
-  // Diretório onde ficarão os seus testes E2E
   testDir: "./tests/e2e",
-
-  // Tempo limite máximo para cada teste (30 segundos)
-  timeout: 30 * 1000,
-
-  // Configurações de execução paralela e relatórios
-  fullyParallel: true,
+  testMatch: /.*\.spec\.js$/,
+  timeout: 90 * 1000,
+  expect: { timeout: 10 * 1000 },
+  // Um app por vez: o Forge usa portas fixas do Vite
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-
+  retries: process.env.CI ? 1 : 0,
   outputDir: "tests/reports/playwright/test-results",
-
-  reporter: [
-    ["html", { outputFolder: "tests/reports/playwright/html", open: "never" }],
-  ],
-
-  webServer: {
-    command: "npm run start:debug",
-    port: 9222, // Porta de debug que o Electron vai abrir
-    reuseExistingServer: !process.env.CI,
-    timeout: 60000,
-  },
-
-  use: {
-    // Coleta trace caso algum teste falhe para facilitar o debug
-    trace: "on-first-retry",
-  },
+  reporter: [["list"], ["html", { outputFolder: "tests/reports/playwright/html", open: "never" }]],
+  use: { trace: "retain-on-failure" },
 });

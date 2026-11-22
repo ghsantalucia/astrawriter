@@ -21,6 +21,8 @@ export function appRoot() {
  * @returns {string}
  */
 export function booksDir() {
+  // Gancho dos testes E2E: uma pasta de dados isolada (livros e configurações), para nunca tocar nos dados reais
+  if (process.env.ASTRA_DATA_DIR) return path.join(process.env.ASTRA_DATA_DIR, "books");
   return app.isPackaged ? path.join(app.getPath("documents"), "Astra Writer", "books") : path.join(appRoot(), "books");
 }
 

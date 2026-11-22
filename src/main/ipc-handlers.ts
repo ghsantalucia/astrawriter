@@ -288,7 +288,7 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("get-paths", async () => ({
     booksDir: getBooksDir(),
     templatesDir: getTemplatesDir(),
-    backupsDir: path.join(app.getPath("documents"), "Astra Writer", "backups"),
+    backupsDir: process.env.ASTRA_DATA_DIR ? path.join(process.env.ASTRA_DATA_DIR, "backups") : path.join(app.getPath("documents"), "Astra Writer", "backups"),
     packaged: app.isPackaged,
   }));
 
