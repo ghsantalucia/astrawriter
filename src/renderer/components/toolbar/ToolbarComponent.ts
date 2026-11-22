@@ -9,6 +9,9 @@ import { initSaveButtonAnimation } from "./animations.js";
 import { editableFields } from "../../utils/template.js";
 import { normalizePath } from "../../utils/helpers.js";
 
+/** ID do botão de sincronização no template da barra (definido num só lugar, usado nas buscas e na animação). */
+const SAVE_BUTTON_ID = "btn-save";
+
 /**
  * Representa a barra de ferramentas do editor.
  * @class
@@ -163,7 +166,7 @@ export class ToolbarComponent extends Component {
     });
 
     // Evento do botão de sincronização/salvamento na barra de ferramentas
-    const btnSave = this.element?.querySelector("#btn-save");
+    const btnSave = this.element?.querySelector(`#${SAVE_BUTTON_ID}`);
     if (btnSave) {
       btnSave.addEventListener("click", () => {
         if (!btnSave.disabled) {
@@ -344,12 +347,12 @@ export class ToolbarComponent extends Component {
    * @returns {void}
    */
   initAnimations() {
-    const btnSave = this.element?.querySelector("#btn-save");
+    const btnSave = this.element?.querySelector(`#${SAVE_BUTTON_ID}`);
     if (btnSave && typeof initSaveButtonAnimation === "function") {
       if (typeof this.cleanupAnimation === "function") {
         this.cleanupAnimation();
       }
-      this.cleanupAnimation = (initSaveButtonAnimation as any)(btnSave);
+      this.cleanupAnimation = initSaveButtonAnimation(SAVE_BUTTON_ID);
     }
   }
 
@@ -366,7 +369,7 @@ export class ToolbarComponent extends Component {
    * @returns {void}
    */
   refreshSaveButtonState() {
-    const btnSave = this.element?.querySelector("#btn-save");
+    const btnSave = this.element?.querySelector(`#${SAVE_BUTTON_ID}`);
     if (!btnSave) return;
 
     // Verifica se o arquivo atualmente focado no editor é somente leitura

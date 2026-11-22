@@ -86,6 +86,15 @@ test.describe("Central do Livro", () => {
     await expect.poll(() => JSON.parse(fs.readFileSync(path.join(app.bookDir, "config.json"), "utf8")).ai_mode, { timeout: 4000 }).toBe("autonomous");
   });
 
+  test("Perfil dos templates: o botão 'Editar os templates' leva à aba Templates da Central do Sistema", async () => {
+    const { page } = app;
+    await page.locator("[data-act=open-templates]").click();
+    await expect(page.locator("#central-title")).toContainText("Sistema");
+    await expect(abaAtiva(page)).toContainText("Templates");
+    await closeCentral(page);
+    await openCentral(page, "book");
+  });
+
   test("reabrir a Central e voltar ao modo Assistente grava no config.json", async () => {
     const { page } = app;
     await closeCentral(page);

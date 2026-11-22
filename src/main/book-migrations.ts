@@ -23,8 +23,15 @@ import path from "node:path";
 import { recordChange, CHANGELOG_DIR } from "./changelog.js";
 import { templatesDir } from "./paths.js";
 
-// `L` nunca foi definido neste módulo (o chamado cai sempre no catch e usa o modelo embutido); mantido como está.
-declare const L: (text: string) => string;
+/**
+ * Normaliza o texto de um modelo lido do disco: sem BOM e com quebras de linha LF (o código que monta a análise
+ * procura o fim do cabeçalho pela sequência LF, três hifens, LF).
+ * @param {string} text - Conteúdo do arquivo de modelo.
+ * @returns {string}
+ */
+function L(text: string): string {
+  return text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+}
 
 /** Padrão do nome antigo de uma pasta de capítulo. */
 const LEGACY_CHAPTER = /^cap_(\d+)$/i;

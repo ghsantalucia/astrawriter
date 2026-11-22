@@ -6,10 +6,14 @@ import { gsap } from "gsap";
 
 // BOTÃO SALVAR
 
-// Módulo de Animação do Botão Salvar via GSAP
-export function initSaveButtonAnimation() {
-  const btn = document.getElementById("btn-save");
-  if (!btn) return;
+/**
+ * Módulo de animação do botão Salvar via GSAP.
+ * @param {string} buttonId - ID do elemento do botão (quem chama informa; nada fica fixo aqui dentro).
+ * @returns {() => void} Função que desfaz a animação (remove os ouvintes e interrompe os movimentos).
+ */
+export function initSaveButtonAnimation(buttonId: string): () => void {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return () => {};
 
   // Animação ociosa contínua do fundo etéreo
   gsap.to(btn, {
@@ -20,7 +24,7 @@ export function initSaveButtonAnimation() {
   });
 
   // 2. CRESCER AO PRESSIONAR (mousedown)
-  btn.addEventListener("mousedown", () => {
+  const growButton = () => {
     gsap.to(btn, {
       scale: 1.08,
       boxShadow: "0px 0px 20px color-mix(in srgb, var(--accent) 55%, transparent)",
@@ -28,7 +32,7 @@ export function initSaveButtonAnimation() {
       ease: "power2.out",
       overwrite: "auto",
     });
-  });
+  };
 
   // 3. REDUZIR AO SOLTAR O CLIQUE OU SAIR DO BOTÃO (mouseup / mouseleave)
   const shrinkButton = () => {
@@ -41,6 +45,14 @@ export function initSaveButtonAnimation() {
     });
   };
 
+  btn.addEventListener("mousedown", growButton);
   btn.addEventListener("mouseup", shrinkButton);
   btn.addEventListener("mouseleave", shrinkButton);
+
+  return () => {
+    btn.removeEventListener("mousedown", growButton);
+    btn.removeEventListener("mouseup", shrinkButton);
+    btn.removeEventListener("mouseleave", shrinkButton);
+    gsap.killTweensOf(btn);
+  };
 }

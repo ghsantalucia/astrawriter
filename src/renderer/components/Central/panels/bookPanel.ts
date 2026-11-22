@@ -250,10 +250,11 @@ export class BookPanel {
        </section>
        <section class="cn-section">
          <h4>Perfil dos templates</h4>
-         <p class="cn-hint">Define o modelo de cada ficha e capítulo novo deste livro (assistente, co-autor, autônomo ou um perfil seu). Trocar o perfil não muda o que já foi escrito. Os templates se editam em Central do Sistema → Templates.</p>
+         <p class="cn-hint">Define o modelo de cada ficha e capítulo novo deste livro (assistente, co-autor, autônomo ou um perfil seu). Trocar o perfil não muda o que já foi escrito. Para editar os modelos, use o botão ao lado.</p>
          <div class="cn-row">
            <select class="cn-select" id="book-template-profile">${profiles.map((p) => `<option value="${esc(p.id)}" ${p.id === profileId ? "selected" : ""}>${esc(p.label)}${p.builtin ? "" : " (seu)"}</option>`).join("")}</select>
            <button class="cn-btn" data-act="apply-profile"><i class="fa-solid fa-clone"></i> Aplicar ao livro</button>
+           <button class="cn-btn" data-act="open-templates"><i class="fa-solid fa-pen-ruler"></i> Editar os templates</button>
          </div>
        </section>`,
       {
@@ -267,6 +268,7 @@ export class BookPanel {
           uiBus_titleChanged(this.ctx, value, book.fullPath);
           this.ctx.toast("Nome do livro salvo.", "success");
         },
+        "open-templates": () => this.ctx.uiBus.emit("central:open", { central: "system", tab: "templates" }),
         "open-ai": () => this.ctx.uiBus.emit("central:open", { central: "ai" }),
         "apply-profile": () => {
           const id = (root.querySelector("#book-template-profile") as HTMLInputElement).value;

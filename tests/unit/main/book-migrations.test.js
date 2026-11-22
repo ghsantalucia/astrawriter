@@ -220,6 +220,13 @@ describe("book-migrations em disco", () => {
     expect(a2).not.toContain("Minha análise");
     expect(fs.existsSync(path.join(livro, "content", "chapter_002", "backlog"))).toBe(false);
   });
+  it("ensureChapterLayout: a análise nova nasce do modelo do disco (templates/book), não do texto embutido", async () => {
+    w("content/chapter_001/backlog/1_analysis.md", "---\ntitle: A\n---\n");
+    await ensureChapterLayout(livro);
+    const lf = (t) => t.replace(/\r\n?/g, "\n");
+    const modelo = fs.readFileSync(path.join(process.cwd(), "templates", "book", "content", "chapter_001", "3_analysis.md"), "utf8");
+    expect(lf(r("content/chapter_001/3_analysis.md"))).toBe(lf(modelo));
+  });
   it("ensureChapterLayout não sobrescreve uma 3_analysis.md existente", async () => {
     w("content/chapter_001/3_analysis.md", "---\ntitle: A\n---\nIntacta");
     w("content/chapter_001/backlog/1_analysis.md", "---\ntitle: A\n---\nx");
