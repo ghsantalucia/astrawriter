@@ -38,9 +38,13 @@ const createWindow = () => {
   // Primeira abertura: o livro "Manual de Uso" já vem instalado
   installManualBook();
 
+  // Testes E2E em segundo plano: a janela nunca é exibida (não rouba o foco de quem está trabalhando)
+  const hidden = process.env.ASTRA_HIDDEN === "1";
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: hidden ? 1440 : 1200,
+    height: hidden ? 900 : 800,
+    show: !hidden,
     // Ícone: public/ em desenvolvimento, resources/ no app instalado
     icon: iconPath(),
     title: "Astra Writer",
@@ -54,12 +58,16 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // Janela oculta (E2E): sem isso o Chromium pausa temporizadores e a interface "congela"
+      backgroundThrottling: !hidden,
     },
   });
 
   // Maximiza e exibe a janela
-  mainWindow.maximize();
-  mainWindow.show();
+  if (!hidden) {
+    mainWindow.maximize();
+    mainWindow.show();
+  }
 
   // Inicializa os manipuladores IPC passando a janela
   setupIpcHandlers(mainWindow);

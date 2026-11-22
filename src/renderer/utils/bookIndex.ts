@@ -89,7 +89,7 @@ function lineLinksTo(line, paths) {
  * @returns {string} Novo conteúdo (igual ao antigo se o link já existia).
  */
 export function addIndexLink(indexContent, title, bookRelPath) {
-  const paths = new Set([normalizePath(bookRelPath).toLowerCase()]);
+  const paths = new Set([normalizePath(bookRelPath).replace(/^\/+/, "").toLowerCase()]);
   if (indexContent.split("\n").some((line) => lineLinksTo(line, paths)))
     return indexContent;
   return appendToBody(indexContent, indexLine(title, bookRelPath));

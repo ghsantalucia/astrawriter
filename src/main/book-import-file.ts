@@ -121,11 +121,14 @@ export function splitChapters(blocks, fallbackTitle) {
     }
   }
   if (current) chapters.push(current);
+  // Nenhum título de capítulo reconhecido (o texto todo vai para um capítulo só)
+  const detected = chapters.length;
 
   // Antes do primeiro capítulo: um título curto no começo é o título do livro; o resto vira "Prólogo" se for relevante
   if (preface.length) {
     const first = preface[0];
-    if (first.text.length <= 120 && (first.type === "heading" || preface.length <= 3 || first.text === first.text.toUpperCase())) {
+    // Sem nenhum capítulo, um único bloco é o próprio texto (não pode virar só o título e deixar o capítulo vazio)
+    if ((chapters.length || preface.length > 1) && first.text.length <= 120 && (first.type === "heading" || preface.length <= 3 || first.text === first.text.toUpperCase())) {
       title = first.text;
       preface = preface.slice(1);
     }
@@ -134,7 +137,7 @@ export function splitChapters(blocks, fallbackTitle) {
     else if (!chapters.length) chapters.push({ title: "Capítulo 1", parts: prefaceText });
   }
 
-  if (!chapters.length) warnings.push("Não encontrei títulos de capítulo: o texto todo ficou em um capítulo. Você pode ajustar na próxima tela.");
+  if (!detected) warnings.push("Não encontrei títulos de capítulo: o texto todo ficou em um capítulo. Você pode ajustar na próxima tela.");
   const result = chapters.map((c) => {
     const text = c.parts.join("\n\n");
     return { title: c.title.replace(/\s+/g, " ").trim().slice(0, 120), text, words: text.split(/\s+/).filter(Boolean).length };

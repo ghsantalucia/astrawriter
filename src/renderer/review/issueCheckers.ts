@@ -131,6 +131,8 @@ export function findBrokenLinkIssues(file, content, existing, toRel) {
   for (const m of masked.matchAll(
     /\[([^\]\n]*)\]\((\/?[^)\s]*?\.md)(?:#[^)\s]*)?\)/gi,
   )) {
+    // Endereços externos (https://..., //site/...) não são links do livro
+    if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(m[2])) continue;
     if (existing.has(toRel(m[2]))) continue;
     issues.push(
       buildIssue({

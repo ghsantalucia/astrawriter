@@ -362,7 +362,8 @@ export function setupIpcHandlers(mainWindow) {
 
   ipcMain.handle("search-book", async (event, bookPath, term) => {
     try {
-      return await searchBook(path.normalize(bookPath || ""), term);
+      if (!bookPath) return [];
+      return await searchBook(path.normalize(bookPath), term);
     } catch (err) {
       console.error("[MAIN IPC search-book] Erro:", err);
       return [];

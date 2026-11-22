@@ -84,6 +84,19 @@ export class SkillService {
    * @returns {Promise<void>}
    */
   async load() {
+    await this.readFiles();
+    // As skills trazidas de dentro do livro só existem no disco depois da migração: relê a biblioteca
+    if ((await this.migrateBookSkills()) > 0) await this.readFiles();
+    setCustomSkills(this.installed());
+    uiBus.emit("skills:changed");
+  }
+
+  /**
+   * Lê os arquivos de skills do usuário.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async readFiles() {
     const raw = (await window.electronAPI.skills.list()) || [];
     this.files = raw
       .map(({ file, content }) => {
@@ -91,9 +104,6 @@ export class SkillService {
         return skill ? { ...skill, file, content } : null;
       })
       .filter(Boolean);
-    await this.migrateBookSkills();
-    setCustomSkills(this.installed());
-    uiBus.emit("skills:changed");
   }
 
   /**
@@ -102,8 +112,9 @@ export class SkillService {
    * @private
    */
   async migrateBookSkills() {
+    let migrated = 0;
     const book = this.state?.currentBookPath ? normalizePath(this.state.currentBookPath).replace(/\/+$/, "") : null;
-    if (!book) return;
+    if (!book) return 0;
     const dir = `${book}/.system/skills`;
     const entries = (await window.electronAPI.listDir(dir)) || [];
     for (const entry of entries) {
@@ -114,7 +125,9 @@ export class SkillService {
       await this.writeFile({ ...skill, id: `u-${skill.slug}`, origin: "user", author: skill.author === "Desconhecido" ? "Você" : skill.author });
       // A cópia antiga do livro deixa de ser a referência
       await window.electronAPI.deleteFile(`${dir}/${entry.name}`);
+      migrated++;
     }
+    return migrated;
   }
 
   // ========== Consulta ========== //

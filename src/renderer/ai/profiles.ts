@@ -135,7 +135,8 @@ export function resolveAnalysis(saved) {
   // Configurações antigas: `verify` ligado por padrão, `autoAnalyze` desligado
   if (raw.verify === undefined) values.verify = true;
   const budget = Number(raw.budgetTokens);
-  if (budget > 0) values.budgetTokens = budget;
+  // Orçamento inválido (texto, zero ou negativo) volta ao do perfil padrão
+  values.budgetTokens = budget > 0 ? budget : base.budgetTokens;
   if (!raw.profile && Object.keys(raw).length === 0) return { ...values, profile: DEFAULT_PROFILE };
   return { ...values, profile: detectProfile(values) };
 }

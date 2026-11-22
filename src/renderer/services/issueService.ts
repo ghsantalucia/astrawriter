@@ -482,7 +482,8 @@ export class IssueService {
       }
     }
 
-    if (needLinkPass) await this.scan({ types: ["broken-link"] });
+    // Não chama scan() daqui (ela esperaria por si mesma): agenda a reconferência para logo depois desta varredura
+    if (needLinkPass) this.rerun = this.rerun ? { only: null, types: null } : { only: null, types: ["broken-link"] };
   }
 
   /**
