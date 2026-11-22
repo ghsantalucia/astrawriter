@@ -4,7 +4,7 @@ import path from "path";
 import {
   parseMarkdown,
   stringifyFrontmatter,
-} from "../../../../src/renderer/utils/markdown.js";
+} from "../../../../src/renderer/utils/markdown";
 
 describe("markdown.js - Utilitário de Parsing e Serialização", () => {
   describe("parseMarkdown()", () => {
@@ -22,7 +22,7 @@ describe("markdown.js - Utilitário de Parsing e Serialização", () => {
         aiWrite: true,
         advanced: false,
         title: "Manuscrito",
-        description: "null", // O parser simples converte string "null" ou lê literal
+        description: null, // O parser simples converte string "null" ou lê literal
       });
 
       // Valida se o título e o parágrafo do capítulo vieram no corpo intactos

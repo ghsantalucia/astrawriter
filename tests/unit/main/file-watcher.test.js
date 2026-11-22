@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { setupFileWatcher } from "../../../src/main/file-watcher.js";
+import { setupFileWatcher, stopFileWatcher } from "../../../src/main/file-watcher";
+
+vi.mock("electron", async () => (await import("../../helpers/electronMock.js")).createElectronMock());
 
 describe("file-watcher.js - Testes de Integração com Disco Real", () => {
   let tempBooksDir;
@@ -26,7 +28,8 @@ describe("file-watcher.js - Testes de Integração com Disco Real", () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await stopFileWatcher();
     process.cwd = originalCwd;
     try {
       fs.rmSync(tempBooksDir, { recursive: true, force: true });

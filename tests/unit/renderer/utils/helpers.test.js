@@ -7,9 +7,9 @@ import {
   normalizePath,
   getRelativePath,
   escapeHtml,
-} from "../../../../src/renderer/utils/helpers.js";
-import { parseMarkdown } from "../../../../src/renderer/utils/markdown.js";
-import { DEFAULT_TREE_METADATA } from "../../../../src/renderer/core/state.js";
+} from "../../../../src/renderer/utils/helpers";
+import { parseMarkdown } from "../../../../src/renderer/utils/markdown";
+import { DEFAULT_TREE_METADATA } from "../../../../src/renderer/core/state";
 
 describe("helpers.js - Funções Auxiliares Genéricas", () => {
   // ==========================================

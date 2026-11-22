@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { UiEventBus } from "../../src/renderer/events/uiBus.js";
-import { EditorComponent } from "../../src/renderer/components/Editor/EditorComponent.js";
-import { ToolbarComponent } from "../../src/renderer/components/Toolbar/ToolbarComponent.js";
+import { UiEventBus } from "../../src/renderer/events/uiBus";
+import { EditorComponent } from "../../src/renderer/components/Editor/EditorComponent";
+import { ToolbarComponent } from "../../src/renderer/components/Toolbar/ToolbarComponent";
 
 describe("Integração Lógica: Editor, Barramento (uiBus) e Toolbar", () => {
   let bus;
@@ -35,8 +35,8 @@ describe("Integração Lógica: Editor, Barramento (uiBus) e Toolbar", () => {
     toolbarComponent = new ToolbarComponent("#toolbar", context);
 
     // Sobrescrevemos o element.querySelector para evitar qualquer manipulação de DOM real desnecessária
-    editorComponent.element = { querySelector: vi.fn() };
-    toolbarComponent.element = { querySelector: vi.fn() };
+    editorComponent.element = { querySelector: vi.fn(), querySelectorAll: vi.fn(() => []) };
+    toolbarComponent.element = { querySelector: vi.fn(), querySelectorAll: vi.fn(() => []) };
 
     editorComponent.setupListeners();
     toolbarComponent.setupListeners();

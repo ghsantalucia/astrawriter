@@ -24,6 +24,17 @@ export function setupFileWatcher(mainWindow) {
 }
 
 /**
+ * Encerra o observador (usado ao fechar o app e nos testes).
+ * @returns {Promise<void>}
+ */
+export async function stopFileWatcher() {
+  const current = watcher;
+  watcher = null;
+  targetWindow = null;
+  if (current) await current.close();
+}
+
+/**
  * Cria o observador do Chokidar e liga o encaminhamento dos eventos para o renderer.
  * @returns {void}
  */

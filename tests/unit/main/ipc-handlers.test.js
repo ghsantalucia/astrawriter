@@ -7,21 +7,21 @@ import os from "os";
 const ipcHandlersMap = new Map();
 const ipcHandlesMap = new Map();
 
-vi.mock("electron", () => ({
-  ipcMain: {
-    on: vi.fn((channel, callback) => {
-      ipcHandlersMap.set(channel, callback);
-    }),
-    handle: vi.fn((channel, callback) => {
-      ipcHandlesMap.set(channel, callback);
-    }),
-  },
-  dialog: {
-    showOpenDialog: vi.fn(),
-  },
-}));
+vi.mock("electron", async () => {
+  const { createElectronMock } = await import("../../helpers/electronMock.js");
+  return createElectronMock({
+    ipcMain: {
+      on: vi.fn((channel, callback) => {
+        ipcHandlersMap.set(channel, callback);
+      }),
+      handle: vi.fn((channel, callback) => {
+        ipcHandlesMap.set(channel, callback);
+      }),
+    },
+  });
+});
 
-import { setupIpcHandlers } from "../../../src/main/ipc-handlers.js";
+import { setupIpcHandlers } from "../../../src/main/ipc-handlers";
 import { dialog } from "electron";
 
 describe("ipc-handlers.js - Testes de Comunicação IPC e Sistema de Arquivos", () => {
@@ -62,8 +62,18 @@ describe("ipc-handlers.js - Testes de Comunicação IPC e Sistema de Arquivos", 
       handler({}, true);
 
       expect(mockMainWindow.setTitleBarOverlay).toHaveBeenCalledWith(
-        expect.objectContaining({ color: "#181926" }),
+        expect.objectContaining({ color: "#0e0f17" }),
       );
+    });
+
+    it("deve usar as cores do tema quando forem cores simples e ignorar valores perigosos", () => {
+      const handler = ipcHandlersMap.get("update-titlebar-theme");
+
+      handler({}, true, { color: "#112233", symbolColor: "rgb(1, 2, 3)" });
+      expect(mockMainWindow.setTitleBarOverlay).toHaveBeenLastCalledWith({ color: "#112233", symbolColor: "rgb(1, 2, 3)" });
+
+      handler({}, false, { color: "url(javascript:alert(1))", symbolColor: "#fff" });
+      expect(mockMainWindow.setTitleBarOverlay).toHaveBeenLastCalledWith(expect.objectContaining({ color: "#ece9f6" }));
     });
 
     it("deve atualizar o overlay da barra de título com o tema claro", () => {
@@ -72,7 +82,7 @@ describe("ipc-handlers.js - Testes de Comunicação IPC e Sistema de Arquivos", 
       handler({}, false);
 
       expect(mockMainWindow.setTitleBarOverlay).toHaveBeenCalledWith(
-        expect.objectContaining({ color: "#1e1e2f" }),
+        expect.objectContaining({ color: "#ece9f6" }),
       );
     });
   });
