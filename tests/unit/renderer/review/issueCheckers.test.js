@@ -65,7 +65,7 @@ describe("issueCheckers: links quebrados", () => {
     const c = "[a](/assets/places/a.md#auto) [b](assets/places/a.md)";
     expect(findBrokenLinkIssues("n.md", c, existentes, toRel)).toEqual([]);
   });
-  // BUG (issueCheckers.ts, findBrokenLinkIssues): a regex aceita qualquer endereço terminado em .md, inclusive URLs
+  // Regressão (bug já corrigido; issueCheckers.ts, findBrokenLinkIssues): a regex aceita qualquer endereço terminado em .md, inclusive URLs
   // externas (https://...), que nunca estarão em `existing`. Esperado: link externo não é link interno quebrado.
   it("não reporta links externos que terminam em .md", () => {
     const c = "[site](https://x.com/y.md)";

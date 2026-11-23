@@ -65,7 +65,7 @@ describe("book-import-file.splitChapters", () => {
 
 Outro parágrafo.` });
   });
-  // BUG (book-import-file.ts, splitChapters): a mensagem "Não encontrei títulos de capítulo: o texto todo ficou em um
+  // Regressão (bug já corrigido; book-import-file.ts, splitChapters): a mensagem "Não encontrei títulos de capítulo: o texto todo ficou em um
   // capítulo" só é gerada se `chapters` estiver vazio, mas nesse caso o texto já foi colocado em "Capítulo 1" (o que a
   // torna inalcançável para documentos reais). Esperado: aviso quando nenhum título de capítulo foi reconhecido.
   it("avisa o autor quando nenhum título de capítulo foi reconhecido", () => {

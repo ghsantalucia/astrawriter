@@ -414,7 +414,7 @@ describe("Central de Revisões: issueService e 'Corrigir tudo'", () => {
     expect(services.issues.list({ category: "contradictions" })).toEqual([]);
   });
 
-  // BUG: src/renderer/services/issueService.ts (doScan, ~linha 482): quando o conjunto de arquivos do livro muda entre duas
+  // Regressão (bug já corrigido): src/renderer/services/issueService.ts (doScan, ~linha 482): quando o conjunto de arquivos do livro muda entre duas
   // varreduras, doScan chama `await this.scan({ types: ["broken-link"] })` ainda DENTRO da varredura em andamento; scan() vê
   // `this.scanning` ocupado, só agenda um "rerun" e devolve a própria varredura, que então espera por si mesma (deadlock).
   // Esperado: a varredura termina e novos arquivos passam a ser analisados; obtido: a promessa nunca resolve e a Central trava.

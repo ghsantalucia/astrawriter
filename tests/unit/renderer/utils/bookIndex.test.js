@@ -45,7 +45,7 @@ describe("bookIndex", () => {
     const idx = "# I\n\n- [A](Assets/My%20File.md#auto)";
     expect(addIndexLink(idx, "A", "assets/my file.md")).toBe(idx);
   });
-  // BUG (bookIndex.ts, addIndexLink): não remove a barra inicial do caminho ao montar o conjunto
+  // Regressão (bug já corrigido; bookIndex.ts, addIndexLink): não remove a barra inicial do caminho ao montar o conjunto
   // (removeIndexLinks remove). Esperado: não duplicar; obtido: acrescenta uma segunda linha.
   it("addIndexLink não duplica quando o caminho informado tem barra inicial", () => {
     const idx = "# I\n\n- [A](assets/a.md)";

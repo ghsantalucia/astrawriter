@@ -74,7 +74,7 @@ describe("profiles: resolveAnalysis", () => {
   it("verify salvo como false é respeitado", () => {
     expect(resolveAnalysis({ verify: false }).verify).toBe(false);
   });
-  // BUG (profiles.ts, resolveAnalysis): o laço copia raw.budgetTokens sem validar e o `if (budget > 0)` só
+  // Regressão (bug já corrigido; profiles.ts, resolveAnalysis): o laço copia raw.budgetTokens sem validar e o `if (budget > 0)` só
   // sobrescreve quando válido; "abc" ou -5 permanecem como budgetTokens. Esperado: cair no orçamento do perfil padrão.
   it("orçamento inválido ou negativo é ignorado", () => {
     const base = perfil(DEFAULT_PROFILE).values.budgetTokens;

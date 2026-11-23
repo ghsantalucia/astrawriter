@@ -197,7 +197,7 @@ describe("skillService: migração de skills do livro", () => {
     expect(disco.has("u-minha-skill.md")).toBe(true);
     expect(disco.get("u-minha-skill.md")).toContain("author: Você");
   });
-  // BUG (skillService.ts, load): migrateBookSkills grava os arquivos novos, mas this.files não é recarregado depois;
+  // Regressão (bug já corrigido; skillService.ts, load): migrateBookSkills grava os arquivos novos, mas this.files não é recarregado depois;
   // a skill migrada só aparece na próxima load(). Esperado: já aparecer em installed()/get() ao fim do primeiro load.
   it("skill migrada já aparece na biblioteca logo após o load", async () => {
     api.listDir.mockResolvedValue([{ name: "minha.md", isDirectory: false }]);

@@ -205,7 +205,7 @@ describe("IPC: busca no livro", () => {
     expect(await invoke("search-book", b, "  ")).toEqual([]);
   });
 
-  // BUG: src/main/ipc-handlers.ts (search-book): path.normalize("") vira "." e a busca varre a pasta de trabalho do app.
+  // Regressão (bug já corrigido): src/main/ipc-handlers.ts (search-book): path.normalize("") vira "." e a busca varre a pasta de trabalho do app.
   // Esperado: [] quando o livro não é informado.
   it("search-book sem caminho do livro devolve [] (não varre o diretório atual)", async () => {
     expect(await invoke("search-book", "", "Astra Writer")).toEqual([]);
@@ -509,7 +509,7 @@ describe("IPC: importar livro por arquivo (txt, md, docx)", () => {
     expect(r.warnings.length).toBe(1);
   });
 
-  // BUG: src/main/book-import-file.ts (splitChapters, ~linha 150): um texto curto de 1 a 3 parágrafos sem capítulos tem o
+  // Regressão (bug já corrigido): src/main/book-import-file.ts (splitChapters, ~linha 150): um texto curto de 1 a 3 parágrafos sem capítulos tem o
   // primeiro parágrafo tomado como título do livro e some; com 1 parágrafo, devolve zero capítulos (o aviso diz "ficou em um capítulo").
   it("texto de um parágrafo sem capítulos não pode perder o conteúdo", async () => {
     const g = path.join(dataDir, "um_paragrafo.txt");
