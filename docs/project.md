@@ -114,11 +114,8 @@ A lista de tools da IA e o guia de uso ficam em `docs/ai/ai-tools.md`. **Sempre 
 
 ## 5. Planejamento Futuro (Roadmap Técnico)
 
-- **TypeScript:** o código de `src/` já está em arquivos `.ts` (ver "Migração para TypeScript" abaixo); falta **tipar** de fato, arquivo por arquivo.
-- **Tailwind CSS:** Adoção gradual de classes utilitárias para modernizar a estilização dos componentes e coexistir de forma segura com o CSS atual.
-- **Testes Automatizados:**
-  - _Vitest_ para testes unitários e de integração integrados ao Vite.
-  - _Playwright_ para testes end-to-end (E2E) de interface.
+- **TypeScript:** o código de `src/` está em `.ts` e tipado (`npm run typecheck` sem erros, sem `@ts-nocheck`; ver "Migração para TypeScript" abaixo). Falta apertar os tipos `any` que restaram.
+- **Testes Automatizados (prontos):** _Vitest_ (unitários e de integração, em `tests/unit` e `tests/integration`) e _Playwright_ (E2E de interface, em `tests/e2e`).
 
 ---
 
@@ -257,8 +254,7 @@ autor, atualize também o guia.**
 
 - **Estado atual:** todo o código de `src/` (main, preload e renderer) foi renomeado de `.js` para `.ts` e continua funcionando igual. Onde os textos desta documentação citam um arquivo
   `.js` de `src/`, leia `.ts`. Ficaram em JavaScript apenas as ferramentas de projeto: `forge.config.js`, `vite.*.config.mjs` e `scripts/*.js`.
-- **Ainda sem tipos:** cada arquivo começa com `// @ts-nocheck`. É a base da migração incremental: o `tsc` passa, o Vite compila, e os tipos entram aos poucos. Para tipar um
-  arquivo, remova a linha `// @ts-nocheck` e corrija os erros que o `npm run typecheck` apontar (declarar as propriedades das classes, tipar os parâmetros, tipar `window.electronAPI`).
+- **Tipado:** nenhum arquivo usa `// @ts-nocheck` e o `npm run typecheck` passa com 0 erros. O `tsconfig` não é estrito, e ainda há tipos `any` a apertar. As propriedades das classes são declaradas com `declare` (não emitem código), para não reiniciar valores definidos na classe base.
 - **Configuração:** `tsconfig.json` (`strict: false`, `noEmit`, `verbatimModuleSyntax` para o esbuild nunca descartar imports), `src/types/global.d.ts` (módulos `?raw`, globais do Forge e `Window`).
   O Vite (esbuild) só remove os tipos, não os verifica; a verificação é o `npm run typecheck`.
 - **Imports:** continuam escritos com `.js` (`./app.js`): o Vite os resolve para o `.ts` correspondente. A exceção são os imports dinâmicos por padrão de pasta (`aiGateway.ts` e

@@ -5,114 +5,107 @@
   <a href="https://www.electronjs.org"><img src="https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://vitejs.dev"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite"></a>
-  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"></a>
   <a href="https://vitest.dev"><img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white" alt="Vitest"></a>
   <a href="https://playwright.dev"><img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright"></a>
   <a href="https://git-scm.com"><img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white" alt="Git"></a>
 </p>
 
-> Editor de livros desktop assistido por inteligência artificial, estruturado para manter consistência e integridade em universos narrativos complexos. Desenvolvido com arquitetura moderna e foco em boas práticas de engenharia de software para portfólio.
+> Editor de livros desktop assistido por inteligência artificial, estruturado para manter consistência e integridade em universos narrativos complexos.
 
 ## Visão Geral
 
-O **Astra Writer** é uma aplicação desktop nativa desenvolvida para resolver os desafios de gerenciamento de dados e continuidade textual em grandes projetos literários. A ferramenta utiliza uma arquitetura baseada no sistema de arquivos local (_file-driven_), eliminando a necessidade de bancos de dados tradicionais, e implementa um modelo flexível de integração com APIs de IA (_Bring-Your-Key_).
+O **Astra Writer** é uma aplicação desktop para Windows, criada para resolver os desafios de organização e continuidade textual em grandes projetos literários. A ferramenta trabalha direto com arquivos no seu computador (_file-driven_), sem banco de dados, e se conecta a provedores de IA com a chave do próprio usuário (_Bring-Your-Key_). As chaves ficam só na máquina de quem usa.
 
 ### Modos de Operação
 
-- **Auxílio de Escrita:** Redação humana com suporte pontual da IA para revisão de consistência e tom.
-- **Criação Guiada:** Geração estruturada de capítulos com validação e controle de prompts pelo usuário.
-- **Criação Autônoma:** Execução autônoma orientada por diretrizes estratégicas e metadados estruturados.
+- **Auxílio de Escrita:** redação humana com suporte pontual da IA para revisão de consistência e tom.
+- **Criação Guiada:** geração estruturada de capítulos, com validação e controle de prompts pelo usuário.
+- **Criação Autônoma:** execução orientada por diretrizes estratégicas e metadados estruturados.
+
+## Baixar e Usar
+
+Para usar o aplicativo sem compilar nada, baixe a versão mais recente em [Releases](https://github.com/ghsantalucia/astrawriter/releases/latest):
+
+- **Instalador** (`AstraWriter-Setup-<versão>.exe`): assistente com escolha da pasta e dos atalhos; o app se atualiza sozinho.
+- **Portátil** (`AstraWriter-portable-<versão>-win-x64.zip`): descompacte e execute.
+
+Na primeira abertura o app instala o livro **Manual de Uso**. Para aprender a usar, comece pelo [Guia do Usuário](docs/guia-do-usuario.md).
+
+## Documentação
+
+**Para quem escreve**
+
+- [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo (o mesmo conteúdo do livro Manual de Uso).
+- [Guia de Instalação e Release](docs/guia-de-instalacao.md): como instalar, onde ficam seus dados e como gerar o instalador (`npm run release`).
+- [Funcionalidades](docs/features/index.md) e [Skills](docs/features/skills.md): o que o app oferece e como estendê-lo.
+
+**Inteligência artificial**
+
+- [Tools da IA](docs/ai/ai-tools.md): o que a IA pode fazer e as regras de permissão.
+- [Funcionalidades de IA](docs/ai/features-ia.md), [Fluxos](docs/ai/fluxos-da-ia.md), [Modos](docs/ai/modos-da-ia.md) e [Perfis de uso](docs/ai/perfis-de-uso-da-ia.md).
+
+**Para quem desenvolve**
+
+- [Memória de arquitetura](docs/project.md): decisões, padrões e histórico do projeto.
+- [Componentes](docs/code/Component.md), [Eventos de UI](docs/code/Event%20UI.md) e [Padrão de Eventos](docs/code/Padr%C3%A3o%20de%20Eventos.md).
 
 ## Arquitetura e Decisões de Projeto
 
-O projeto foi construído seguindo rigorosos padrões de arquitetura de software para garantir escalabilidade, desacoplamento e segurança:
-
-- **Separação de Processos (Electron):** Isolamento estrito entre o Processo Principal (_Main_), a ponte segura de comunicação (_Preload_ com _context isolation_) e a camada visual (_Renderer_).
-- **TypeScript:** todo o código de `src/` está em `.ts` (migração incremental: os arquivos ainda não estão tipados e começam com `// @ts-nocheck`; `npm run typecheck` verifica o projeto).
-- **Arquitetura Orientada a Eventos (Pub-Sub):** Utilização da biblioteca `Mitt` dividida em dois barramentos independentes (`domainBus` para regras de negócio e sistema de arquivos, e `uiBus` para intenções de interface e animações).
-- **Padrão de Co-locação de Componentes:** Estruturação modular da interface onde cada componente encapsula sua lógica, templates e estilos isolados, instanciados centralmente via Inversão de Controle (IoC).
-- **Estilização Moderna (Tailwind CSS):** Aplicação de classes utilitárias performáticas para consistência visual e design responsivo.
-- **Monitoramento em Tempo Real:** Integração de alta performance com a biblioteca `Chokidar` no processo principal para observar alterações no sistema de arquivos e propagá-las de forma reativa para o frontend via IPC.
-- **Qualidade e Testes (Vitest & Playwright):** Suporte a testes unitários e de integração rápidos com Vitest, além de testes ponta a ponta (E2E) de interface com Playwright.
+- **Separação de Processos (Electron):** isolamento entre o processo principal (_Main_), a ponte segura de comunicação (_Preload_, com _context isolation_) e a camada visual (_Renderer_).
+- **TypeScript:** todo o código de `src/` é `.ts` e tipado; `npm run typecheck` roda sem erros.
+- **Eventos (Pub-Sub):** biblioteca `Mitt` em dois barramentos independentes: `domainBus` (regras de negócio e sistema de arquivos) e `uiBus` (intenções de interface e animações).
+- **Componentes co-locados:** cada componente da interface encapsula sua lógica, template e estilos, e é instanciado de forma central (Inversão de Controle).
+- **Monitoramento em tempo real:** `Chokidar` no processo principal observa o sistema de arquivos e propaga as mudanças ao frontend via IPC.
+- **Qualidade:** testes unitários e de integração com Vitest, e testes ponta a ponta (E2E) com Playwright.
 
 ## Stack Tecnológica
 
-### Core & Desktop
-
-- **Node.js:** Ambiente de execução base.
-- **Electron (v44.2.0) & Electron Forge:** Framework para empacotamento e criação do aplicativo desktop nativo.
-- **TypeScript:** Superset JavaScript com tipagem estática.
-- **Vite:** _Builder_ de alta performance para compilação do processo principal e da interface.
-
-### Interface & Frontend
-
-- **Tailwind CSS:** Framework utilitário de estilização.
-- **Handlebars:** Motor de templates para renderização modular e dinâmica.
-- **Toast-UI Editor (v3.2.2):** Núcleo visual do editor Markdown.
-- **GSAP (v3.15.0):** Motor de animações para transições fluidas.
-- **FontAwesome:** Biblioteca de ícones vetoriais.
-
-### Utilitários, Qualidade & Arquitetura
-
-- **Chokidar (v5.0.0):** Observador de eventos do sistema de arquivos.
-- **Mitt (v3.0.1):** Barramento leve de eventos Pub-Sub.
-- **Vitest:** Framework de testes unitários.
-- **Playwright:** Automação e testes E2E.
-- **Prettier:** Padronização e consistência de estilo de código.
+- **Desktop:** Node.js, Electron e Electron Forge (empacotamento), TypeScript e Vite (compilação).
+- **Interface:** Handlebars (templates), Toast-UI Editor (editor Markdown), GSAP (animações) e FontAwesome (ícones). O estilo é CSS próprio de cada componente.
+- **Utilitários:** Chokidar (observador de arquivos) e Mitt (barramento de eventos).
+- **Qualidade:** Vitest, Playwright e Prettier.
 
 ## Estrutura do Projeto
 
 ```text
 .
-├── forge.config.js
-├── jsdoc.json
-├── package.json
-├── [src]
-│   ├── [main]          # Processo principal (Electron, Chokidar, IPC Handlers)
-│   ├── [preload]       # Ponte de segurança e isolamento de contexto (IPC)
-│   └── [renderer]      # Camada visual (Components, Controllers, Events, Core, AI)
-├── [books]             # Base de dados dos projetos do usuário
-└── [templates]         # Templates estruturais de livros e metadados por projeto
+├── docs/            # Guias do usuário, de instalação, da IA e do código
+├── scripts/         # Release, geração do manual e mapas do projeto
+├── src/
+│   ├── main/        # Processo principal (Electron, Chokidar, IPC)
+│   ├── preload/     # Ponte de segurança e isolamento de contexto
+│   └── renderer/    # Camada visual (Components, Controllers, Events, Services, AI)
+├── templates/       # Modelos de livro, perfis de template e o Manual de Uso
+├── tests/           # unit, integration e e2e
+└── forge.config.js
 ```
 
 ## Como Executar o Projeto
 
 ### Pré-requisitos
 
-Certifique-se de ter o **Node.js** (versão 18 ou superior) instalado em sua máquina.
+**Node.js** (versão 18 ou superior) instalado.
 
 ### Instalação e Execução
 
-1. Clone o repositório:
-
 ```bash
 git clone https://github.com/ghsantalucia/astrawriter.git
-```
-
-2. Acesse a pasta do projeto:
-
-```bash
 cd astrawriter
-```
-
-3. Instale as dependências:
-
-```bash
 npm install
-```
-
-4. Execute a aplicação em modo de desenvolvimento:
-
-```bash
 npm start
 ```
 
-## Documentação
+Em desenvolvimento, os dados do app ficam em `%APPDATA%\Astra Writer Dev` e os livros na pasta `books/` do projeto.
 
-- [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo.
-- [Guia de Instalação e Release](docs/guia-de-instalacao.md): como gerar o instalador do Windows (`npm run release`).
-- [Memória de arquitetura](docs/project.md): decisões e padrões do projeto.
-- [Tools da IA](docs/ai/ai-tools.md): o que a IA pode fazer e as regras de permissão.
+### Comandos úteis
+
+| Comando                | O que faz                                          |
+| ---------------------- | -------------------------------------------------- |
+| `npm start`            | Abre o app em modo de desenvolvimento              |
+| `npm run typecheck`    | Verifica os tipos do TypeScript                    |
+| `npm test`             | Testes unitários e de integração (Vitest)          |
+| `npm run test:e2e`     | Testes de interface (Playwright, abre o app)       |
+| `npm run release`      | Gera o instalador e a versão portátil em `release/` |
 
 ## Licença
 
