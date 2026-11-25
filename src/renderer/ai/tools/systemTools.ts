@@ -17,6 +17,7 @@ import { getUsageReport } from "../usageTracker.js";
 import { locateFile } from "./permissions.js";
 import { dayOf } from "../../services/productivityService.js";
 import guide from "../../../../docs/guia-do-usuario.md?raw";
+import guideEn from "../../../../docs/user-guide.en.md?raw";
 import { getLanguage } from "../../../shared/i18n.js";
 
 /** Abas de cada central (o que `open_central` aceita). */
@@ -86,7 +87,7 @@ function openCentral(central, tab) {
 function guideSections() {
   const sections = [];
   let current = null;
-  for (const line of String(guide).split(/\r?\n/)) {
+  for (const line of String(getLanguage() === "en" ? guideEn : guide).split(/\r?\n/)) {
     const m = line.match(/^(#{2,3})\s+(.*)$/);
     if (m) {
       if (current) sections.push(current);

@@ -525,6 +525,7 @@ With the book in **autonomous** mode, the AI writes the files it produces direct
 The **System Center** (Settings → Centers, or **Ctrl+Shift+Y**) gathers the app's settings, not the book's:
 
 - **General and Update:** installed version and whether it is the latest, automatic update, space used (books, history, app data) and **uninstall** (with the option to export the books first; the books stay in Documents/Astra Writer and remain there).
+- **App language:** in **System Center → General → Interface language** choose **Português (Brasil)** or **English**; the screen reloads. On first launch the app uses your computer's language. New books are born with the templates (outline, analysis, sheets, profiles) and the User Manual in the chosen language; books you already have are not translated. The AI answers in the language you write in.
 - **Appearance:** light/dark, ready-made color themes (**Neptune**, **Earth**, **Saturn**, **Venus** in pastel tones and **Pulsar**, pink and blue synthwave) and **create your own** (color by color, for light and dark mode), and the **chat background** (stars, nebula, orbits or solid color), each with its own colors.
 - **Accessibility:** app font size, **night mode** (yellowish filter on a schedule) and **narrator** (button with the speaker icon in the editor toolbar, with **pause** and **stop** during reading; hover for the tooltip).
 - **Editor:** letter size and font for the text and headings, with a **live preview** highlighted at the top.

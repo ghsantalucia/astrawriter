@@ -10,7 +10,7 @@
   "Caminho inválido no zip: \"{name}\".": "Invalid path in the zip: \"{name}\".",
   "O arquivo .odt não tem conteúdo legível.": "The .odt file has no readable content.",
   "Formato não suportado. Use .docx, .odt, .pdf, .txt ou .md.": "Unsupported format. Use .docx, .odt, .pdf, .txt or .md.",
-  "Importar livro de um arquivo": "Import book from a file",
+  "Importar livro de um arquivo": "Import a book from a file",
   "Documentos": "Documents",
   "Todos os arquivos": "All files",
   "O arquivo é grande demais (limite de 80 MB).": "The file is too large (80 MB limit).",

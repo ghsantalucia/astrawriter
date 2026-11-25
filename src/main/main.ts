@@ -61,8 +61,9 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      // Janela oculta (E2E): sem isso o Chromium pausa temporizadores e a interface "congela"
-      backgroundThrottling: !hidden,
+      // Janela oculta ou testes E2E (ASTRA_NO_THROTTLE=1, mesmo com a janela visível mas atrás de outras): sem isso o Chromium pausa
+      // temporizadores e a interface "congela"
+      backgroundThrottling: !hidden && process.env.ASTRA_NO_THROTTLE !== "1",
     },
   });
 

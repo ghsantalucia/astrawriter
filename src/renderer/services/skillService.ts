@@ -13,7 +13,7 @@ import { uiBus } from "../events/uiBus.js";
 import { normalizePath } from "../utils/helpers.js";
 import { appSettings } from "../utils/appSettings.js";
 import { stringifyFrontmatter } from "../utils/markdown.js";
-import { autoSkillColor, builtinSkills, marketSkills, parseSkill, setCustomSkills } from "../ai/skills/index.js";
+import { autoSkillColor, builtinSkills, localizeSkill, marketSkills, parseSkill, setCustomSkills } from "../ai/skills/index.js";
 import { t, intlLocale } from "../../shared/i18n.js";
 
 const NAME_RE = /^[a-z0-9][a-z0-9-]{2,39}$/;
@@ -149,7 +149,7 @@ export class SkillService {
       const mine = this.files.filter((f) => f.slug === slug);
       const edited = mine.find((f) => f.edited);
       const own = mine.find((f) => !f.edited);
-      const effective = edited || own || base;
+      const effective = localizeSkill(edited || own || base);
       if (!effective) continue;
       const prefs = this.prefs(slug);
       out.push({
@@ -185,7 +185,8 @@ export class SkillService {
    */
   market() {
     const installed = this.installed();
-    return marketSkills().map((m) => {
+    return marketSkills().map((raw) => {
+      const m = localizeSkill(raw);
       const mine = installed.find((s) => s.slug === m.slug);
       return { ...m, color: this.prefs(m.slug).color || autoSkillColor(m.slug), installed: Boolean(mine), hasUpdate: Boolean(mine && mine.origin === "market" && compareVersions(m.version, mine.version) > 0) };
     });

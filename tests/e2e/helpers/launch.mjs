@@ -24,18 +24,19 @@ function copyDir(from, to) {
 
 /**
  * Cria a pasta de dados isolada com um livro de teste (a partir do modelo do app).
- * @param {{books?: boolean}} [opts] - `books: false` deixa a biblioteca vazia.
+ * @param {{books?: boolean, lang?: string}} [opts] - `books: false` deixa a biblioteca vazia.
  * @returns {{dataDir: string, bookDir: string|null}}
  */
-export function seedData({ books = true } = {}) {
+export function seedData({ books = true, lang = "pt-BR" } = {}) {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "astra-e2e-"));
   fs.mkdirSync(path.join(dataDir, "books"), { recursive: true });
   let bookDir = null;
   if (books) {
     bookDir = path.join(dataDir, "books", "book_001");
-    copyDir(path.join(ROOT, "templates", "book"), bookDir);
+    const english = lang === "en";
+    copyDir(path.join(ROOT, "templates", ...(english ? ["en", "book"] : ["book"])), bookDir);
     const config = JSON.parse(fs.readFileSync(path.join(bookDir, "config.json"), "utf8"));
-    config.book_title = "Livro de Teste";
+    config.book_title = english ? "Test Book" : "Livro de Teste";
     fs.writeFileSync(path.join(bookDir, "config.json"), JSON.stringify(config, null, 2));
     fs.writeFileSync(
       path.join(bookDir, "content", "chapter_001", "2_draft.md"),
@@ -59,7 +60,7 @@ export async function launchApp(opts = {}) {
     cwd: ROOT,
     shell: true,
     stdio: "ignore",
-    env: { ...process.env, ASTRA_DATA_DIR: dataDir, ASTRA_HIDDEN: process.env.ASTRA_E2E_VISIBLE ? "0" : "1", ASTRA_LANG: process.env.ASTRA_LANG || "pt-BR", NODE_ENV: "development" },
+    env: { ...process.env, ASTRA_DATA_DIR: dataDir, ASTRA_HIDDEN: process.env.ASTRA_E2E_VISIBLE ? "0" : "1", ASTRA_NO_THROTTLE: "1", ASTRA_LANG: opts.lang || process.env.ASTRA_LANG || "pt-BR", NODE_ENV: "development" },
   });
 
   const kill = () => {
@@ -92,6 +93,12 @@ export async function launchApp(opts = {}) {
     throw new Error("A janela do app não apareceu.");
   }
   await page.waitForLoadState("domcontentloaded");
+
+  // ASTRA_E2E_CONSOLE=1: mostra erros do renderer no terminal (ajuda a depurar falhas)
+  if (process.env.ASTRA_E2E_CONSOLE) {
+    page.on("console", (m) => (m.type() === "error" || m.type() === "warning") && console.log(`[renderer ${m.type()}]`, m.text().slice(0, 400)));
+    page.on("pageerror", (e) => console.log("[renderer pageerror]", String(e).slice(0, 400)));
+  }
 
   return {
     page,

@@ -525,6 +525,7 @@ Com o livro em modo **autônomo**, a IA grava direto os arquivos que escreve (se
 A **Central do Sistema** (Configurações → Centrais, ou **Ctrl+Shift+Y**) reúne as configurações do app, não do livro:
 
 - **Geral e Atualização:** versão instalada e se é a mais recente, atualização automática, espaço ocupado (livros, histórico, dados do app) e **desinstalar** (com opção de exportar os livros antes; os livros ficam em Documentos/Astra Writer e continuam lá).
+- **Idioma do app:** em **Central do Sistema → Geral → Idioma da interface** escolha **Português (Brasil)** ou **English**; a tela recarrega. Na primeira abertura o app usa o idioma do computador. Os livros novos nascem com os modelos (esboço, análise, fichas, perfis) e o Manual de Uso no idioma escolhido; os livros que você já tem não são traduzidos. A IA responde no idioma em que você escreve.
 - **Aparência:** claro/escuro, temas de cores prontos (**Netuno**, **Terra**, **Saturno**, **Vênus** em tons pastel e **Pulsar**, synthwave rosa e azul) e **criar o seu** (cor por cor, para o modo claro e o escuro), e o **fundo do chat** (estrelas, nebulosa, órbitas ou cor sólida), cada um com suas cores.
 - **Acessibilidade:** tamanho da fonte do app, **modo noturno** (filtro amarelado em horário agendado) e **narrador** (botão com o ícone de alto-falante na barra do editor, com **pausar** e **parar** durante a leitura; passe o mouse para ver a dica).
 - **Editor:** tamanho da letra e fonte do texto e dos títulos, com uma **pré-visualização ao vivo** em destaque no topo.

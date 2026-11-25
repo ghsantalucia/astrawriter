@@ -21,5 +21,10 @@
   "Execute agora a skill “{title}” seguindo as instruções abaixo ao pé da letra. Use somente as tools disponíveis.": "Run the skill “{title}” now, following the instructions below to the letter. Use only the available tools.",
   "Instruções da skill": "Skill instructions",
   "Arquivo novo descartado: link removido do índice": "New file discarded: link removed from the index",
-  "Sem título": "Untitled"
+  "Sem título": "Untitled",
+  "Netuno": "Neptune",
+  "Terra": "Earth",
+  "Saturno": "Saturn",
+  "Vênus": "Venus",
+  "Assistente básico (sem IA)": "Basic assistant (no AI)"
 }

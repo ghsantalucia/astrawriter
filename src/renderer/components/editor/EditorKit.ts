@@ -11,6 +11,7 @@ import Editor from "@toast-ui/editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "@toast-ui/editor/dist/theme/toastui-editor-dark.css";
 
+import Handlebars from "handlebars";
 import panelsTpl from "./templates/editorPanels.hbs?raw";
 import { searchLinkTargets, existingPathSet } from "../../utils/bookFiles.js";
 import {
@@ -86,7 +87,7 @@ export class EditorKit {
     this.pm = null;
     this.existingCache = { files: null, set: new Set() };
 
-    host.insertAdjacentHTML("beforeend", panelsTpl);
+    host.insertAdjacentHTML("beforeend", Handlebars.compile(panelsTpl)({}));
     const panel = (name) => host.querySelector(`[data-panel="${name}"]`);
 
     this.editor = new Editor({

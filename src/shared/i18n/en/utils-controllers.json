@@ -242,7 +242,7 @@
   "Não foi possível carregar a versão: {error}": "Could not load the version: {error}",
   "erro desconhecido": "unknown error",
   "Restaurar versão — {title}": "Restore version — {title}",
-  "Versão original (antes do primeiro registro)": "Original version (before the first entry)",
+  "Versão original (antes do primeiro registro)": "Original version (before the first record)",
   "Versão de {time}": "Version from {time}",
   "Restaurar esta versão": "Restore this version",
   "Não foi possível restaurar: {error}": "Could not restore: {error}",

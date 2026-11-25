@@ -37,7 +37,7 @@
   "Caminho inválido": "Invalid path",
   "Não foi possível ler o arquivo temporário.": "Could not read the draft file.",
   "Informe um nome para a pasta.": "Enter a name for the folder.",
-  "Não é permitido criar pastas neste local.": "Folders cannot be created in this location.",
+  "Não é permitido criar pastas neste local.": "Folders cannot be created here.",
   "Falha ao criar a pasta.": "Failed to create the folder.",
   "Esta pasta não pode ser renomeada.": "This folder cannot be renamed.",
   "Falha ao salvar a pasta.": "Failed to save the folder.",

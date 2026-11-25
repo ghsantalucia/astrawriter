@@ -120,6 +120,15 @@ function localized(skill) {
   return { ...skill, title: en.title, description: en.description, details: en.details, triggers: en.triggers, tags: en.tags, inputs: en.inputs, body: en.body };
 }
 
+/**
+ * Versão da skill no idioma do app (as do app e do catálogo que o usuário não editou; em português devolve a própria skill).
+ * @param {Object} skill - Skill (da biblioteca, do app ou do catálogo).
+ * @returns {Object}
+ */
+export function localizeSkill(skill) {
+  return skill ? localized(skill) : skill;
+}
+
 /** Skills instaladas na biblioteca do usuário (todas as que a IA enxerga), pelo nome. */
 let library = new Map();
 

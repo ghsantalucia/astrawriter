@@ -4,11 +4,12 @@
  */
 
 import Handlebars from "handlebars";
-import { setLanguage, t } from "../../shared/i18n.js";
+import { getLanguage, setLanguage, t } from "../../shared/i18n.js";
 import { loadMessages } from "../../shared/i18nMessages.js";
 
 loadMessages();
 setLanguage((window as any).electronAPI?.language);
+document.documentElement.lang = getLanguage() === "en" ? "en" : "pt-BR";
 
 /**
  * Helper de templates: `{{t "Salvar"}}` ou `{{t "Olá, {name}" name=usuario}}`.
