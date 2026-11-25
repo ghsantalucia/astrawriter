@@ -44,7 +44,7 @@ Arquivos gerados em `release/`:
 
 ## 3. Primeira abertura
 
-Ao abrir pela primeira vez, o app instala o livro **Manual de Uso** (uma única vez por usuário; se for apagado, não volta).
+Ao abrir pela primeira vez, o app instala o livro **Manual de Uso** (uma única vez por usuário; se for apagado, não volta; e se já houver livros na pasta de Documentos, ele não é criado).
 
 ## 4. Testar numa máquina limpa
 

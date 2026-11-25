@@ -112,3 +112,6 @@ release-build/
 /tests/reports
 /playwright-report
 /test-results
+
+# Configuração pessoal do editor
+.vscode/

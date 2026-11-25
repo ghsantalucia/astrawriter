@@ -1,7 +1,8 @@
 /**
  * @file Primeira abertura do app: instala o livro padrão "Manual de Uso" (modelo em `templates/manual`, gerado por
  * `scripts/build-manual.js`) na pasta de livros do usuário. Acontece uma única vez por usuário (um marcador na pasta de dados do
- * app); se o usuário apagar o manual, ele não volta. Em desenvolvimento não instala, para não mexer nos livros do projeto
+ * app); se o usuário apagar o manual, ele não volta. Se a pasta de livros já tem livros (ex.: reinstalação que manteve os
+ * Documentos), o manual não é criado: o app só registra o marcador e usa a pasta que encontrou. Em desenvolvimento não instala, para não mexer nos livros do projeto
  * (use `ASTRA_INSTALL_MANUAL=1` para testar).
  */
 
@@ -25,6 +26,19 @@ function nextBookFolder(dir) {
 }
 
 /**
+ * Indica se a pasta de livros já tem algum livro (qualquer subpasta).
+ * @param {string} dir - Pasta dos livros.
+ * @returns {boolean}
+ */
+function hasAnyBook(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).some((entry) => entry.isDirectory());
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Instala o Manual de Uso se ainda não foi instalado neste computador.
  * @returns {string|null} Pasta do livro criado, ou null se nada foi feito.
  */
@@ -32,6 +46,17 @@ export function installManualBook() {
   if (!app.isPackaged && !process.env.ASTRA_INSTALL_MANUAL) return null;
   const flag = path.join(app.getPath("userData"), "first-run.json");
   if (fs.existsSync(flag)) return null;
+
+  // Já existem livros neste computador: não cria o manual (e não tenta de novo nas próximas aberturas)
+  if (hasAnyBook(booksDir())) {
+    try {
+      fs.mkdirSync(app.getPath("userData"), { recursive: true });
+      fs.writeFileSync(flag, JSON.stringify({ manualInstalled: null, skipped: "existing-books", opened: true }), "utf8");
+    } catch {
+      // sem o marcador: a checagem acima se repete na próxima abertura, com o mesmo resultado
+    }
+    return null;
+  }
 
   // `templatesDir()` aponta para templates/book; o manual fica ao lado
   const source = path.join(path.dirname(templatesDir()), "manual");

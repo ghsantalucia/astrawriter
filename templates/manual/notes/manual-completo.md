@@ -545,7 +545,7 @@ Ao abrir o app, uma **rotina de inicialização** confere se há versão nova e 
 
 ### Templates
 
-Todo arquivo novo nasce de um template (fichas de personagem, ambiente, conceito e evento; esboço e análise do capítulo). Há três **perfis de template**: **Assistente** (perguntas que estimulam a escrita), **Co-autor** (informações que a IA aproveita, como amostras de diálogo) e **Autônomo** (instruções claras para a IA). Só o **corpo** muda de perfil; os campos (variáveis) são sempre os mesmos. Ao criar um livro o perfil é escolhido pelo modo da IA, mas você pode trocar; depois, na Central do Livro. Em **Central do Sistema → Templates** você edita cada template numa janela com o editor, **duplica** um perfil para criar o seu e **restaura** o original (editar nunca altera os arquivos do app).
+Todo arquivo novo nasce de um template (fichas de personagem, ambiente, conceito e evento; esboço e análise do capítulo). Há três **perfis de template**: **Assistente** (perguntas que estimulam a escrita), **Co-autor** (informações que a IA aproveita, como amostras de diálogo) e **Autônomo** (instruções claras para a IA). Só o **corpo** muda de perfil; os campos (variáveis) são sempre os mesmos. Ao criar um livro o perfil é escolhido pelo modo da IA, mas você pode trocar; depois, na Central do Livro (aba **Dados do livro**, em **Perfil dos templates**, onde o botão **Editar os templates** leva direto à Central do Sistema → Templates). Em **Central do Sistema → Templates** você edita cada template numa janela com o editor, **duplica** um perfil para criar o seu e **restaura** o original (editar nunca altera os arquivos do app).
 
 ### Skills
 

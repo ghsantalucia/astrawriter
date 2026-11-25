@@ -551,6 +551,8 @@ describe("IPC: primeira abertura (Manual de Uso)", () => {
     const { installManualBook } = await import("../../src/main/first-run");
     const flag = path.join(userData, "first-run.json");
     fs.rmSync(flag, { force: true });
+    // pasta de livros vazia (primeira abertura de verdade)
+    for (const name of fs.readdirSync(booksRoot)) fs.rmSync(path.join(booksRoot, name), { recursive: true, force: true });
     delete process.env.ASTRA_INSTALL_MANUAL;
     expect(installManualBook()).toBeNull();
 
@@ -569,6 +571,23 @@ describe("IPC: primeira abertura (Manual de Uso)", () => {
       // se o usuário apagar o manual, ele não volta
       fs.rmSync(target, { recursive: true, force: true });
       expect(installManualBook()).toBeNull();
+    } finally {
+      delete process.env.ASTRA_INSTALL_MANUAL;
+    }
+  });
+
+  it("se a pasta de livros já tem livros (marcador perdido), não cria o manual e registra o marcador", async () => {
+    const { installManualBook } = await import("../../src/main/first-run");
+    const flag = path.join(userData, "first-run.json");
+    fs.rmSync(flag, { force: true });
+    for (const name of fs.readdirSync(booksRoot)) fs.rmSync(path.join(booksRoot, name), { recursive: true, force: true });
+    fs.mkdirSync(path.join(booksRoot, "book_001"), { recursive: true });
+    process.env.ASTRA_INSTALL_MANUAL = "1";
+    try {
+      expect(installManualBook()).toBeNull();
+      expect(fs.readdirSync(booksRoot)).toEqual(["book_001"]); // nenhum livro novo
+      expect(fs.existsSync(flag)).toBe(true); // não tenta de novo
+      expect(await invoke("take-first-run-book")).toBeNull(); // e não abre nada
     } finally {
       delete process.env.ASTRA_INSTALL_MANUAL;
     }
