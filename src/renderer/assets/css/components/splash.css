@@ -1,0 +1,184 @@
+/* ==========================================================================
+   TELA DE ABERTURA "Per Aspera Ad / Astra"
+   Cobre a área abaixo da barra de título (que permanece visível). Escura: fundo da
+   barra e letras brancas; clara: fundo da barra (#ece9f6) e letras chumbo (#23232b).
+
+   Sequência (controlada por core/splash.js através das classes .stage-per, .stage-astra e .leaving):
+     1. tela vazia até o app ficar pronto;  2. "Per Aspera Ad";  3. "Astra" + estrela cadente;
+     4. texto parado por alguns instantes;  5. fade-out.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Foglihten";
+  src: url("../../fonts/FoglihtenNo07calt.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+#splash {
+  --splash-bg: #0e0f17;
+  --splash-ink: #ffffff;
+  /* Fontes das duas linhas (trocar aqui muda a tela inteira) */
+  --splash-font-per:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --splash-font-astra: "Foglihten", Georgia, "Times New Roman", serif;
+  position: fixed;
+  top: 30px; /* altura da barra de título */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--splash-bg);
+  color: var(--splash-ink);
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.51s ease;
+}
+
+#splash.light {
+  --splash-bg: #ece9f6; /* mesma cor da barra de título no tema claro */
+  --splash-ink: #2c2c37; /* chumbo: cinza bem escuro */
+}
+
+#splash.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-title {
+  position: relative;
+  /* sobe o conjunto: o centro óptico fica acima do centro geométrico */
+  margin-bottom: 14vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  user-select: none;
+}
+
+/* Versão do app: discreta, no rodapé da tela */
+.splash-version {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  user-select: none;
+}
+
+#splash.stage-per .splash-version {
+  opacity: 0.45;
+}
+
+/* O reset global define a fonte em `*`: cada linha sobrescreve a sua */
+.splash-line {
+  display: block;
+  opacity: 0;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+}
+
+/* "Per Aspera Ad": linha menor, sem maiúsculas forçadas */
+.splash-per,
+.splash-per * {
+  font-family: var(--splash-font-per);
+}
+
+.splash-per {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* "Astra": o título, grande e fino */
+.splash-astra,
+.splash-astra * {
+  font-family: var(--splash-font-astra);
+}
+
+.splash-astra {
+  font-size: 7rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+}
+
+#splash.stage-per .splash-per {
+  animation: splash-per-in 0.85s ease-out forwards;
+  animation-play-state: running;
+}
+
+#splash.stage-astra .splash-astra {
+  animation: splash-astra-in 1.19s ease-out forwards;
+  animation-play-state: running;
+}
+
+/* Estrela cadente cruzando a tela junto da entrada de "Astra" */
+.splash-comet {
+  position: absolute;
+  /* Nasce no alto (a ~24% da largura) e desce na diagonal para a direita, cruzando o texto (fica por cima dele) */
+  top: -2%;
+  left: 24%;
+  width: 230px;
+  height: 4px;
+  z-index: 2;
+  /* Traço chapado, da mesma cor das letras: só o movimento diz que é uma estrela cadente */
+  background: var(--splash-ink);
+  border-radius: 4px;
+  opacity: 0;
+  transform: rotate(48deg);
+  transform-origin: 100% 50%;
+  animation-play-state: paused;
+}
+
+#splash.stage-astra .splash-comet {
+  animation: splash-comet 0.85s ease-out forwards;
+  animation-play-state: running;
+}
+
+/* Entrada simples: surge com fade descendo de cima para baixo */
+@keyframes splash-per-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-astra-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-comet {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(48deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(58vw, 64vw) rotate(48deg);
+  }
+}

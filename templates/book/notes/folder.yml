@@ -5,3 +5,5 @@ aiWrite: false
 advanced: false
 title: "Anotações"
 description: "Pasta de anotações livres do autor humano."
+userDelete: false
+userRename: false

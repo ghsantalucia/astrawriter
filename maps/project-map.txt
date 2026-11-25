@@ -1,0 +1,482 @@
+Estrutura do Projeto com Descrições:
+.
+├── .gitignore
+├── [.vite]
+├── [.vscode]
+│   └── settings.json
+├── [books]
+├── debug.log
+├── [docs]
+│   ├── [.personal]
+│   │   ├── architeture.md
+│   │   ├── checklist-tarefas.md
+│   │   ├── Checklist.md
+│   │   ├── claude-tasks.md
+│   │   ├── fluxo-events-controllers.md
+│   │   ├── metadata-spec.md
+│   │   ├── project-map.md
+│   │   ├── roadmap.md
+│   │   ├── system.md
+│   │   └── ui-controls.md
+│   ├── [ai]
+│   │   ├── ai-tools.md
+│   │   ├── features-ia.md
+│   │   ├── fluxos-da-ia.md
+│   │   ├── modos-da-ia.md
+│   │   └── perfis-de-uso-da-ia.md
+│   ├── [code]
+│   │   ├── Component.md
+│   │   ├── Event UI.md
+│   │   └── Padrão de Eventos.md
+│   ├── [features]
+│   │   ├── index.md
+│   │   ├── skills.md
+│   │   └── _modelo.md
+│   ├── guia-de-instalacao.md
+│   ├── guia-do-usuario.md
+│   └── project.md
+├── electron-builder.yml
+├── forge.config.js
+├── jsdoc.json
+├── LICENCE
+├── [maps]
+│   ├── code-map.txt
+│   ├── event-map.txt
+│   └── project-map.txt
+├── package-lock.json
+├── package.json
+├── [public]
+│   ├── icon.ico
+│   └── icon.png
+├── README.md
+├── [scripts]
+│   ├── audit-package.js — scripts/audit-package.js
+│   ├── build-manual.js — scripts/build-manual.js
+│   ├── code-map.js — scripts/code-map.js
+│   ├── create-component.js
+│   ├── event-map.js
+│   ├── [manual-src]
+│   │   └── comece-por-aqui.md
+│   ├── project-map.js — ou @description no início do arquivo
+│   ├── publish-release.js — scripts/publish-release.js
+│   ├── release.js — scripts/release.js
+│   └── test-puter.js — scripts/test-puter.js
+├── [src]
+│   ├── [main]
+│   │   ├── ai-error-log.ts — Log persistente dos erros retornados pela IA (`<dados do usuário>/ai/errors.log`).
+│   │   ├── book-import-file.ts — Importação de um livro a partir de um arquivo de texto (Word `.docx`, LibreOffice `.odt`, PDF, `.txt` ou `.md`).
+│   │   ├── book-import.ts — Importação de um livro a partir de um .zip (o zip do "Projeto completo" gerado pela exportação do app). O zip é
+│   │   ├── book-migrations.ts — Migrações de estrutura dos livros já existentes em disco, executadas ao listar os livros.
+│   │   ├── book-scan.ts — Varredura incremental de um livro para a Central de Revisões: lê os arquivos Markdown (o rascunho `.md.temp`
+│   │   ├── book-search.ts — Busca de texto nos arquivos Markdown de um livro (por título e por conteúdo), executada no processo principal
+│   │   ├── changelog.ts — Changelog de cada livro: registra tudo o que é criado, alterado, excluído, restaurado (e lido pela IA) em
+│   │   ├── export.ts — Exportação do arquivo aberto no editor para Markdown, Word (.docx) e PDF. O PDF é gerado pelo próprio Chromium do
+│   │   ├── file-watcher.ts — Monitora o sistema de arquivos utilizando a biblioteca Chokidar na pasta /books, disparando eventos via IPC para o processo de renderização sempre que houver alterações em arquivos de configuração, markdowns ou pastas de livros.
+│   │   ├── first-run.ts — Primeira abertura do app: instala o livro padrão "Manual de Uso" (modelo em `templates/manual`, gerado por
+│   │   ├── ipc-handlers.ts — Gerencia todos os canais de comunicação IPC (Inter-Process Communication) entre o processo de renderização e o processo principal do Electron (sistema de arquivos, diálogos e temas).
+│   │   ├── main.ts — Ponto de entrada do Electron, gerencia a janela principal e manipuladores IPC do sistema de arquivos.
+│   │   ├── paths.ts — Locais das pastas do app. Em desenvolvimento (`npm start`) tudo fica na raiz do projeto; no app instalado a pasta
+│   │   ├── puter.ts — Puter pela biblioteca oficial (`@heyputer/puter.js`, versão Node). O token fica só aqui, no processo principal; a
+│   │   ├── skills-store.ts — Armazenamento das skills do usuário. Skills são compartilhadas entre os livros: ficam na pasta de dados do usuário
+│   │   ├── spellchecker.ts — Verificação ortográfica por contagem (rodapé do editor) com Hunspell em WebAssembly (hunspell-asm) e os
+│   │   ├── system-tools.ts — Ferramentas do sistema usadas pela Central do Sistema: versão e verificação de atualização (releases do GitHub),
+│   │   └── templates-store.ts — Armazenamento dos perfis de template. Os perfis que vêm com o app ficam em `templates/profiles/<perfil>/<tipo>.md`
+│   ├── [preload]
+│   │   └── preload.ts — Expõe a API segura via IPC para comunicação entre o processo de renderização e o Node.js.
+│   ├── [renderer]
+│   │   ├── [ai]
+│   │   │   ├── abort.ts — Interrupção da IA: o sinal de cancelamento da resposta em andamento, compartilhado pelos provedores (que o passam ao
+│   │   │   ├── aiGateway.ts — Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.
+│   │   │   ├── aiTools.ts — Define as ferramentas, funções auxiliares e utilitários integrados para uso dos modelos de Inteligência Artificial.
+│   │   │   ├── apiError.ts — Erros das APIs de IA: classe com dados estruturados (status, detalhes, tempo de espera) e utilitários para
+│   │   │   ├── compact.ts — "Otimizar instruções": enxuga os textos de instrução que o app envia à IA (prompt de sistema, descrição das tools e
+│   │   │   ├── debugLog.ts — Registro de depuração das chamadas à IA (Central de IA > Depuração): o texto completo enviado (instruções do
+│   │   │   ├── profiles.ts — Perfis de uso da IA (como nas configurações de gráficos de um jogo): cada perfil define um conjunto de opções que
+│   │   │   ├── [prompts]
+│   │   │   │   ├── index.ts — Monta o prompt de sistema único, reutilizado por todos os provedores de IA.
+│   │   │   │   ├── systemPrompt.md
+│   │   │   │   └── systemPromptCompact.md
+│   │   │   ├── [providers]
+│   │   │   │   ├── [claude]
+│   │   │   │   │   ├── client.ts — Cliente HTTP da API da Anthropic.
+│   │   │   │   │   ├── config.ts — Constantes de conexão com a Messages API da Anthropic.
+│   │   │   │   │   ├── index.ts — Módulo do Provedor Claude (Anthropic).
+│   │   │   │   │   └── models.ts — Modelos do Claude oferecidos por padrão no select (a lista é atualizada pela API quando há chave).
+│   │   │   │   ├── [compat]
+│   │   │   │   │   └── index.ts — Provedor Compatível com OpenAI (API compatível com a OpenAI).
+│   │   │   │   ├── [gemini]
+│   │   │   │   │   ├── client.ts — Cliente HTTP da API Gemini (generateContent).
+│   │   │   │   │   ├── config.ts — Constantes de conexão com a API Gemini (Google AI).
+│   │   │   │   │   ├── index.ts — Módulo do Provedor Gemini (Google).
+│   │   │   │   │   └── models.ts — Modelos do Gemini oferecidos por padrão no select (a lista é atualizada pela API quando há chave).
+│   │   │   │   ├── [groq]
+│   │   │   │   │   └── index.ts — Provedor Groq (API compatível com a OpenAI).
+│   │   │   │   ├── index.ts — Catálogo dos provedores de IA disponíveis (usado para montar os selects das configurações).
+│   │   │   │   ├── [mock]
+│   │   │   │   │   ├── index.ts — Assistente embutido do Astra (provedor interno "mock"). Não é uma IA: não chama nenhuma API e responde de forma
+│   │   │   │   │   ├── models.ts — Modelo único do provedor Mock (a janela de contexto é fictícia, para testar o indicador de tokens).
+│   │   │   │   │   └── quotes.ts — Citações de grandes escritores, curtas e inspiracionais. O assistente embutido do Astra abre cada sessão do chat com
+│   │   │   │   ├── [ollama]
+│   │   │   │   │   └── index.ts — Provedor Ollama (modelos locais). Usa a API nativa (`/api/chat`), que permite definir o tamanho do contexto —
+│   │   │   │   ├── [openai]
+│   │   │   │   │   └── index.ts — Provedor ChatGPT (OpenAI) (API compatível com a OpenAI).
+│   │   │   │   ├── openaiCompat.ts — Cliente e provedor genéricos para APIs compatíveis com a OpenAI (`/chat/completions`): ChatGPT, Groq, Puter, LM
+│   │   │   │   └── [puter]
+│   │   │   │       └── index.ts — Provedor Puter, pela biblioteca oficial `puter.js` (que roda no processo principal; o token não sai de lá). A conversa
+│   │   │   ├── simulatedTools.ts — Simulação de tool calling para modelos que não têm suporte nativo (muitos modelos locais). O sistema ensina o
+│   │   │   ├── [skills]
+│   │   │   │   ├── capitulo-a-partir-do-esboco.md
+│   │   │   │   ├── conexoes-do-livro.md
+│   │   │   │   ├── contexto-do-evento.md
+│   │   │   │   ├── corrigir-pendencias.md
+│   │   │   │   ├── criar-fichas-de-ambientes.md
+│   │   │   │   ├── criar-fichas-de-conceitos.md
+│   │   │   │   ├── criar-fichas-de-personagens.md
+│   │   │   │   ├── eventos-do-manuscrito.md
+│   │   │   │   ├── index.ts — Catálogo de skills: pacotes de instruções (texto + metadados) que a IA executa usando as tools.
+│   │   │   │   ├── [market]
+│   │   │   │   │   ├── avaliar-ritmo-da-historia.md
+│   │   │   │   │   ├── reduzir-trechos-prolixos.md
+│   │   │   │   │   ├── reescrever-no-estilo-de-um-autor.md
+│   │   │   │   │   ├── revisar-e-padronizar-escrita.md
+│   │   │   │   │   └── sugerir-fichas-ausentes.md
+│   │   │   │   ├── rascunho-de-capitulo-pela-sinopse.md
+│   │   │   │   ├── remover-item-da-historia.md
+│   │   │   │   └── vincular-evento-criado.md
+│   │   │   ├── toolLoop.ts — Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.
+│   │   │   ├── [tools]
+│   │   │   │   ├── bookTools.ts — Ferramentas de leitura e edição dos arquivos .md do livro, sujeitas às permissões aiRead/aiWrite.
+│   │   │   │   ├── chatTools.ts — Ferramenta que permite à IA anexar botões à sua resposta no chat.
+│   │   │   │   ├── creationTools.ts — Ferramentas de criação guiada (livro, capítulo, ficha e anotação) para a IA.
+│   │   │   │   ├── digestTools.ts — Ferramentas da IA que consultam os digests (arquivos-sombra de metadados em `.system/digests/`). Servem para a IA
+│   │   │   │   ├── eventTools.ts — Ferramentas da IA para eventos e linha do tempo. As fichas de eventos (`assets/events/`) são criadas pelas tools de
+│   │   │   │   ├── historyTools.ts — Ferramentas de consulta do histórico (versões dos arquivos, changelog do livro e log de erros da IA) e de
+│   │   │   │   ├── issueTools.ts — Ferramentas da IA para a Central de Revisões: registrar o que ela encontrou (contradições, problemas
+│   │   │   │   ├── permissions.ts — Resolução de arquivos do livro e verificação de permissões da IA (aiRead / aiWrite).
+│   │   │   │   ├── projectTools.ts — Ferramentas da IA sobre o projeto e o app: alternar a exibição dos arquivos avançados, consultar o
+│   │   │   │   ├── registry.ts — Registro de ferramentas (tool calling) independente de provedor.
+│   │   │   │   ├── skillTools.ts — Ferramenta que carrega skills (instruções) sob demanda.
+│   │   │   │   ├── structureTools.ts — Ferramentas de estrutura do livro para a IA: criar pastas, mover e excluir arquivos e pastas. Fazem o mesmo
+│   │   │   │   ├── systemTools.ts — Tools do app para a IA: abrir telas e arquivos, conhecer e alterar configurações, consultar uso e ajuda, buscar no
+│   │   │   │   └── variableTools.ts — Ferramentas da IA para os dados (variáveis do frontmatter) das fichas e para o link automático de um arquivo.
+│   │   │   ├── toolTiers.ts — Quantas tools vão para o modelo a cada pedido, definido pelo perfil de uso da IA (`toolsMode`). As definições das
+│   │   │   └── usageTracker.ts — Contador local de uso diário da IA, por provedor e modelo.
+│   │   ├── app.ts — Ponto de entrada do frontend (Renderer), responsável por inicializar o container principal da aplicação.
+│   │   ├── [assets]
+│   │   │   ├── [css]
+│   │   │   │   ├── [base]
+│   │   │   │   │   ├── global.css
+│   │   │   │   │   ├── layout.css
+│   │   │   │   │   ├── reset.css
+│   │   │   │   │   └── variables.css
+│   │   │   │   ├── [components]
+│   │   │   │   │   ├── buttons.css
+│   │   │   │   │   ├── splash.css
+│   │   │   │   │   ├── switch.css
+│   │   │   │   │   ├── tags.css
+│   │   │   │   │   └── tooltip.css
+│   │   │   │   └── main.css
+│   │   │   └── [fonts]
+│   │   │       ├── FoglihtenNo07calt.otf
+│   │   │       └── OFL_License.txt
+│   │   ├── [components]
+│   │   │   ├── [Central]
+│   │   │   │   ├── CentralComponent.ts — Componente "Central": janela grande com abas laterais (categorias), cabeçalho com o X e corpo com subtítulo e
+│   │   │   │   ├── [panels]
+│   │   │   │   │   ├── aiPanel.ts — Central de IA: modelo ativo, fallback de modelos, relatório de uso, depuração do que é enviado e recebido (com as
+│   │   │   │   │   ├── bookPanel.ts — Central do Livro: dados do livro (nome, modo da IA), visão geral e exclusão. Os dados ficam no `config.json` do livro.
+│   │   │   │   │   ├── issuesPanel.ts — Central de Revisões: página inicial (painel com números, mais graves, correção pela IA, tipos dispensados e
+│   │   │   │   │   ├── panelKit.ts — Utilitários compartilhados pelas páginas das centrais (Revisões, Livro e IA): montagem do HTML com delegação de
+│   │   │   │   │   ├── [system]
+│   │   │   │   │   │   ├── accessibility.ts — Abas "Acessibilidade" (tamanho da fonte do app, modo noturno e narrador) e "Editor" (tamanho e fontes do texto)
+│   │   │   │   │   │   ├── appearance.ts — Aba "Aparência" da Central do Sistema: tema claro/escuro, temas de cores (predefinidos e do usuário, com editor
+│   │   │   │   │   │   ├── controls.ts — Controles compartilhados pelas abas da Central do Sistema: uma linha de configuração para cada tipo de valor
+│   │   │   │   │   │   ├── shortcuts.ts — Aba "Atalhos" da Central do Sistema: lista de todos os atalhos, personalização dos que podem ser alterados e
+│   │   │   │   │   │   ├── skillsTab.ts — Aba "Skills" da Central de IA: a biblioteca do usuário ("Minhas skills"), o catálogo ("Loja", por enquanto
+│   │   │   │   │   │   └── templates.ts — Aba "Templates" da Central do Sistema: os perfis de template (assistente, co-autor, autônomo e os criados pelo
+│   │   │   │   │   └── systemPanel.ts — Central do Sistema: configurações do app (não do livro): geral, atualização, aparência, acessibilidade, editor,
+│   │   │   │   ├── panelStyles.css
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Chat]
+│   │   │   │   ├── animations.ts — Gerencia as animações da interface do chat de IA
+│   │   │   │   ├── ChatComponent.ts — Componente responsável pela renderização estrutural do chat do assistente de IA
+│   │   │   │   ├── nebula.ts — Plano de fundo animado "Nebula" (WebGL, sem dependências) usado no chat de IA no tema claro.
+│   │   │   │   ├── orbits.ts — Plano de fundo animado "Órbitas" do chat: vetorial (só contorno), sem dependências. Planetas com luas em órbita,
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── dateDivider.hbs
+│   │   │   │       ├── main.hbs
+│   │   │   │       ├── message.hbs
+│   │   │   │       └── startMarker.hbs
+│   │   │   ├── Component.ts
+│   │   │   ├── [Dropdown]
+│   │   │   │   ├── DropdownComponent.ts — Componente de dropdown (lista suspensa) personalizado e reutilizável.
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Editor]
+│   │   │   │   ├── EditorComponent.ts — Componente responsável pela renderização estrutural do editor markdown e manipulação de eventos via uiBus.
+│   │   │   │   ├── EditorKit.ts — Fábrica do editor Markdown do app. TODA instância de editor (o principal e o da revisão de alterações da IA)
+│   │   │   │   ├── editorTools.ts — Ferramentas do editor que operam diretamente no documento do ProseMirror (usado pelo Toast UI Editor):
+│   │   │   │   ├── FindReplacePanel.ts — Painel flutuante de "procurar e substituir" do editor (aberto pelo botão da toolbar ou por Ctrl+F).
+│   │   │   │   ├── LinkPopup.ts — Caixa de inserção de link do editor: aba "Arquivo do livro" (busca por nome, exibindo o caminho para evitar
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── tagInput.ts — Campo de tags da caixa "Dados do arquivo": cada palavra digitada vira uma tag colorida ao digitar vírgula ou
+│   │   │   │   ├── [templates]
+│   │   │   │   │   ├── editorPanels.hbs
+│   │   │   │   │   └── main.hbs
+│   │   │   │   ├── WritingMenu.ts — Menu de contexto dos problemas de escrita (palavra desconhecida ou repetida): sugestões, ignorar e adicionar ao
+│   │   │   │   └── writingProblems.ts — Localiza no documento (ProseMirror) os problemas de escrita mostrados no rodapé: palavras que o dicionário não
+│   │   │   ├── [EditorOverlay]
+│   │   │   │   ├── EditorOverlayComponent.ts — Componente responsável pela renderização estrutural do editor overlay
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Explorer]
+│   │   │   │   ├── ExplorerComponent.ts — Componente responsável pela renderização estrutural e lógica do explorer de arquivos.
+│   │   │   │   ├── keyboardNav.ts — Navegação do explorer pelo teclado. Depois de clicar no explorer:
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── chapterNode.hbs
+│   │   │   │       ├── fileNode.hbs
+│   │   │   │       ├── folderNode.hbs
+│   │   │   │       └── main.hbs
+│   │   │   ├── index.ts — Barrel para exportação centralizada de todos os componentes de interface.
+│   │   │   ├── [Modal]
+│   │   │   │   ├── ModalComponent.ts — Classe gerenciadora de modais em pilha (Stack).
+│   │   │   │   ├── ModalManager.ts — Classe gerenciadora da pilha de modais dinâmicos da aplicação.
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── templateEditor.css
+│   │   │   │   └── [templates]
+│   │   │   │       ├── aiReview.hbs
+│   │   │   │       ├── changelogRows.hbs
+│   │   │   │       ├── changelogViewer.hbs
+│   │   │   │       ├── history.hbs
+│   │   │   │       ├── historyCompare.hbs
+│   │   │   │       ├── main.hbs
+│   │   │   │       ├── syncForm.hbs
+│   │   │   │       └── templateEditor.hbs
+│   │   │   ├── [Settings]
+│   │   │   │   ├── SettingsComponent.ts — Componente responsável pela renderização estrutural da drawer de configurações
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Sidebar]
+│   │   │   │   ├── SidebarComponent.ts — Componente responsável pela renderização estrutural da barra lateral (Sidebar).
+│   │   │   │   ├── styles.css
+│   │   │   │   └── [templates]
+│   │   │   │       └── main.hbs
+│   │   │   ├── [Toast]
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── [templates]
+│   │   │   │   │   └── main.hbs
+│   │   │   │   └── ToastComponent.ts — Componente responsável pela renderização estrutural do toast.
+│   │   │   ├── [Toolbar]
+│   │   │   │   ├── animations.ts — Gerencia as animações da interface do usuário
+│   │   │   │   ├── styles.css
+│   │   │   │   ├── [templates]
+│   │   │   │   │   └── main.hbs
+│   │   │   │   └── ToolbarComponent.ts — Componente responsável pela estrutura e lógica reativa da Barra de Ferramentas (Toolbar).
+│   │   │   └── [Wizard]
+│   │   │       ├── styles.css
+│   │   │       ├── [templates]
+│   │   │       │   └── main.hbs
+│   │   │       └── WizardComponent.ts — Componente de formulário em passos (wizard). Exibe um passo por vez, guarda as respostas ao navegar
+│   │   ├── [controllers]
+│   │   │   ├── domainController.ts — Gerencia e despacha os eventos de negócio e domínio vindos do domainBus para os handlers específicos.
+│   │   │   ├── [handlers]
+│   │   │   │   ├── aiReviewHandler.ts — Handler da janela de revisão das alterações da IA: compara a versão antiga (estática, Markdown interpretado)
+│   │   │   │   ├── bookHandler.ts — Handler dos eventos relacionados ao livro/projeto
+│   │   │   │   ├── chapterHandler.ts
+│   │   │   │   ├── characterHandler.ts
+│   │   │   │   ├── chatHandler.ts — Handler para orquestração de eventos e mensagens do chat.
+│   │   │   │   ├── configHandler.ts — Handler para gerenciar alterações no arquivo config.json dos projetos.
+│   │   │   │   ├── creationHandler.ts — Handler do fluxo de criação (livro, capítulo, ficha e anotação): abre o wizard, executa a criação
+│   │   │   │   ├── deleteHandler.ts — Handler da exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros a partir do explorer:
+│   │   │   │   ├── exportHandler.ts — Exportação do arquivo aberto no editor (Markdown, Word ou PDF) pelo botão "Exportar" da toolbar.
+│   │   │   │   ├── fileHandler.ts — Handler responsável pelas ações de sincronização e gerenciamento de arquivos .temp.
+│   │   │   │   ├── folderHandler.ts — Handler das pastas do usuário (criar, renomear, excluir) e da movimentação de arquivos por arrastar e soltar.
+│   │   │   │   ├── historyHandler.ts — Handler do histórico de versões de um arquivo (botão "Histórico" da toolbar): lista as versões registradas no
+│   │   │   │   ├── importFileHandler.ts — Importar livro de um arquivo (Word, LibreOffice, PDF, texto): o processo principal extrai título e capítulos; aqui o autor
+│   │   │   │   ├── linkHandler.ts — Handler do "Linkar termos": procura, no texto do arquivo aberto, os nomes e apelidos das fichas do livro e
+│   │   │   │   ├── logViewerHandler.ts — Lista do changelog do livro (corrida, com rolagem infinita, do mais recente ao mais antigo), usada pela Central do Livro.
+│   │   │   │   ├── searchHandler.ts — Handler da pesquisa de arquivos do explorer: aplica debounce, consulta o serviço e publica os resultados.
+│   │   │   │   ├── templateEditorHandler.ts — Janela de edição de templates: uma janela grande com uma instância do editor do app e a lista de todos os templates
+│   │   │   │   └── variablesHandler.ts — Handler da edição dos dados (título e variáveis do frontmatter `data`) de um arquivo: pelo modal (aberto pelo
+│   │   │   └── uiController.ts — Gerencia e despacha os eventos de interface (UI) vindos do uiBus para os handlers visuais.
+│   │   ├── [core]
+│   │   │   ├── appContainer.ts — Contém a classe AppContainer, responsável por inicializar, instanciar e gerenciar
+│   │   │   ├── splash.ts — Tela de abertura: fica vazia até o app estar pronto e então toca a sequência "Per Aspera Ad" → "Astra" + estrela
+│   │   │   ├── state.ts — Gerencia o estado global compartilhado e define os valores padrão para os metadados e permissões dos arquivos.
+│   │   │   ├── themeManager.ts — Gerencia a alternância e a persistência dos temas claro/escuro na aplicação e no editor de texto.
+│   │   │   └── tooltip.ts — Tooltips personalizadas para todo o app. Qualquer elemento com o atributo HTML `title` (ou `data-tooltip`) ganha uma
+│   │   ├── [events]
+│   │   │   ├── domainBus.ts — Barramento de eventos (Pub-Sub) dedicado à camada de negócio da aplicação, processando atualizações de dados vindas do sistema de arquivos e regras do fluxo literário.
+│   │   │   ├── uiBus.ts — scripts/renderer/events/eventUi.js
+│   │   │   └── uiDeclarativeEvents.ts
+│   │   ├── index.html
+│   │   ├── renderer.ts
+│   │   ├── [review]
+│   │   │   ├── digest.ts — Digests: o "arquivo-sombra" de metadados de cada arquivo do livro, em `.system/digests/`. A IA lê cada arquivo UMA vez
+│   │   │   ├── issueCheckers.ts — Verificadores determinísticos (sem IA) da Central de Revisões: links internos quebrados, palavras repetidas e
+│   │   │   ├── issueTypes.ts — Catálogo das categorias e dos tipos de issue da Central de Revisões.
+│   │   │   ├── reviewStore.ts — Persistência da Central de Revisões. Tudo fica dentro da pasta do livro, em `.system/review/` (e os digests em
+│   │   │   └── timeline.ts — Lógica (sem IA) da linha do tempo a partir das fichas de eventos (`assets/events/`). Cada evento tem um momento
+│   │   ├── [services]
+│   │   │   ├── aiChangeService.ts — Arquivos "alterados pela IA" (modo autônomo): como a IA grava direto, sem a janela de revisão, cada arquivo que
+│   │   │   ├── aiService.ts — Serviço responsável pela comunicação, intermediação com o gateway de IA e gestão dos logs de chat do projeto.
+│   │   │   ├── analysisService.ts — Análise do livro pela IA, pensada para gastar poucos tokens:
+│   │   │   ├── appearanceService.ts — Aplica as configurações de aparência e acessibilidade do app: zoom (tamanho da fonte do app), tema de cores,
+│   │   │   ├── backupService.ts — Backup dos livros em uma pasta escolhida (um zip por livro, com os rascunhos não sincronizados). A pasta pode ser a
+│   │   │   ├── bookService.ts — Serviço responsável por gerenciar a lista de livros, dados de configuração por projeto e verificação de travas da IA.
+│   │   │   ├── changelogService.ts — Serviço do changelog: identifica QUEM realizou uma ação (usuário ou IA, com provedor e modelo) e registra
+│   │   │   ├── creationService.ts — Serviço responsável pela criação de livros, capítulos, fichas (personagens, ambientes, sistemas) e anotações.
+│   │   │   ├── deletionService.ts — Serviço de exclusão de arquivos (anotações e fichas do mundo) e de capítulos inteiros.
+│   │   │   ├── fileService.ts — Serviço responsável por centralizar as operações de CRUD de arquivos (leitura, escrita, restauração e resolução de caminhos), servindo como ponte entre o Editor e o Sistema de Arquivos.
+│   │   │   ├── folderService.ts — Serviço das pastas do usuário e da movimentação de arquivos entre pastas.
+│   │   │   ├── indexService.ts — Mantém os `index.md` do livro em dia: acrescenta o link de uma ficha criada e remove os links de arquivos
+│   │   │   ├── issueService.ts — Serviço da Central de Revisões: mantém a lista de issues do livro (problemas, inconsistências e sugestões),
+│   │   │   ├── narratorService.ts — Narrador: lê o arquivo aberto no editor em voz alta com as vozes do sistema (síntese de voz do Chromium, sem
+│   │   │   ├── productivityService.ts — Cronômetro de produtividade (entre as abas e a busca do explorer): conta o tempo em que o autor está de fato no
+│   │   │   ├── searchService.ts — Serviço de pesquisa nos arquivos do livro (por título e por conteúdo).
+│   │   │   ├── serviceManager.ts — Agregador central de serviços (Facade). Instancia e gerencia o acesso
+│   │   │   ├── shortcutService.ts — Atalhos de teclado do app: as ações que têm atalho (com o padrão de cada uma), a personalização pelo usuário e o
+│   │   │   ├── skillRunnerService.ts — Execução de skills: manual ("executar agora"), por gatilho (skills recorrentes) ou a pedido da IA. Toda execução
+│   │   │   ├── skillService.ts — Biblioteca de skills do usuário. As skills são compartilhadas entre os livros (ficam na pasta de dados do app).
+│   │   │   ├── spellService.ts — Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
+│   │   │   ├── startupService.ts — Rotina de inicialização: assim que o app abre, em segundo plano e sem travar nada, verifica atualizações e faz o
+│   │   │   └── templateService.ts — Perfis de template: o corpo dos templates de fichas e de capítulos muda conforme o perfil (assistente, co-autor,
+│   │   └── [utils]
+│   │       ├── appLinks.ts — Links do app: endereços `app:` que, em vez de abrir um arquivo ou um site, abrem uma janela do próprio app (a gaveta
+│   │       ├── appSettings.ts — Configurações do app (não do livro): tamanho da fonte, tema, modo noturno, fontes do editor, narrador,
+│   │       ├── autoLinkText.ts — Link automático sobre texto Markdown (sem o editor): transforma em links internos as ocorrências dos nomes e
+│   │       ├── backlinks.ts — Citações (retrolinks): em quais arquivos do livro um arquivo é citado por um link Markdown, com o parágrafo de cada
+│   │       ├── bookFiles.ts — Funções puras sobre a árvore de arquivos do livro (`state.currentBookMap`): listagem plana, busca de destinos
+│   │       ├── bookIndex.ts — Regras dos arquivos `index.md` do livro (capítulos em `content/` e fichas em `assets/<categoria>/`): qual
+│   │       ├── changelogFormat.ts — Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.
+│   │       ├── chatActions.ts — Catálogo das ações nativas que um botão do chat pode disparar.
+│   │       ├── chatBackground.ts — Preferência do plano de fundo do chat (uma para o tema escuro e outra para o claro): tipo de fundo e cor.
+│   │       ├── chatMarkdown.ts — Conversão segura de Markdown (respostas da IA) em HTML para o chat.
+│   │       ├── deletePermission.ts — Regras de permissão de exclusão de arquivos e pastas, para o usuário e para a IA.
+│   │       ├── diff.ts — Comparação linha a linha entre duas versões de um texto.
+│   │       ├── escapeKey.ts — Tecla Esc global: fecha, um por vez, a camada aberta mais acima (gaveta de configurações, janela/modal, central ou
+│   │       ├── eventNames.ts — Nomes de eventos para os campos "antes" e "depois" das fichas de eventos: normalização dos itens digitados e as
+│   │       ├── hash.ts — Hash de textos no renderer (SHA-1 em hexadecimal, via Web Crypto).
+│   │       ├── helpers.ts — Funções auxiliares genéricas para apoio à interface do usuário, controle de menus e normalizações.
+│   │       ├── historyCompare.ts — Comparação visual entre duas versões de um arquivo Markdown: cada lado é exibido com o Markdown
+│   │       ├── markdown.ts — Utilitário para conversão, parsing e serialização de conteúdos Markdown e metadados Frontmatter YAML.
+│   │       ├── sounds.ts — Sons curtos do app, sintetizados com a Web Audio API (sem arquivos de áudio): um aviso suave de "mensagem nova".
+│   │       ├── template.ts — Funções puras para interpretar arquivos-modelo (templates) do livro.
+│   │       └── themes.ts — Temas de cores do app: temas predefinidos e temas criados pelo usuário. Um tema é só um conjunto de **variáveis de
+│   ├── [shared]
+│   │   ├── looseText.ts — Busca "tolerante" em textos, compartilhada entre o processo principal (busca nos arquivos) e a interface
+│   │   ├── tags.ts — Regras das tags dos arquivos (variável especial `tags` do frontmatter): normalização, leitura do texto digitado
+│   │   └── templateKinds.ts — Tipos de arquivo que têm template e perfis de template. Um perfil de template (assistente, co-autor, autônomo ou
+│   └── [types]
+│       └── global.d.ts — Declarações globais do projeto (módulos de recursos do Vite e as APIs expostas pelo preload).
+├── [templates]
+│   ├── [book]
+│   │   ├── [.system]
+│   │   │   ├── [changelog]
+│   │   │   │   └── .gitkeep
+│   │   │   └── [chatlog]
+│   │   │       └── .gitkeep
+│   │   ├── [assets]
+│   │   │   ├── [characters]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   └── template.md
+│   │   │   ├── [elements]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   └── template.md
+│   │   │   ├── [events]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── template.md
+│   │   │   │   └── timeline.md
+│   │   │   ├── folder.yml
+│   │   │   └── [places]
+│   │   │       ├── folder.yml
+│   │   │       ├── index.md
+│   │   │       └── template.md
+│   │   ├── config.json
+│   │   ├── [content]
+│   │   │   ├── [chapter_001]
+│   │   │   │   ├── 1_outline.md
+│   │   │   │   ├── 2_draft.md
+│   │   │   │   ├── 3_analysis.md
+│   │   │   │   └── folder.yml
+│   │   │   ├── folder.yml
+│   │   │   ├── index.md
+│   │   │   └── plot.md
+│   │   ├── index.md
+│   │   └── [notes]
+│   │       └── folder.yml
+│   ├── [manual]
+│   │   ├── [assets]
+│   │   │   ├── [characters]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   ├── sobre-personagens.md
+│   │   │   │   └── template.md
+│   │   │   ├── [elements]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── index.md
+│   │   │   │   ├── sobre-conceitos.md
+│   │   │   │   └── template.md
+│   │   │   ├── [events]
+│   │   │   │   ├── folder.yml
+│   │   │   │   ├── sobre-eventos.md
+│   │   │   │   ├── template.md
+│   │   │   │   └── timeline.md
+│   │   │   ├── folder.yml
+│   │   │   └── [places]
+│   │   │       ├── folder.yml
+│   │   │       ├── index.md
+│   │   │       ├── sobre-ambientes.md
+│   │   │       └── template.md
+│   │   ├── config.json
+│   │   ├── [content]
+│   │   │   ├── [chapter_001]
+│   │   │   │   ├── 1_outline.md
+│   │   │   │   ├── 2_draft.md
+│   │   │   │   ├── 3_analysis.md
+│   │   │   │   └── folder.yml
+│   │   │   ├── folder.yml
+│   │   │   ├── index.md
+│   │   │   └── plot.md
+│   │   ├── index.md
+│   │   └── [notes]
+│   │       ├── comece-por-aqui.md
+│   │       ├── folder.yml
+│   │       ├── manual-completo.md
+│   │       └── o-que-sao-anotacoes.md
+│   ├── [profiles]
+│   │   ├── [assistant]
+│   │   │   ├── chapter-analysis.md
+│   │   │   ├── chapter-outline.md
+│   │   │   ├── character.md
+│   │   │   ├── element.md
+│   │   │   ├── event.md
+│   │   │   └── place.md
+│   │   ├── [autonomous]
+│   │   │   ├── chapter-analysis.md
+│   │   │   ├── chapter-outline.md
+│   │   │   ├── character.md
+│   │   │   ├── element.md
+│   │   │   ├── event.md
+│   │   │   └── place.md
+│   │   └── [coauthor]
+│   │       ├── chapter-analysis.md
+│   │       ├── chapter-outline.md
+│   │       ├── character.md
+│   │       ├── element.md
+│   │       ├── event.md
+│   │       └── place.md
+│   └── [system]
+├── tsconfig.json
+├── vite.main.config.mjs
+├── vite.preload.config.mjs
+└── vite.renderer.config.mjs

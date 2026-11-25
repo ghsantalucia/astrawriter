@@ -1,14 +1,76 @@
 <li
   class="folder {{#unless isOpen}}collapsed{{/unless}} {{#unless parentMeta}}folder-root {{rootClass}}{{/unless}} {{#if meta.advanced}}advanced-item{{/if}}"
-  event-click="folder:toggle"
+  {{#unless searchMode}}event-click="folder:toggle"{{/unless}}
   data-path="{{relativePath}}"
   data-status="{{#if isOpen}}open{{else}}collapsed{{/if}}"
 >
   <span class="folder-name">
     <i class="fa-solid fa-chevron-right tree-arrow"></i>
+    {{#if isUserFolder}}
+    <span class="icon-folder-user" title="Pasta criada por você">
+      <i class="fa-solid {{#if isOpen}}fa-folder-open{{else}}fa-folder{{/if}} icon-folder"></i>
+      <i class="fa-solid fa-user folder-user-badge"></i>
+    </span>
+    {{else}}
     <i
       class="fa-solid {{#if isOpen}}fa-folder-open{{else}}fa-folder{{/if}} icon-folder"
     ></i>
+    {{/if}}
     <span class="folder-title">{{meta.title}}</span>
+    <span class="folder-actions">
+    {{#if createFolder}}
+    <button
+      type="button"
+      class="folder-act-btn"
+      title="Novo item em {{meta.title}}"
+      event-click="entity:create"
+      data-folder="{{createFolder}}"
+    >
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    {{/if}}
+    {{#if createNoteFolder}}
+    <button
+      type="button"
+      class="folder-act-btn"
+      title="Nova anotação em {{meta.title}}"
+      event-click="note:create"
+      data-folder="{{createNoteFolder}}"
+    >
+      <i class="fa-solid fa-file-circle-plus"></i>
+    </button>
+    {{/if}}
+    {{#if canCreateFolder}}
+    <button type="button" class="folder-act-btn" title="Nova pasta em {{meta.title}}"
+      event-click="folder:create" data-parent="{{bookRelative}}">
+      <i class="fa-solid fa-folder-plus"></i>
+    </button>
+    {{/if}}
+    {{#if canRename}}
+    <button type="button" class="folder-act-btn" title="Renomear pasta"
+      event-click="folder:rename" data-folder="{{bookRelative}}" data-title="{{meta.title}}">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    {{/if}}
+    {{#if canDeleteFolder}}
+    <button type="button" class="folder-act-btn folder-act-danger" title="Excluir pasta e tudo o que há dentro"
+      event-click="folder:delete" data-folder="{{bookRelative}}">
+      <i class="fa-regular fa-trash-can"></i>
+    </button>
+    {{/if}}
+    {{#if chapterFolder}}
+    <button
+      type="button"
+      class="folder-act-btn folder-act-danger"
+      title="Excluir capítulo"
+      aria-label="Excluir {{meta.title}}"
+      event-click="chapter:delete"
+      data-folder="{{chapterFolder}}"
+      data-title="{{meta.title}}"
+    >
+      <i class="fa-regular fa-trash-can"></i>
+    </button>
+    {{/if}}
+    </span>
   </span>
 </li>

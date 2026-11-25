@@ -9,45 +9,401 @@
   font-size: 12px;
   letter-spacing: 1px;
   background: var(--editor-toolbar);
-  border: solid var(--border-app) 1px;
-  border-left: none;
-  border-right: none;
+  border-bottom: solid var(--border-app-strong) 1px;
 }
 
+/* Status do salvamento automático (rodapé do editor): ponto colorido + texto discreto */
 .save-status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: 7px;
+  font-size: 0.72rem;
+  letter-spacing: 0.2px;
   color: var(--text-muted, #888);
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
+}
+
+.save-status i {
+  font-size: 0.4rem;
+  color: currentColor;
 }
 
 .save-status.unsaved {
-  color: #68688d;
-  /* Laranja */
-}
-
-.save-status.unsaved i {
-  font-size: 0.6rem;
-  /* Bolinha discreta */
+  color: #c9a96e;
 }
 
 .save-status.saving {
-  color: #3498db;
-  /* Azul */
+  color: #7aa2d6;
+}
+
+.save-status.saving i {
+  animation: save-pulse 1s ease-in-out infinite;
 }
 
 .save-status.saved {
-  color: #42a36b;
-  /* Verde */
+  color: #8fbf9f;
+}
+
+.save-status.synced {
+  color: var(--text-muted, var(--text-subtle));
 }
 
 .save-status.error {
-  color: #e74c3c;
-  /* Vermelho */
+  color: #e07a8c;
 }
 
 .save-status.hidden {
+  visibility: hidden;
+}
+
+@keyframes save-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Grupo de botões à direita da toolbar */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Botão de variáveis do arquivo */
+.btn-toolbar-icon {
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: transparent;
+  color: var(--text-editor);
+  border: 1px solid var(--border-app);
+  border-radius: var(--radius-control);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-toolbar-icon:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+}
+
+.btn-toolbar-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   GUIA DO ARQUIVO (estilo aba de navegador, levemente trapezoidal)
+   ========================================================================== */
+
+#toolbar-container {
+  align-items: flex-end;
+  padding-bottom: 0;
+}
+
+/* Os botões da direita ficam centralizados na faixa; só a guia encosta na borda inferior */
+.toolbar-actions {
+  align-self: center;
+}
+
+.file-tabs {
+  display: flex;
+  align-items: flex-end;
+  align-self: flex-end;
+  gap: 2px;
+  height: 100%;
+  padding-left: 6px;
+}
+
+.file-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+  height: 36px;
+  padding: 0 24px;
+  color: var(--text);
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  user-select: none;
+  isolation: isolate;
+}
+
+.file-tab.hidden {
   display: none;
+}
+
+/* Corpo da guia: trapézio com cantos arredondados */
+/* Duas camadas com o mesmo recorte: a de trás vira a borda, a da frente (1px menor) é o fundo.
+   A inclinação das laterais é fixa em px, então não muda com a largura da guia. */
+.file-tab::before,
+.file-tab::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.file-tab::before {
+  background: var(--line-strong, var(--line));
+  clip-path: polygon(
+    0 100%,
+    13px 5px,
+    16px 1.5px,
+    20px 0,
+    calc(100% - 20px) 0,
+    calc(100% - 16px) 1.5px,
+    calc(100% - 13px) 5px,
+    100% 100%
+  );
+}
+
+.file-tab::after {
+  background: var(--bg-editor);
+  clip-path: polygon(
+    1px 100%,
+    14px 5.5px,
+    17px 2.5px,
+    20.5px 1px,
+    calc(100% - 20.5px) 1px,
+    calc(100% - 17px) 2.5px,
+    calc(100% - 14px) 5.5px,
+    calc(100% - 1px) 100%
+  );
+}
+
+.file-tab-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Asterisco de rascunho (igual ao do explorer): fora do nome para não ser cortado pelas reticências */
+.file-tab-dirty {
+  flex: none;
+  margin-left: -6px;
+  color: var(--warning, var(--accent));
+  font-weight: 700;
+}
+
+.file-tab-dirty.hidden {
+  display: none;
+}
+
+.file-tab-edit {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-subtle);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.62rem;
+  opacity: 0.45;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.file-tab-edit.hidden {
+  display: none;
+}
+
+.file-tab:hover .file-tab-edit,
+.file-tab-edit:hover,
+.file-tab-edit:focus-visible {
+  opacity: 1;
+}
+
+.file-tab-edit:hover {
+  color: var(--accent);
+  background: var(--hover);
+}
+
+/* Ícone do Auto-link: corrente + estrela de IA (4 pontas), uma cor só, bem juntos e do tamanho de um ícone */
+#btn-autolink {
+  gap: 6px;
+  padding: 5px 11px;
+  font-size: 0.74rem;
+}
+
+.icon-link-stars {
+  display: inline-flex;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.icon-link-stars .fa-link {
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+
+.icon-link-stars .icon-ai-star {
+  width: 7px;
+  height: 7px;
+  margin-left: -1px;
+  fill: currentColor;
+}
+
+/* Botão "Exportar" com menu (Markdown, Word, PDF) */
+.export-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 190px;
+  padding: 5px;
+  background: var(--surface-raised, var(--surface));
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 30px rgb(10 8 24 / 0.28);
+}
+
+.export-menu.hidden {
+  display: none;
+}
+
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.export-item i {
+  width: 16px;
+  text-align: center;
+  color: var(--accent);
+}
+
+.export-item small {
+  margin-left: 4px;
+  color: var(--text-subtle);
+}
+
+.export-item:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* Guias do capítulo: Manuscrito, Esboço e Análise. A ativa mostra o nome (e a caneta); as outras encolhem para o ícone */
+.chapter-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  height: 100%;
+}
+
+/* A ponta esquerda de cada guia fica por trás da guia da esquerda (a mais à esquerda fica por cima) */
+.chapter-tab + .chapter-tab {
+  margin-left: -14px;
+}
+
+.chapter-tab:nth-child(1) {
+  z-index: 3;
+}
+
+.chapter-tab:nth-child(2) {
+  z-index: 2;
+}
+
+.chapter-tab:nth-child(3) {
+  z-index: 1;
+}
+
+.chapter-tabs.hidden {
+  display: none;
+}
+
+.chapter-tab {
+  width: 78px;
+  padding: 0;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    padding 0.2s ease,
+    opacity 0.15s ease;
+}
+
+.chapter-tab .chapter-tab-icon {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+
+.chapter-tab.active {
+  width: 220px;
+  padding: 0 24px;
+  justify-content: flex-start;
+}
+
+/* Com o nome visível o ícone é dispensável: ele só identifica a guia quando ela está compacta */
+.chapter-tab.active .chapter-tab-icon {
+  display: none;
+}
+
+/* Guias inativas: só o ícone, um pouco mais baixas e discretas para a ativa se destacar */
+.chapter-tab:not(.active) {
+  opacity: 1;
+}
+
+.chapter-tab:not(.active):hover {
+  opacity: 1;
+}
+
+.chapter-tab:not(.active)::after {
+  background: color-mix(
+    in srgb,
+    var(--bg-editor) 55%,
+    var(--bg-app, var(--bg-editor))
+  );
+}
+
+.chapter-tab:not(.active) .file-tab-name,
+.chapter-tab:not(.active) .chapter-tab-edit {
+  display: none;
+}
+
+/* O asterisco de rascunho de uma guia compacta vira um pontinho sobre o ícone */
+.chapter-tab:not(.active) .file-tab-dirty {
+  position: absolute;
+  top: 3px;
+  right: 8px;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1;
 }

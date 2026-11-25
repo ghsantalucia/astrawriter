@@ -28,6 +28,7 @@
 
 .file-tree li {
   margin: 4px 0;
+  position: relative;
 }
 
 /* Oculta/Exibe itens avançados */
@@ -71,9 +72,9 @@
   gap: 8px;
   padding: 6px 10px;
   /* Espaçamento idêntico ao modelo */
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  color: #cdd6f4;
+  color: var(--text);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
@@ -82,14 +83,14 @@
 /* Hover e Seleção Ativa */
 .folder-name:hover,
 .file-name:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--hover);
 }
 
 .file-name.active,
 .folder-name.active {
-  background-color: rgba(137, 180, 250, 0.08);
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
   /* Fundo de seleção suave */
-  color: #ffffff;
+  color: var(--text-file-active);
 }
 
 /* --------------------------------------------------------------------------
@@ -107,7 +108,7 @@
 /* Seta (Chevron) */
 .file-tree .tree-arrow {
   font-size: 0.6rem;
-  color: #767676;
+  color: var(--text-subtle);
   width: 12px;
   display: inline-block;
   transition:
@@ -118,13 +119,13 @@
 /* Rotação da seta quando a pasta está aberta */
 .folder:not(.collapsed) > .folder-name > .tree-arrow {
   transform: rotate(90deg);
-  color: #767676;
+  color: var(--text-subtle);
 }
 
 /* Ícone de Pasta (Aberta/Fechada) */
 .file-tree .icon-folder {
   font-size: 0.85rem;
-  color: #f9e2af;
+  color: var(--warning);
   display: inline-block;
 }
 
@@ -152,7 +153,7 @@
 
 /* O asterisco nunca encolhe e fica sempre visível no final */
 .dirty-asterisk {
-  color: white;
+  color: var(--text-file-active);
   font-weight: bold;
   margin-left: 2px;
   flex-shrink: 0;
@@ -163,22 +164,24 @@
   font-size: 0.85rem;
   margin-right: 2px;
   display: inline-block;
-  color: #89b4fa;
+  color: var(--accent);
 }
 
 /* Arquivo Avançado */
 li.advanced-item > .file-name > .icon-file {
-  color: #d98cdf;
+  color: var(--accent-alt);
   /* Cor lilás dos itens avançados */
 }
 
 /* Desbotado caso esteja somente-leitura */
-.readonly .file-name {
-  opacity: 0.6;
+.readonly .file-name > .icon-file,
+.readonly .file-name .file-text {
+  opacity: 0.7;
 }
 
+/* Somente leitura: só o texto desbota; a seleção mantém o mesmo visual dos demais itens */
 .readonly .file-name.active {
-  background-color: #1e2335;
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .collapsed > ul {
@@ -200,13 +203,13 @@ li.advanced-item > .file-name > .icon-file {
 }
 
 .file-tree::-webkit-scrollbar-thumb {
-  background-color: rgba(50, 66, 93, 0.4);
-  border-radius: 4px;
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--radius-sm);
   border: 3px solid transparent;
 }
 
 .file-tree::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(45, 66, 99, 0.7);
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 /* ==========================================================================
@@ -229,28 +232,648 @@ li.advanced-item > .file-name > .icon-file {
   gap: 6px;
   background: transparent;
   border: 1px solid transparent;
-  color: #6c7086;
+  color: var(--text-subtle);
   padding: 8px 10px;
   font-size: 0.78rem;
   /* font-weight: 500; */
   letter-spacing: 0.4px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .tab-btn:hover {
-  color: #cdd6f4;
-  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  background-color: var(--hover);
 }
 
 .tab-btn.active {
-  background-color: rgba(137, 180, 250, 0.08);
-  color: #89b4fa;
-  border-color: rgba(137, 180, 250, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .tab-btn i {
   font-size: 0.82rem;
+}
+
+/* ==========================================================================
+   BARRA DE PESQUISA
+   ========================================================================== */
+
+.explorer-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--sidebar-separator);
+}
+
+.explorer-search-icon {
+  position: absolute;
+  left: 28px;
+  font-size: 0.75rem;
+  color: var(--text-muted, var(--text-subtle));
+  pointer-events: none;
+}
+
+.explorer-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 30px 7px 30px;
+  background: color-mix(in srgb, var(--text-sidebar) 4%, transparent);
+  color: var(--text-sidebar);
+  border: 1px solid color-mix(in srgb, var(--text-sidebar) 8%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.explorer-search-input::placeholder {
+  color: var(--text-muted, var(--text-subtle));
+}
+
+.explorer-search-input:focus {
+  background: var(--toggle-bg);
+  border-color: var(--file-active-bg);
+}
+
+.explorer-search-clear {
+  position: absolute;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted, var(--text-subtle));
+  border: none;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.explorer-search-clear[hidden] {
+  display: none;
+}
+
+.explorer-search-clear:hover {
+  color: var(--danger);
+  background-color: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+/* Bolinha com a quantidade de matches em cada aba (estilo notificação) */
+.tab-btn {
+  position: relative;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -4px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-alt);
+  color: var(--text-on-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--bg-sidebar);
+}
+
+.tab-badge[hidden] {
+  display: none;
+}
+
+/* Destaque do trecho encontrado e trecho de contexto do match por conteúdo */
+.file-tree mark {
+  background: color-mix(in srgb, var(--warning) 20%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--warning) 45%, transparent);
+}
+
+.file-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.file-snippet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted, var(--text-subtle));
+}
+
+/* Mensagem de pesquisa sem resultados na aba atual */
+.search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted, var(--text-subtle));
+  text-align: center;
+}
+
+.search-empty[hidden] {
+  display: none;
+}
+
+.search-empty i {
+  font-size: 1.3rem;
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   AÇÕES DA ABA (novo capítulo / nova anotação) E BOTÃO "+" DAS PASTAS
+   ========================================================================== */
+
+/* Mini toolbar compacta (ícones com tooltip) abaixo da pesquisa */
+.explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 16px;
+  border-bottom: 1px solid var(--sidebar-separator);
+}
+
+.mini-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted, var(--text-subtle));
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.mini-btn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* Os botões de criar só aparecem na aba a que pertencem */
+.mini-btn[data-tab] {
+  display: none;
+}
+
+#explorer-container[data-active-tab="content"] .mini-btn[data-tab="content"],
+#explorer-container[data-active-tab="notes"] .mini-btn[data-tab="notes"] {
+  display: inline-flex;
+}
+
+/* Alternador (checkbox escondido): fica realçado quando ativo */
+.mini-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mini-toggle:has(input:checked) {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.mini-toggle .mini-on,
+.mini-toggle:has(input:checked) .mini-off {
+  display: none;
+}
+
+.mini-toggle:has(input:checked) .mini-on {
+  display: inline-block;
+}
+
+/* Botão "+" logo após o nome da pasta */
+.folder-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 2px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  cursor: pointer;
+  opacity: 0.55;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.folder-name:hover .folder-add-btn,
+.folder-add-btn:focus-visible {
+  opacity: 1;
+}
+
+.folder-add-btn:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* ==========================================================================
+   BOTÃO DE EXCLUIR (arquivos e capítulos): só aparece ao passar o mouse
+   ========================================================================== */
+
+.item-delete-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-subtle);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Na pasta, o botão acompanha a linha do nome (e não a lista de filhos) */
+.folder-delete-btn {
+  position: static;
+  transform: none;
+  margin-left: auto;
+}
+
+li:not(.folder):hover > .item-delete-btn,
+.folder-name:hover .folder-delete-btn,
+.item-delete-btn:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.item-delete-btn:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+/* Editar dados (caneta) ao lado da lixeira */
+.item-edit-btn {
+  position: absolute;
+  top: 50%;
+  right: 34px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-subtle);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.item-edit-btn.no-delete {
+  right: 8px;
+}
+
+li:not(.folder):hover > .item-edit-btn,
+.item-edit-btn:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.item-edit-btn:hover {
+  color: var(--accent);
+  background: var(--hover);
+}
+
+/* Botões de pasta alinhados na ponta direita da linha */
+.folder-name:hover .folder-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.folder-edit-btn {
+  margin-left: auto;
+}
+
+.folder-edit-btn + .folder-delete-btn {
+  margin-left: 0;
+}
+
+.folder-edit-btn:hover {
+  color: var(--accent);
+  background: var(--hover);
+  border-color: transparent;
+}
+
+/* Ícone de somente leitura no arquivo */
+.file-lock {
+  flex: none;
+  margin-left: 6px;
+  font-size: 0.62rem;
+  color: var(--text-subtle);
+}
+
+/* Ícone de pasta do usuário: pasta com um usuário na frente */
+.icon-folder-user {
+  position: relative;
+  display: inline-flex;
+}
+
+.folder-user-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -3px;
+  font-size: 0.42rem;
+  color: var(--text);
+  background: var(--bg-sidebar);
+  border-radius: 50%;
+  padding: 1px;
+}
+
+/* Arrastar e soltar */
+.file-tree li.dragging {
+  opacity: 0.45;
+}
+
+.file-tree .drop-target,
+.file-tree li.folder.drop-target > .folder-name {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  outline: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   AÇÕES DA PASTA (novo item, nova pasta, renomear, excluir): agrupadas à direita, só ao passar o mouse
+   ========================================================================== */
+
+.folder-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.folder-name:hover .folder-actions,
+.folder-actions:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.folder-act-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.folder-act-btn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.folder-act-btn.folder-act-danger:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+/* Abas, pesquisa e mini toolbar mantêm a altura; só a árvore encolhe e rola */
+.explorer-tabs,
+.explorer-search,
+.explorer-toolbar,
+.search-empty {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   NAVEGAÇÃO POR TECLADO (setas e Enter): mesmo destaque do hover, sem selecionar o arquivo
+   ========================================================================== */
+
+.folder-name.kb-focus,
+.file-name.kb-focus {
+  background-color: var(--hover);
+}
+
+.folder-name.kb-focus .folder-actions,
+li:not(.folder).kb-focus > .item-delete-btn,
+li:not(.folder).kb-focus > .item-edit-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Opção escolhida com as setas */
+.kb-btn-focus {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.item-delete-btn.kb-btn-focus,
+.folder-act-danger.kb-btn-focus {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  outline-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+/* Botão da IA nas anotações: cadeado fechado (bloqueado) ou aberto (a IA pode escrever) */
+.mini-ai-lock .mini-unlocked {
+  display: none;
+}
+
+.mini-ai-lock.is-allowed .mini-locked {
+  display: none;
+}
+
+.mini-ai-lock.is-allowed .mini-unlocked {
+  display: inline-block;
+  color: var(--accent);
+}
+
+/* Capítulo: item único (sem pasta) com ícone próprio; o clique abre o manuscrito */
+.file-tree .icon-chapter {
+  font-size: 0.85rem;
+  margin-right: 2px;
+  display: inline-block;
+  color: var(--warning, var(--accent));
+}
+
+/* Cronômetro de produtividade, entre as abas de categoria e a pesquisa */
+.productivity-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 12px 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-control);
+  background: var(--sidebar-controls-bg, transparent);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.productivity-bar .prod-icon {
+  color: var(--text-subtle);
+}
+.productivity-bar[data-status="running"] .prod-icon {
+  color: var(--success);
+}
+.productivity-bar .prod-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.productivity-bar .prod-status {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.productivity-bar[data-status="away"] .prod-status {
+  color: var(--warning);
+}
+.productivity-bar[data-status="running"] .prod-status {
+  color: var(--success);
+}
+.productivity-bar .prod-spacer {
+  flex: 1;
+}
+.productivity-bar .prod-btn,
+.productivity-bar .prod-auto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.productivity-bar .prod-btn:hover,
+.productivity-bar .prod-auto:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.productivity-bar .prod-auto {
+  border-color: var(--line);
+}
+.productivity-bar .prod-auto.on {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+}
+
+.productivity-bar[hidden] {
+  display: none;
+}
+
+.productivity-bar .prod-icon-btn {
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.productivity-bar .prod-icon-btn:hover .prod-icon {
+  color: var(--accent);
+}
+
+/* Meta de tempo: o preenchimento mostra o progresso; ao cumprir, um brilho verde-água suave (nunca vermelho) */
+.productivity-bar[data-goal="on"],
+.productivity-bar[data-goal="done"] {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent) var(--goal-progress, 0%), transparent var(--goal-progress, 0%));
+  background-repeat: no-repeat;
+  transition: background-image 0.6s ease;
+}
+.productivity-bar[data-goal="done"] {
+  border-color: color-mix(in srgb, var(--success) 70%, transparent);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--success) 26%, transparent), color-mix(in srgb, var(--accent) 18%, transparent));
+  animation: prod-goal-glow 2.4s ease-in-out 3;
+}
+.productivity-bar[data-goal="done"] .prod-status {
+  color: var(--success);
+  font-weight: 700;
+}
+.productivity-bar[data-goal="done"] .prod-icon {
+  color: var(--success);
+}
+@keyframes prod-goal-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--success) 45%, transparent);
+  }
 }

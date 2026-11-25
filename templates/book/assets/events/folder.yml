@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: true
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Eventos"
+description: "Fatos da história, um por arquivo, com o momento em que ocorreram. Alimentam a linha do tempo."
+userDelete: false
+userRename: false

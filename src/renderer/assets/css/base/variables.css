@@ -1,72 +1,153 @@
-/* Tema Claro (Padrão) */
+/* ==========================================================================
+   TOKENS DE DESIGN (variáveis globais)
+
+   Organização:
+   1. Tokens independentes de tema (raios, sombras de movimento)
+   2. Tema CLARO  (padrão, `:root`)         — acento roxo, combina com a nebulosa do chat
+   3. Tema ESCURO (`body.dark-theme`)      — acento azul
+   4. Aliases legados (nomes antigos usados por componentes ainda não migrados)
+
+   Convenção dos nomes:
+   --bg-*        fundos de grandes áreas            --text-*     cores de texto
+   --surface-*   cartões, modais, painéis           --line*      divisores e bordas
+   --accent*     cor de destaque / interação        --danger/... cores semânticas
+   ========================================================================== */
+
+/* ---------- 1. Independentes de tema ---------- */
 :root {
-  /* Cores de Fundo Base */
-  --bg-app: #f4f5f7;
-  --bg-header: #0e0f17;
-  --bg-editor: #f4f5f7;
-  --editor-toolbar: #f7f9fc;
-  --border-app: rgba(255, 255, 255, 0.09);
+  /* Cantos: meio-termo entre o infantil (muito redondo) e o brutalista (reto) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  /* Janelas (modais, centrais, menus e painéis flutuantes): meio-termo, mais retas que o padrão antigo */
+  --radius-window: 5px;
+  /* Botões e campos: levemente suavizados (nem pontudos, nem infantis) */
+  --radius-control: 4px;
 
-  /* Cores de Texto */
-  --text-header: #8b949e;
-  --text-sidebar: #ffffff;
-  --text-editor: #2f3640;
-  --text-muted: #888888;
-  --text-folder: #8ea4ee;
-  --text-file: #dcdde1;
-  --text-file-active: #ffffff;
-
-  /* Botões e Ações */
-  --btn-primary-bg: #394d84;
-  --btn-success-bg: #2ed573;
-  --btn-disabled-bg: #55687e;
-  --file-hover-bg: #2f3640;
-  --file-active-bg: #4a69bd;
-
-  /* Componentes (Switches, Toasts, Cards) */
-  --toggle-bg: #243154;
-  --slider-bg: #485460;
-  --card-overlay-bg: #243154;
-  --no-file-overlay-bg: rgba(255, 255, 255, 0.72);
-  --overlay-backdrop: rgba(30, 30, 47, 0.65);
-
-  /* Scrollbars */
-  --scrollbar-thumb: rgba(74, 109, 167, 0.4);
-  --scrollbar-thumb-hover: rgba(74, 109, 167, 0.7);
-
-  --sidebar-controls-bg: rgba(0, 0, 0, 0.2);
-  --sidebar-separator: rgba(255, 255, 255, 0.06);
+  /* Barra de título da janela: muda com o tema (o main sincroniza os botões nativos) */
+  --bg-header: #ece9f6;
 }
 
-/* Modo Escuro Completo */
-body.dark-theme {
-  /* Cores de Fundo Base */
-  --bg-app: #1a1217;
-  --bg-editor: #171820;
-  --editor-toolbar: #171820;
+/* ---------- 2. Tema claro ---------- */
+:root {
+  /* Fundos */
+  --bg-app: #f4f2fa;
+  --bg-sidebar: #ece9f6;
+  --bg-editor: #fbfaff;
+  --editor-toolbar: #ece9f6;
 
-  /* Cores de Texto */
+  /* Superfícies */
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #e6e2f3;
+
+  /* Texto */
+  --text: #2b2542;
+  --text-dim: #5a5475;
+  --text-subtle: #6f698f;
+  --text-on-accent: #ffffff;
+  --text-on-danger: #ffffff;
+  --text-header: #b9c7d1;
+  --text-sidebar: #2b2542;
+  --text-editor: #2b2542;
+  --text-file: #2f2950;
+  --text-file-active: #1c1730;
+  --text-folder: #6d4fd8;
+
+  /* Linhas e interações */
+  --line: rgba(60, 40, 120, 0.16);
+  --line-soft: rgba(60, 40, 120, 0.09);
+  --line-strong: rgba(60, 40, 120, 0.32);
+  --shade-strong: rgba(40, 30, 90, 0.22);
+  --hover: rgba(60, 40, 120, 0.06);
+  --shade: rgba(60, 40, 120, 0.07);
+  --overlay-backdrop: rgba(30, 20, 60, 0.45);
+
+  /* Acento (roxo no claro) e semânticas */
+  --accent: #6d4fd8;
+  --accent-alt: #6442b8;
+  --danger: #cf3358;
+  --warning: #dab577;
+  --success: #2a8f5c;
+
+  /* Componentes */
+  --btn-primary-bg: #6d4fd8;
+  --btn-success-bg: #2a8f5c;
+  --btn-disabled-bg: #c9c4dc;
+  --file-hover-bg: rgba(60, 40, 120, 0.07);
+  --file-active-bg: rgba(109, 79, 216, 0.14);
+  --toggle-bg: #ddd8ef;
+  --slider-bg: #a9a2c6;
+  --card-overlay-bg: #ffffff;
+  --no-file-overlay-bg: rgba(244, 242, 250, 0.78);
+  --sidebar-controls-bg: rgba(60, 40, 120, 0.05);
+  --sidebar-separator: rgba(60, 40, 120, 0.1);
+  --border-app: rgba(60, 40, 120, 0.14);
+  --border-app-strong: rgba(60, 40, 120, 0.2);
+
+  /* Scrollbars */
+  --scrollbar-thumb: rgba(109, 79, 216, 0.35);
+  --scrollbar-thumb-hover: rgba(109, 79, 216, 0.65);
+}
+
+/* ---------- 3. Tema escuro ---------- */
+body.dark-theme {
+  --bg-header: #0e0f17;
+
+  /* Fundos */
+  --bg-app: #1a1217;
+  --bg-sidebar: #0e0f17;
+  --bg-editor: #171820;
+  --editor-toolbar: #0e0f17;
+
+  /* Superfícies */
+  --surface: #1e1f2c;
+  --surface-raised: #181926;
+  --surface-sunken: #11111b;
+
+  /* Texto */
+  --text: #cdd6f4;
+  --text-dim: #a6adc8;
+  --text-subtle: #6c7086;
+  --text-on-accent: #11111b;
+  --text-on-danger: #11111b;
   --text-header: #a6adc8;
   --text-sidebar: #cdd6f4;
   --text-editor: #cdd6f4;
-  --text-muted: #6c7086;
-  --text-folder: #8ea4ee;
   --text-file: #bac2de;
   --text-file-active: #ffffff;
+  --text-folder: #8ea4ee;
 
-  /* Botões e Ações */
-  /* --btn-primary-bg: #585b70; */
+  /* Linhas e interações */
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.24);
+  --shade-strong: rgba(0, 0, 0, 0.45);
+  --hover: rgba(255, 255, 255, 0.04);
+  --shade: rgba(0, 0, 0, 0.2);
+  --overlay-backdrop: rgba(18, 19, 26, 0.8);
+
+  /* Acento (azul no escuro) e semânticas */
+  --accent: #89b4fa;
+  --accent-alt: #cba6f7;
+  --danger: #f38ba8;
+  --warning: #f9e2af;
+  --success: #a6e3a1;
+
+  /* Componentes */
+  --btn-primary-bg: #394d84;
   --btn-success-bg: #a6e3a1;
   --btn-disabled-bg: #45475a;
   --file-hover-bg: #313244;
   --file-active-bg: #45475a;
-
-  /* Componentes (Switches, Toasts, Cards) */
   --toggle-bg: #24253b;
   --slider-bg: #585b70;
   --card-overlay-bg: #181926;
   --no-file-overlay-bg: rgb(20 22 31 / 69%);
-  --overlay-backdrop: rgba(18, 19, 26, 0.8);
+  --sidebar-controls-bg: rgba(0, 0, 0, 0.2);
+  --sidebar-separator: rgba(255, 255, 255, 0.06);
+  --border-app: rgba(255, 255, 255, 0.09);
+  --border-app-strong: rgba(255, 255, 255, 0.22);
 
   /* Scrollbars */
   --scrollbar-thumb: rgba(137, 180, 250, 0.3);

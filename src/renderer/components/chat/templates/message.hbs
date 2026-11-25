@@ -1,1 +1,1 @@
-<div class="ai-message {{role}}">{{content}}</div>
+<div class="ai-message {{role}}{{#if html}} markdown{{/if}}"{{#if time}} data-time="{{time}}"{{/if}}>{{#if html}}{{{html}}}{{else}}{{content}}{{/if}}{{#if buttons.length}}<div class="chat-buttons">{{#each buttons}}<button type="button" class="chat-button{{#if isReply}} reply{{/if}}" event-click="{{event}}"{{#each data}} data-{{@key}}="{{this}}"{{/each}}>{{label}}</button>{{/each}}</div>{{/if}}</div>

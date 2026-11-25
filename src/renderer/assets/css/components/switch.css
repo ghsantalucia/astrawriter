@@ -8,14 +8,16 @@
   padding: 10px 16px;
   border-bottom: 1px solid var(--sidebar-separator);
   font-size: 0.75rem;
-  color: #6c7086;
+  color: var(--text-subtle);
 }
 
 /* Container do Switch */
 .switch {
   position: relative;
   display: inline-block;
+  flex: none; /* não encolhe quando o texto ao lado é longo */
   width: 34px;
+  min-width: 34px;
   height: 18px;
 }
 
@@ -33,9 +35,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #2b2b3b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background-color: var(--toggle-bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
   transition: 0.2s ease;
 }
 
@@ -47,19 +49,19 @@
   width: 12px;
   left: 2px;
   bottom: 2px;
-  background-color: #767676;
+  background-color: var(--slider-bg);
   border-radius: 50%;
   transition: 0.2s ease;
 }
 
 /* Estado Ativo (Checked) */
 input:checked + .slider {
-  background-color: rgba(137, 180, 250, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
   /* Fundo azul suave idêntico ao hover do menu */
-  border-color: #89b4fa;
+  border-color: var(--accent);
 }
 
 input:checked + .slider::before {
   transform: translateX(16px);
-  background-color: #89b4fa;
+  background-color: var(--accent);
 }

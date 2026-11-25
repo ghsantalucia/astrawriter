@@ -1,0 +1,92 @@
+/* ==========================================================================
+   TOOLTIPS PERSONALIZADAS (core/tooltip.js)
+   Substituem a dica nativa de qualquer elemento com `title` ou `data-tooltip`.
+   ========================================================================== */
+
+.dw-tooltip {
+  --tip-bg: #2a2440;
+  --tip-fg: #f6f3ff;
+  --tip-line: rgb(255 255 255 / 0.1);
+  position: fixed;
+  z-index: 100000;
+  max-width: 300px;
+  padding: 6px 11px;
+  background: var(--tip-bg);
+  color: var(--tip-fg);
+  border: 1px solid var(--tip-line);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 8px 24px rgb(10 8 24 / 0.32);
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.dw-tooltip.above {
+  transform: translateY(3px);
+}
+
+.dw-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+body.dark-theme .dw-tooltip {
+  --tip-bg: #1b1d2b;
+  --tip-fg: #e6e9f5;
+  --tip-line: rgb(137 180 250 / 0.28);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+}
+
+/* Setinha apontando para o elemento */
+.dw-tooltip::before {
+  content: "";
+  position: absolute;
+  left: var(--arrow-x, 50%);
+  width: 8px;
+  height: 8px;
+  background: var(--tip-bg);
+  border: 1px solid var(--tip-line);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.dw-tooltip.below::before {
+  top: -5px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.dw-tooltip.above::before {
+  bottom: -5px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Dicas dos botões nativos da barra do Toast UI: mesmo visual das demais */
+.toastui-editor-tooltip {
+  background: #2a2440 !important;
+  color: #f6f3ff !important;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgb(10 8 24 / 0.32) !important;
+  font-size: 0.74rem !important;
+  font-weight: 500;
+}
+
+body.dark-theme .toastui-editor-tooltip {
+  background: #1b1d2b !important;
+  color: #e6e9f5 !important;
+  border-color: rgb(137 180 250 / 0.28);
+}
+
+.toastui-editor-tooltip .arrow {
+  display: none !important;
+}

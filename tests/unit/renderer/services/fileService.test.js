@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { FileService } from "../../../../src/renderer/services/fileService.js";
-import { uiBus } from "../../../../src/renderer/events/uiBus.js";
+import { FileService } from "../../../../src/renderer/services/fileService";
+import { uiBus } from "../../../../src/renderer/events/uiBus";
 
 // Mock do uiBus para capturar eventos de sincronização
-vi.mock("../../../../src/renderer/events/uiBus.js", () => ({
+vi.mock("../../../../src/renderer/events/uiBus", () => ({
   uiBus: {
     emit: vi.fn(),
   },
@@ -208,9 +208,7 @@ describe("FileService - Serviço de CRUD e Gerenciamento de Arquivos", () => {
 
       expect(res.success).toBe(true);
       expect(mockState.editor.getMarkdown).toHaveBeenCalled();
-      expect(uiBus.emit).toHaveBeenCalledWith("temp-file:synced", {
-        filePath: targetPath,
-      });
+      expect(uiBus.emit).toHaveBeenCalledWith("temp-file:synced", targetPath);
     });
 
     it("deve retornar erro se o caminho for inválido", async () => {

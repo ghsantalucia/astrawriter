@@ -1,0 +1,45 @@
+<div class="central-overlay hidden" id="central-overlay" aria-hidden="true">
+  <section
+    class="central-window"
+    id="central-window"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="central-title"
+  >
+    <header class="central-header">
+      <div class="central-title-wrap">
+        <h2 class="central-title">
+          <button
+            type="button"
+            class="central-title-btn"
+            id="central-title-btn"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            title="Ir para outra central"
+          >
+            <span id="central-title"></span>
+            <i class="fa-solid fa-chevron-down central-title-caret" aria-hidden="true"></i>
+          </button>
+        </h2>
+        <div class="central-switcher hidden" id="central-switcher" role="menu"></div>
+      </div>
+      <button
+        type="button"
+        class="central-close"
+        id="central-close"
+        title="Fechar (Esc)"
+        aria-label="Fechar"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+    <div class="central-main">
+      <nav class="central-tabs" id="central-tabs" aria-label="Categorias"></nav>
+      <div class="central-body" id="central-body">
+        <h3 class="central-subtitle" id="central-subtitle"></h3>
+        <p class="central-lead" id="central-lead"></p>
+        <div class="central-content" id="central-content"></div>
+      </div>
+    </div>
+  </section>
+</div>

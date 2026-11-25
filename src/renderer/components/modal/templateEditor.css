@@ -1,0 +1,145 @@
+/* ==========================================================================
+   JANELA DE EDIÇÃO DE TEMPLATES (modelos de fichas e capítulos)
+   ========================================================================== */
+
+.tpl-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+  color: var(--text);
+}
+
+/* Faixa fixa: deixa claro que isto é a edição de um template, não de um livro */
+.tpl-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px dashed color-mix(in srgb, var(--warning) 70%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.tpl-banner i {
+  margin-top: 3px;
+  color: var(--warning);
+}
+
+.tpl-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tpl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.tpl-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.tpl-item small {
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+.tpl-item:hover {
+  background: var(--hover);
+}
+.tpl-item.active {
+  border-color: var(--accent);
+  background: var(--file-active-bg);
+}
+.tpl-edited {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tpl-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.tpl-main-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--shade);
+}
+.tpl-state {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.tpl-state.dirty {
+  color: var(--warning);
+  font-weight: 600;
+}
+.tpl-vars {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.tpl-vars em {
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-style: normal;
+  color: var(--text);
+}
+
+.tpl-editor-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-editor);
+}
+.tpl-editor-el {
+  flex: 1;
+  min-height: 0;
+}
+.tpl-editor-host .toastui-editor-defaultUI,
+.tpl-editor-host .toastui-editor-main,
+.tpl-editor-host .toastui-editor-ww-container,
+.tpl-editor-host .toastui-editor-contents {
+  background-color: var(--bg-editor) !important;
+  color: var(--text) !important;
+}

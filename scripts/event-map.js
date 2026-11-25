@@ -84,7 +84,7 @@ function parseHtmlElement(htmlSnippet) {
 }
 
 async function parseEvents() {
-    const files = await getFiles(SRC_DIR, ['.js', '.html']);
+    const files = await getFiles(SRC_DIR, ['.ts', '.html']);
     const documentation = {
         uiBus: {},
         domainBus: {}
@@ -158,7 +158,7 @@ async function generateTextMap() {
     const data = await parseEvents();
 
     let output = `==================================================\n`;
-    output += ` MAPA DE ARQUITETURA DE EVENTOS DO DRAFTWEAVER\n`;
+    output += ` MAPA DE ARQUITETURA DE EVENTOS DO ASTRA WRITER\n`;
     output += `==================================================\n\n`;
 
     // Seção uiBus

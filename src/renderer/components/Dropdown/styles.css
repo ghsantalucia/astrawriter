@@ -1,0 +1,190 @@
+/* ==========================================================================
+   DROPDOWN PERSONALIZADO (seletor de livros e afins)
+   ========================================================================== */
+
+.dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.dropdown-trigger {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--text-sidebar);
+  border: none;
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-trigger:hover,
+.dropdown.open .dropdown-trigger {
+  background-color: var(--line-soft);
+}
+
+.dropdown-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dropdown-caret {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, var(--text-subtle));
+  transition: transform 0.2s ease;
+}
+
+.dropdown.open .dropdown-caret {
+  transform: rotate(180deg);
+}
+
+/* Menu suspenso */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 120;
+  padding: 6px;
+  background: var(--card-overlay-bg, var(--surface-raised));
+  border: 1px solid var(--border-app, var(--line));
+  border-radius: var(--radius-window);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: dropdown-appear 0.14s ease-out;
+}
+
+.dropdown-menu[hidden] {
+  display: none;
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-list,
+.dropdown-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown-list {
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.dropdown-item,
+.dropdown-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-file, #bac2de);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-action:hover {
+  background-color: var(--line-soft);
+  color: var(--text-file-active);
+}
+
+.dropdown-item.selected {
+  color: var(--accent-color, var(--accent));
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  cursor: default;
+}
+
+.dropdown-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dropdown-item-check {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.dropdown-empty {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted, var(--text-subtle));
+}
+
+/* Botões de ação (ex.: "+ Criar novo livro") */
+.dropdown-actions {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-app, var(--line));
+}
+
+.dropdown-action {
+  color: var(--accent-color, var(--accent));
+  font-weight: 600;
+}
+
+.dropdown-action i {
+  font-size: 0.8rem;
+}
+
+/* Caneta de edição de cada livro: aparece ao passar o mouse (e fica visível no item selecionado) */
+.dropdown-item-edit {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-control, 4px);
+  background: transparent;
+  color: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    background-color 0.12s ease;
+}
+.dropdown-item:hover .dropdown-item-edit,
+.dropdown-item.selected .dropdown-item-edit,
+.dropdown-item-edit:focus-visible {
+  opacity: 0.8;
+}
+.dropdown-item-edit:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}

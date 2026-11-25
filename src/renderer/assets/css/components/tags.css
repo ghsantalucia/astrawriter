@@ -1,0 +1,245 @@
+/* ==========================================================================
+   TAGS DOS ARQUIVOS
+   40 cores (matiz + saturação) escolhidas automaticamente pelo hash da tag (shared/tags.js), sempre a mesma por tag.
+   Cada cor tem versão clara e escura com contraste garantido: fundo muito claro + texto escuro no tema claro e
+   fundo escuro + texto claro no tema escuro.
+   ========================================================================== */
+
+.tag-c0 {
+  --tag-h: 4;
+  --tag-s: 68%;
+}
+.tag-c1 {
+  --tag-h: 13;
+  --tag-s: 82%;
+}
+.tag-c2 {
+  --tag-h: 22;
+  --tag-s: 54%;
+}
+.tag-c3 {
+  --tag-h: 31;
+  --tag-s: 68%;
+}
+.tag-c4 {
+  --tag-h: 40;
+  --tag-s: 82%;
+}
+.tag-c5 {
+  --tag-h: 49;
+  --tag-s: 54%;
+}
+.tag-c6 {
+  --tag-h: 58;
+  --tag-s: 68%;
+}
+.tag-c7 {
+  --tag-h: 67;
+  --tag-s: 82%;
+}
+.tag-c8 {
+  --tag-h: 76;
+  --tag-s: 54%;
+}
+.tag-c9 {
+  --tag-h: 85;
+  --tag-s: 68%;
+}
+.tag-c10 {
+  --tag-h: 94;
+  --tag-s: 82%;
+}
+.tag-c11 {
+  --tag-h: 103;
+  --tag-s: 54%;
+}
+.tag-c12 {
+  --tag-h: 112;
+  --tag-s: 68%;
+}
+.tag-c13 {
+  --tag-h: 121;
+  --tag-s: 82%;
+}
+.tag-c14 {
+  --tag-h: 130;
+  --tag-s: 54%;
+}
+.tag-c15 {
+  --tag-h: 139;
+  --tag-s: 68%;
+}
+.tag-c16 {
+  --tag-h: 148;
+  --tag-s: 82%;
+}
+.tag-c17 {
+  --tag-h: 157;
+  --tag-s: 54%;
+}
+.tag-c18 {
+  --tag-h: 166;
+  --tag-s: 68%;
+}
+.tag-c19 {
+  --tag-h: 175;
+  --tag-s: 82%;
+}
+.tag-c20 {
+  --tag-h: 184;
+  --tag-s: 54%;
+}
+.tag-c21 {
+  --tag-h: 193;
+  --tag-s: 68%;
+}
+.tag-c22 {
+  --tag-h: 202;
+  --tag-s: 82%;
+}
+.tag-c23 {
+  --tag-h: 211;
+  --tag-s: 54%;
+}
+.tag-c24 {
+  --tag-h: 220;
+  --tag-s: 68%;
+}
+.tag-c25 {
+  --tag-h: 229;
+  --tag-s: 82%;
+}
+.tag-c26 {
+  --tag-h: 238;
+  --tag-s: 54%;
+}
+.tag-c27 {
+  --tag-h: 247;
+  --tag-s: 68%;
+}
+.tag-c28 {
+  --tag-h: 256;
+  --tag-s: 82%;
+}
+.tag-c29 {
+  --tag-h: 265;
+  --tag-s: 54%;
+}
+.tag-c30 {
+  --tag-h: 274;
+  --tag-s: 68%;
+}
+.tag-c31 {
+  --tag-h: 283;
+  --tag-s: 82%;
+}
+.tag-c32 {
+  --tag-h: 292;
+  --tag-s: 54%;
+}
+.tag-c33 {
+  --tag-h: 301;
+  --tag-s: 68%;
+}
+.tag-c34 {
+  --tag-h: 310;
+  --tag-s: 82%;
+}
+.tag-c35 {
+  --tag-h: 319;
+  --tag-s: 54%;
+}
+.tag-c36 {
+  --tag-h: 328;
+  --tag-s: 68%;
+}
+.tag-c37 {
+  --tag-h: 337;
+  --tag-s: 82%;
+}
+.tag-c38 {
+  --tag-h: 346;
+  --tag-s: 54%;
+}
+.tag-c39 {
+  --tag-h: 355;
+  --tag-s: 68%;
+}
+
+.tag-chip {
+  --tag-bg: hsl(var(--tag-h) var(--tag-s) 91%);
+  --tag-fg: hsl(var(--tag-h) calc(var(--tag-s) - 12%) 25%);
+  --tag-line: hsl(var(--tag-h) var(--tag-s) 78%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 1px 8px;
+  border: 1px solid var(--tag-line);
+  border-radius: 999px;
+  background: var(--tag-bg);
+  color: var(--tag-fg);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-chip::before {
+  content: "#";
+  opacity: 0.65;
+}
+
+body.dark-theme .tag-chip {
+  /* Suave no escuro: pouca saturação (só um tom da cor), fundo quase neutro e texto sem brilho, para não distrair */
+  --tag-bg: hsl(var(--tag-h) 20% 17%);
+  --tag-fg: hsl(var(--tag-h) 28% 70%);
+  --tag-line: hsl(var(--tag-h) 16% 26%);
+}
+
+/* Tags encontradas na pesquisa (no lugar do trecho de texto) */
+.file-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+/* Itens de listas que não são tags (ex.: eventos "antes"/"depois"): sem o "#" e com cor neutra */
+.tag-chip.tag-plain {
+  --tag-bg: var(--surface-raised, var(--surface));
+  --tag-fg: var(--text);
+  --tag-line: var(--line-strong, var(--line));
+}
+.tag-chip.tag-plain::before {
+  content: none;
+}
+body.dark-theme .tag-chip.tag-plain {
+  --tag-bg: var(--surface-raised, var(--surface));
+  --tag-fg: var(--text);
+  --tag-line: var(--line-strong, var(--line));
+}
+
+/* Bolinha de "alterado pela IA" (modo autônomo): no explorer e nas guias do capítulo; cor própria, diferente do asterisco */
+.ai-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--ai-dot, #22d3ee);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ai-dot, #22d3ee) 28%, transparent);
+  vertical-align: middle;
+}
+.ai-dot.hidden {
+  display: none;
+}
+.chapter-tab .ai-dot {
+  position: absolute;
+  top: 6px;
+  right: 18px;
+  margin: 0;
+}

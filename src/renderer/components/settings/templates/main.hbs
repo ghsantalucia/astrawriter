@@ -1,14 +1,142 @@
 <div class="settings-header">
     <h3>Configurações</h3>
-    <button event-click="settings:close" id="btn-close-menu" class="close-btn">&times;</button>
+    <button event-click="settings:close" id="btn-close-menu" class="close-btn" aria-label="Fechar">&times;</button>
 </div>
 
 <div class="settings-content">
-    <div class="sidebar-controls">
-        <span>Modo Escuro</span>
-        <label class="switch">
-            <input event-change="theme:toggle" type="checkbox" id="theme-toggle">
-            <span class="slider"></span>
-        </label>
-    </div>
+
+    <section class="settings-card">
+        <h4 class="settings-card-title"><i class="fa-solid fa-table-columns"></i> Centrais</h4>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="issues">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Central de Revisões</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="book">
+            <i class="fa-solid fa-book"></i>
+            <span>Central do Livro</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="ai">
+            <i class="fa-solid fa-robot"></i>
+            <span>Central de IA</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+        <button type="button" class="settings-btn" event-click="central:open" data-central="system">
+            <i class="fa-solid fa-gears"></i>
+            <span>Central do Sistema</span>
+            <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+        </button>
+    </section>
+
+    <section class="settings-card">
+        <h4 class="settings-card-title"><i class="fa-solid fa-palette"></i> Aparência</h4>
+        <div class="settings-row">
+            <span class="settings-row-text">
+                <strong>Modo escuro</strong>
+                <small>Alterna entre o tema claro e o escuro.</small>
+            </span>
+            <label class="switch">
+                <input event-change="theme:toggle" type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <details class="settings-details" id="chat-bg-details">
+            <summary>
+                <span class="settings-row-text">
+                    <strong>Plano de fundo do chat</strong>
+                    <small>Estrelas, nebulosa, órbitas ou cor sólida, para cada tema.</small>
+                </span>
+                <i class="fa-solid fa-chevron-down settings-chevron"></i>
+            </summary>
+            <div class="settings-form">
+        <div class="settings-row">
+            <span class="settings-row-text">
+                <strong>Tema escuro</strong>
+                <small>Estrelas, nebulosa, órbitas ou uma cor sólida.</small>
+            </span>
+            <div class="settings-bg-controls">
+                <select id="chat-bg-mode-dark" class="settings-input settings-select" event-change="chat-bg:changed" data-theme="dark" data-field="mode">
+                    <option value="stars">Estrelas</option>
+                    <option value="nebula">Nebulosa</option>
+                    <option value="orbits">Órbitas</option>
+                    <option value="solid">Cor sólida</option>
+                </select>
+                <input type="color" id="chat-bg-color-dark" class="settings-color" event-input="chat-bg:changed" data-theme="dark" data-field="color" title="Cor de fundo" hidden>
+            </div>
+        </div>
+        <div class="settings-row">
+            <span class="settings-row-text">
+                <strong>Tema claro</strong>
+                <small>Escolha o fundo e, nos que aceitam, a cor.</small>
+            </span>
+            <div class="settings-bg-controls">
+                <select id="chat-bg-mode-light" class="settings-input settings-select" event-change="chat-bg:changed" data-theme="light" data-field="mode">
+                    <option value="stars">Estrelas</option>
+                    <option value="nebula">Nebulosa</option>
+                    <option value="orbits">Órbitas</option>
+                    <option value="solid">Cor sólida</option>
+                </select>
+                <input type="color" id="chat-bg-color-light" class="settings-color" event-input="chat-bg:changed" data-theme="light" data-field="color" title="Cor de fundo" hidden>
+            </div>
+        </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="settings-card">
+        <h4 class="settings-card-title"><i class="fa-solid fa-spell-check"></i> Idioma e correção</h4>
+        <div class="settings-row">
+            <span class="settings-row-text">
+                <strong>Correção ortográfica e gramatical</strong>
+                <small>Sublinha palavras desconhecidas, aponta palavras repetidas e mostra os avisos no rodapé do editor.</small>
+            </span>
+            <label class="switch">
+                <input event-change="spellcheck:toggle" type="checkbox" id="spellcheck-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="settings-row">
+            <span class="settings-row-text">
+                <strong>Idioma da correção ortográfica</strong>
+                <small>Palavras desconhecidas ficam sublinhadas; clique com o botão direito para ver sugestões, ignorar ou adicionar ao dicionário. Nomes e apelidos das fichas do livro nunca são marcados.</small>
+            </span>
+            <select id="spell-language-select" class="settings-input settings-select" event-change="language:changed">
+                <option value="pt-BR">Português (Brasil)</option>
+                <option value="en-US">English (US)</option>
+                <option value="es-ES">Español</option>
+                <option value="fr-FR">Français</option>
+            </select>
+        </div>
+    </section>
+
+    <section class="settings-card">
+        <h4 class="settings-card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Inteligência artificial</h4>
+        <details class="settings-details" id="ai-details">
+            <summary>
+                <span class="settings-row-text">
+                    <strong>Conta e modelo</strong>
+                    <small id="ai-summary-value">—</small>
+                </span>
+                <i class="fa-solid fa-chevron-down settings-chevron"></i>
+            </summary>
+            <div class="settings-form">
+                <label class="settings-label" for="ai-provider-select">Conta de IA</label>
+                <select id="ai-provider-select" class="settings-input" event-change="ai-settings:changed"
+                    data-field="account">
+                </select>
+
+                <label class="settings-label" for="ai-model-select">Modelo</label>
+                <select id="ai-model-select" class="settings-input" event-change="ai-settings:changed"
+                    data-field="model">
+                </select>
+
+                <button type="button" class="settings-btn" event-click="central:open" data-central="ai">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Contas e chaves de API (Central de IA)</span>
+                    <i class="fa-solid fa-chevron-right settings-btn-arrow"></i>
+                </button>
+            </div>
+        </details>
+    </section>
 </div>

@@ -2,49 +2,278 @@
    MENU GAVETA (SETTINGS DRAWER)
    ========================================================================== */
 
-/* Painel da Gaveta */
 #settings-container {
+  /* Único componente que pode cobrir a barra de título: altura total da janela e a largura exata da sidebar (481px) */
   position: fixed;
   top: 0;
-  left: -480px;
-  /* Começa escondido fora da tela */
-  width: 480px;
+  left: -481px;
+  width: 481px;
   height: 100vh;
+  /* Mesma cor da barra de título e da sidebar */
   background-color: var(--bg-header);
   color: var(--text-sidebar);
   z-index: 201;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.4);
+  box-shadow: 4px 0 18px var(--shade);
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  border-right: solid #1c1e2d 1px;
+  padding: 0;
+  border-right: 1px solid var(--line);
+  /* Quem rola é só o .settings-content (abaixo do cabeçalho fixo) */
+  overflow: hidden;
 }
 
-/* Estado aberto da gaveta */
 #settings-container.open {
   left: 0;
 }
 
 .settings-header {
+  /* Fixo no topo da gaveta: o X fica sempre à mão, mesmo com a lista rolada */
+  position: relative;
+  z-index: 5;
   display: flex;
+  flex: none;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--toggle-bg);
-  padding: 15px 0px;
-  margin-bottom: 20px;
+  padding: 36px 22px 14px;
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.settings-header h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 .close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   background: transparent;
-  border: none;
-  color: var(--text-sidebar);
-  font-size: 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 1.4rem;
+  line-height: 1;
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.close-btn:hover {
+  background: var(--hover);
+  color: var(--text);
 }
 
 .settings-content {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
+  padding: 16px 22px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Cartões de seção */
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.settings-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.settings-card-title i {
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-row-text strong {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.settings-row-text small {
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--text-subtle);
+}
+
+.settings-label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.settings-input {
+  background: var(--surface-sunken);
+  color: var(--text-sidebar);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.settings-select {
+  flex: none;
+  max-width: 170px;
+}
+
+.settings-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+/* Bloco recolhível (formulário do modelo de IA) */
+.settings-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.settings-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-chevron {
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  transition: transform 0.2s ease;
+}
+
+.settings-details[open] .settings-chevron {
+  transform: rotate(180deg);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.settings-key-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-key-group.hidden {
+  display: none;
+}
+
+/* Botões de ação da tela de configurações */
+.settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-sunken);
+  color: var(--text-sidebar);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.settings-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+}
+
+.settings-btn i {
+  width: 16px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.settings-btn-arrow {
+  margin-left: auto;
+  font-size: 0.65rem;
+}
+
+/* Plano de fundo do chat: seletor + cor lado a lado */
+.settings-bg-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.settings-color {
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.settings-color[hidden] {
+  display: none;
+}
+
+/* Barra de rolagem da lista de configurações (abaixo do cabeçalho fixo): fina, discreta e no tom do tema (engrossa ao passar o mouse sobre ela) */
+.settings-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  transition: border-width 0.25s ease;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+  border-width: 1px;
 }

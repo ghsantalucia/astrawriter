@@ -1,35 +1,79 @@
 <!-- Footer do Assistente de IA -->
-<div id="ai-assistant-header" class="ai-assistant-header" event-click="ai-chat:toggle">
-    <div class="ai-title-container">
-        <span class="ai-sparkles-icon">✦</span>
-        <span class="ai-title">Assistente de Escrita</span>
-    </div>
-    <button id="btn-toggle-ai" class="ai-toggle-btn" title="Expandir/Recolher Chat">▲</button>
+<div
+  id="ai-assistant-header"
+  class="ai-assistant-header"
+  event-click="ai-chat:toggle"
+>
+  <div class="ai-title-container">
+    <span class="ai-sparkles-icon">✦</span>
+    <span class="ai-working-dots ai-header-dots" aria-hidden="true"><i></i><i
+      ></i><i></i></span>
+    <span class="ai-title">Assistente de Escrita</span>
+    <span class="ai-unread-dot" id="ai-unread-dot" hidden title="Nova resposta da IA"></span>
+  </div>
+  <button
+    id="btn-toggle-ai"
+    class="ai-toggle-btn"
+    title="Expandir/Recolher Chat"
+  >▲</button>
 </div>
 
 <div class="ai-assistant-body" id="ai-body-container">
 
-    <canvas id="ai-bg-canvas"></canvas>
+  <canvas id="ai-bg-canvas"></canvas>
 
-    <div class="ai-chat-messages" id="ai-chat-messages">
-        <!-- Mensagens de chat do assistente de IA -->
+  <div class="ai-chat-messages" id="ai-chat-messages">
+    <!-- Mensagens de chat do assistente de IA -->
+  </div>
+
+  <div class="ai-usage-bar" id="ai-usage-bar">
+    <div class="ai-usage-model" id="ai-usage-model" title="Conta e modelo em uso" hidden></div>
+    <div class="ai-usage-row">
+      <span class="ai-usage-text" id="ai-usage-text">Sessão: 0 tokens</span>
+      <div class="ai-usage-meter" id="ai-usage-meter" hidden>
+        <div class="ai-usage-meter-fill" id="ai-usage-meter-fill"></div>
+      </div>
+      <span class="ai-usage-context" id="ai-usage-context"></span>
     </div>
+    <div class="ai-usage-limit" id="ai-usage-limit" hidden></div>
+  </div>
 
-    <div class="ai-chat-input-container">
-        <div class="ai-input-wrapper">
-            <!-- Campo de Texto -->
-            <textarea id="ai-chat-input" placeholder="Digite uma instrução para a IA..." rows="2"></textarea>
+  <div class="ai-chat-input-container">
+    <div class="ai-input-wrapper">
+      <!-- Campo de Texto -->
+      <textarea
+        id="ai-chat-input"
+        placeholder="Digite uma instrução para a IA..."
+        rows="2"
+      ></textarea>
 
-            <!-- Barra Inferior de Ações Embutida (Estilo Gemini) -->
-            <div class="ai-input-actions">
-                <button id="btn-send-ai" class="btn-send-round" title="Enviar mensagem">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="19" x2="12" y2="5"></line>
-                        <polyline points="5 12 12 5 19 12"></polyline>
-                    </svg>
-                </button>
-            </div>
-        </div>
+      <!-- Barra Inferior de Ações Embutida (Estilo Gemini) -->
+      <div class="ai-input-actions">
+        <button
+          type="button"
+          id="btn-open-ai-central"
+          class="btn-ai-central"
+          event-click="central:open"
+          data-central="ai"
+          title="Abrir a Central de IA (contas, modelo, uso, depuração e skills)"
+        >
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+        <button id="btn-send-ai" class="btn-send-round" title="Enviar mensagem">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        </button>
+      </div>
     </div>
+  </div>
 </div>

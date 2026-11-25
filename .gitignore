@@ -88,8 +88,10 @@ typings/
 # Vite
 .vite/
 
-# Electron-Forge
+# Electron-Forge e instalador
 out/
+out-release/
+release/
 
 # Ignora tudo dentro de qualquer pasta chatlog ou changelog
 **/chatlog/*
@@ -104,7 +106,9 @@ out/
 # Ignora arquivos pessoais
 /docs/.personal
 /docs/dist
+release-build/
 
 # Ignora relatórios de testes
 /tests/reports
 /playwright-report
+/test-results

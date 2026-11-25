@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { uiBus } from "../../src/renderer/events/uiBus.js";
-import { FileService } from "../../src/renderer/services/fileService.js";
+import { uiBus } from "../../src/renderer/events/uiBus";
+import { FileService } from "../../src/renderer/services/fileService";
 import {
   syncFile,
   syncMultipleFiles,
-} from "../../src/renderer/controllers/handlers/fileHandler.js";
+} from "../../src/renderer/controllers/handlers/fileHandler";
 
 describe("Integração: Sincronização de Arquivos .temp (Handler & FileService)", () => {
   let fileService;

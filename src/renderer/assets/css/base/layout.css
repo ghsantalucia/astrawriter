@@ -33,7 +33,7 @@
 #app-container {
   display: grid;
   /* Ajustado para 480px conforme o seu container antigo da sidebar */
-  grid-template-columns: 480px 1fr;
+  grid-template-columns: 481px 1fr;
   /* 2 linhas na coluna da direita */
   grid-template-rows: auto 1fr;
   /* Define as áreas nomeadas */
@@ -49,9 +49,9 @@
 
 #sidebar-container {
   grid-area: sidebar;
-  width: 480px;
-  min-width: 480px;
-  max-width: 480px;
+  width: 481px;
+  min-width: 481px;
+  max-width: 481px;
   height: 100%;
   padding-top: 0px;
   display: flex;
