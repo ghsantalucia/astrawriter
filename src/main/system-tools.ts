@@ -14,7 +14,7 @@ import { addDirToZip } from "./export.js";
 const JSZip = require("jszip");
 
 /** Repositório das versões (público). */
-export const REPO = { owner: "ghsantalucia", name: "draftweaver" };
+export const REPO = { owner: "ghsantalucia", name: "astrawriter" };
 const RELEASES_API = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/releases/latest`;
 export const RELEASES_PAGE = `https://github.com/${REPO.owner}/${REPO.name}/releases`;
 

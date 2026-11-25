@@ -14,7 +14,7 @@ const root = path.join(__dirname, '..');
 const version = require(path.join(root, 'package.json')).version;
 const tag = process.argv[2] || `v${version}`;
 const target = process.argv[3] || execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: root }).toString().trim();
-const repo = 'ghsantalucia/draftweaver';
+const repo = 'ghsantalucia/astrawriter';
 const releaseDir = path.join(root, 'release');
 
 /** Token guardado pelo Git (nunca é mostrado). */

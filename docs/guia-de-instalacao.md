@@ -57,7 +57,7 @@ Ao abrir pela primeira vez, o app instala o livro **Manual de Uso** (uma única 
 
 ## 5. Publicar no GitHub (releases)
 
-Repositório: `https://github.com/ghsantalucia/draftweaver` (público).
+Repositório: `https://github.com/ghsantalucia/astrawriter` (público).
 
 **Pelo site (mais simples)**
 

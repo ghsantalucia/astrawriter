@@ -41,7 +41,7 @@ module.exports = {
     {
       name: '@electron-forge/publisher-github',
       config: {
-        repository: { owner: 'ghsantalucia', name: 'draftweaver' },
+        repository: { owner: 'ghsantalucia', name: 'astrawriter' },
         prerelease: false,
         draft: true,
       },

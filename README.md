@@ -86,13 +86,13 @@ Certifique-se de ter o **Node.js** (versão 18 ou superior) instalado em sua má
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/ghsantalucia/draftweaver.git
+git clone https://github.com/ghsantalucia/astrawriter.git
 ```
 
 2. Acesse a pasta do projeto:
 
 ```bash
-cd draftweaver
+cd astrawriter
 ```
 
 3. Instale as dependências:
