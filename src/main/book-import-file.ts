@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { dialog } from "electron";
+import { t } from "../shared/i18n.js";
 const JSZip = require("jszip");
 
 /** Título de capítulo reconhecido pelo texto ("Capítulo 3", "CAPÍTULO IV: ...", "Chapter 2"). */
@@ -132,11 +133,11 @@ export function splitChapters(blocks, fallbackTitle) {
       preface = preface.slice(1);
     }
     const prefaceText = preface.filter((b) => b.text.length > 0).map((b) => (b.type === "heading" ? `## ${b.text}` : b.text));
-    if (chapters.length && prefaceText.join(" ").length >= 400) chapters.unshift({ title: "Prólogo", parts: prefaceText });
-    else if (!chapters.length) chapters.push({ title: "Capítulo 1", parts: prefaceText });
+    if (chapters.length && prefaceText.join(" ").length >= 400) chapters.unshift({ title: t("Prólogo"), parts: prefaceText });
+    else if (!chapters.length) chapters.push({ title: t("Capítulo 1"), parts: prefaceText });
   }
 
-  if (!detected) warnings.push("Não encontrei títulos de capítulo: o texto todo ficou em um capítulo. Você pode ajustar na próxima tela.");
+  if (!detected) warnings.push(t("Não encontrei títulos de capítulo: o texto todo ficou em um capítulo. Você pode ajustar na próxima tela."));
   const result = chapters.map((c) => {
     const text = c.parts.join("\n\n");
     return { title: c.title.replace(/\s+/g, " ").trim().slice(0, 120), text, words: text.split(/\s+/).filter(Boolean).length };
@@ -160,7 +161,7 @@ async function readBlocks(file) {
   if (ext === ".odt") {
     const zip = await JSZip.loadAsync(buffer);
     const xml = await zip.file("content.xml")?.async("string");
-    if (!xml) throw new Error("O arquivo .odt não tem conteúdo legível.");
+    if (!xml) throw new Error(t("O arquivo .odt não tem conteúdo legível."));
     return blocksFromOdt(xml);
   }
   if (ext === ".pdf") {
@@ -169,7 +170,7 @@ async function readBlocks(file) {
     return blocksFromText(String(data.text || ""));
   }
   if (ext === ".txt" || ext === ".md" || ext === ".markdown") return blocksFromText(buffer.toString("utf8"));
-  throw new Error("Formato não suportado. Use .docx, .odt, .pdf, .txt ou .md.");
+  throw new Error(t("Formato não suportado. Use .docx, .odt, .pdf, .txt ou .md."));
 }
 
 /**
@@ -179,21 +180,21 @@ async function readBlocks(file) {
  */
 export async function extractBookFromFile(parent) {
   const { canceled, filePaths } = await dialog.showOpenDialog(parent, {
-    title: "Importar livro de um arquivo",
+    title: t("Importar livro de um arquivo"),
     properties: ["openFile"],
     filters: [
-      { name: "Documentos", extensions: ["docx", "odt", "pdf", "txt", "md"] },
-      { name: "Todos os arquivos", extensions: ["*"] },
+      { name: t("Documentos"), extensions: ["docx", "odt", "pdf", "txt", "md"] },
+      { name: t("Todos os arquivos"), extensions: ["*"] },
     ],
   });
   if (canceled || !filePaths?.[0]) return { success: false, canceled: true };
   try {
     const file = filePaths[0];
-    if (fs.statSync(file).size > MAX_BYTES) throw new Error("O arquivo é grande demais (limite de 80 MB).");
+    if (fs.statSync(file).size > MAX_BYTES) throw new Error(t("O arquivo é grande demais (limite de 80 MB)."));
     const blocks = await readBlocks(file);
-    if (blocks.length === 0) throw new Error("Não encontrei texto neste arquivo (PDFs escaneados, só com imagens, não são suportados).");
+    if (blocks.length === 0) throw new Error(t("Não encontrei texto neste arquivo (PDFs escaneados, só com imagens, não são suportados)."));
     const base = path.basename(file, path.extname(file)).replace(/[_-]+/g, " ").trim();
-    const { title, chapters, warnings } = splitChapters(blocks, base || "Livro importado");
+    const { title, chapters, warnings } = splitChapters(blocks, base || t("Livro importado"));
     return { success: true, title, chapters, warnings, format: path.extname(file).slice(1).toLowerCase() };
   } catch (error) {
     return { success: false, error: error.message };

@@ -1,3 +1,4 @@
+import { defaultSpellLanguage } from "../../shared/i18n.js";
 /**
  * @file Contador de palavras desconhecidas (ortografia) do texto do editor. A verificação roda no processo principal
  * (Hunspell + dicionário do idioma escolhido); o sublinhado vermelho do editor continua sendo do corretor do Chromium.
@@ -33,7 +34,7 @@ export class SpellService {
    */
   async findMisspelled(words) {
     if (words.length === 0) return [];
-    const language = localStorage.getItem(LANGUAGE_KEY) || "pt-BR";
+    const language = localStorage.getItem(LANGUAGE_KEY) || defaultSpellLanguage();
     const missing = await window.electronAPI.findMisspelled(language, words);
     return this.bookWords.size === 0
       ? missing

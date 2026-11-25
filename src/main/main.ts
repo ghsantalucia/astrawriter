@@ -10,6 +10,8 @@ import { setupFileWatcher } from "./file-watcher.js";
 import { setupIpcHandlers } from "./ipc-handlers.js";
 import { ensureBooksDir, iconPath } from "./paths.js";
 import { installManualBook } from "./first-run.js";
+import { initLanguage, registerLanguageIpc } from "./language.js";
+import { t } from "../shared/i18n.js";
 
 // Em desenvolvimento, os dados do app ficam na pasta "Astra Writer Dev". A pasta "Astra Writer" é a do app instalado
 // (assim o instalado nunca enxerga as chaves e configurações de desenvolvimento).
@@ -39,6 +41,9 @@ const createWindow = () => {
   // Testes E2E em segundo plano: a janela nunca é exibida (não rouba o foco de quem está trabalhando)
   const hidden = process.env.ASTRA_HIDDEN === "1";
 
+  // Idioma do app (escolha do usuário, ou o do sistema): definido antes de qualquer texto ser criado
+  initLanguage();
+
   mainWindow = new BrowserWindow({
     width: hidden ? 1440 : 1200,
     height: hidden ? 900 : 800,
@@ -56,8 +61,9 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      // Janela oculta (E2E): sem isso o Chromium pausa temporizadores e a interface "congela"
-      backgroundThrottling: !hidden,
+      // Janela oculta ou testes E2E (ASTRA_NO_THROTTLE=1, mesmo com a janela visível mas atrás de outras): sem isso o Chromium pausa
+      // temporizadores e a interface "congela"
+      backgroundThrottling: !hidden && process.env.ASTRA_NO_THROTTLE !== "1",
     },
   });
 
@@ -69,6 +75,7 @@ const createWindow = () => {
 
   // Inicializa os manipuladores IPC passando a janela
   setupIpcHandlers(mainWindow);
+  registerLanguageIpc(mainWindow);
 
   // Inicia o chokidar File Watcher
   setupFileWatcher(mainWindow);
@@ -117,18 +124,18 @@ const createWindow = () => {
 
     if (props.isEditable) {
       items.push(
-        { role: "cut", label: "Recortar" },
-        { role: "copy", label: "Copiar" },
-        { role: "paste", label: "Colar" },
+        { role: "cut", label: t("Recortar") },
+        { role: "copy", label: t("Copiar") },
+        { role: "paste", label: t("Colar") },
       );
     } else if (props.selectionText) {
-      items.push({ role: "copy", label: "Copiar" });
+      items.push({ role: "copy", label: t("Copiar") });
     }
 
     if (!app.isPackaged) {
       if (items.length) items.push({ type: "separator" });
       items.push({
-        label: "Inspecionar Elemento",
+        label: t("Inspecionar Elemento"),
         click: () => wc.inspectElement(props.x, props.y),
       });
     }
@@ -138,10 +145,10 @@ const createWindow = () => {
 
   // Configuração do menu superior nativo
   const templateMenu: Electron.MenuItemConstructorOptions[] = [
-    { role: "fileMenu", label: "Arquivo" },
-    { role: "editMenu", label: "Editar" },
-    { role: "viewMenu", label: "Exibir" },
-    { role: "windowMenu", label: "Janela" },
+    { role: "fileMenu", label: t("Arquivo") },
+    { role: "editMenu", label: t("Editar") },
+    { role: "viewMenu", label: t("Exibir") },
+    { role: "windowMenu", label: t("Janela") },
   ];
 
   const menu = Menu.buildFromTemplate(templateMenu);

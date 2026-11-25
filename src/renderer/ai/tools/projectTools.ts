@@ -3,6 +3,7 @@
  * `config.json` dos livros e os modelos de IA configurados (sem nunca expor chaves de API).
  */
 
+import { t } from "../../../shared/i18n.js";
 import { normalizePath } from "../../utils/helpers.js";
 import { AI_PROVIDERS } from "../providers/index.js";
 import { uiBus } from "../../events/uiBus.js";
@@ -20,7 +21,7 @@ function findBook(state, folderName?) {
     const current = books.find(
       (b) => normalizePath(b.fullPath) === normalizePath(state.currentBookPath),
     );
-    if (!current) throw new Error("Nenhum livro selecionado.");
+    if (!current) throw new Error(t("Nenhum livro selecionado."));
     return current;
   }
   const found = books.find(
@@ -28,7 +29,7 @@ function findBook(state, folderName?) {
   );
   if (!found) {
     throw new Error(
-      `Livro "${folderName}" não encontrado. Disponíveis: ${books.map((b) => b.folderName).join(", ") || "(nenhum)"}`,
+      t('Livro "{folderName}" não encontrado. Disponíveis: {available}', { folderName, available: books.map((b) => b.folderName).join(", ") || t("(nenhum)") }),
     );
   }
   return found;
@@ -42,14 +43,14 @@ export function registerProjectTools(registry) {
   registry.register({
     name: "toggle_advanced_files",
     description:
-      "Liga ou desliga a exibição dos arquivos avançados (índices e arquivos técnicos) no explorer do livro atual, como o botão de olho do explorer. É só uma preferência de visualização do autor (salva no config.json do livro).",
+      t("Liga ou desliga a exibição dos arquivos avançados (índices e arquivos técnicos) no explorer do livro atual, como o botão de olho do explorer. É só uma preferência de visualização do autor (salva no config.json do livro)."),
     parameters: {
       type: "object",
       properties: {
         enabled: {
           type: "boolean",
           description:
-            "true mostra os arquivos avançados; false oculta. Se omitido, alterna o estado atual.",
+            t("true mostra os arquivos avançados; false oculta. Se omitido, alterna o estado atual."),
         },
       },
     },
@@ -64,27 +65,27 @@ export function registerProjectTools(registry) {
       await ctx.bookService.updateConfig(book.fullPath);
       uiBus.emit("explorer:advanced-changed", { enabled: next });
       return next
-        ? "Arquivos avançados agora estão visíveis no explorer."
-        : "Arquivos avançados agora estão ocultos no explorer.";
+        ? t("Arquivos avançados agora estão visíveis no explorer.")
+        : t("Arquivos avançados agora estão ocultos no explorer.");
     },
   });
 
   registry.register({
     name: "get_book_config",
     description:
-      "Lê o config.json do livro aberto (título, bloqueio da IA, estado do explorer). Só o livro atual: a IA não tem acesso a outros livros. Somente leitura.",
+      t("Lê o config.json do livro aberto (título, bloqueio da IA, estado do explorer). Só o livro atual: a IA não tem acesso a outros livros. Somente leitura."),
     parameters: { type: "object", properties: {} },
     async execute(_args, ctx) {
       const item = findBook(ctx.state);
       const text = await window.electronAPI.readFile(
         `${normalizePath(item.fullPath)}/config.json`,
       );
-      if (text === null) throw new Error("O config.json do livro não existe.");
+      if (text === null) throw new Error(t("O config.json do livro não existe."));
       let config;
       try {
         config = JSON.parse(text);
       } catch {
-        throw new Error("O config.json do livro está inválido.");
+        throw new Error(t("O config.json do livro está inválido."));
       }
       return { folder: item.folderName, config };
     },
@@ -93,7 +94,7 @@ export function registerProjectTools(registry) {
   registry.register({
     name: "list_ai_models",
     description:
-      "Lista os provedores e modelos de IA do app: quais estão configurados para funcionar (têm chave de API ou não precisam dela), qual está ativo e o modelo escolhido em cada um. A chave de API nunca é exibida. Somente leitura.",
+      t("Lista os provedores e modelos de IA do app: quais estão configurados para funcionar (têm chave de API ou não precisam dela), qual está ativo e o modelo escolhido em cada um. A chave de API nunca é exibida. Somente leitura."),
     parameters: { type: "object", properties: {} },
     async execute(_args, ctx) {
       const settings = ctx.state.aiSettings || {};

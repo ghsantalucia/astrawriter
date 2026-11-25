@@ -3,12 +3,14 @@
  * Fica no armazenamento local do navegador (preferência de aparência, não do livro).
  */
 
+import { t } from "../../shared/i18n.js";
+
 /** Tipos de fundo disponíveis. */
 export const CHAT_BG_MODES = [
-  { id: "stars", label: "Estrelas" },
-  { id: "nebula", label: "Nebulosa" },
-  { id: "orbits", label: "Órbitas" },
-  { id: "solid", label: "Cor sólida" },
+  { id: "stars", label: t("Estrelas") },
+  { id: "nebula", label: t("Nebulosa") },
+  { id: "orbits", label: t("Órbitas") },
+  { id: "solid", label: t("Cor sólida") },
 ];
 
 /** Fundo padrão de cada tema (o que o app sempre usou). */
@@ -27,25 +29,25 @@ const DEFAULT_COLOR = {
  */
 export const CHAT_COLOR_FIELDS = {
   stars: [
-    { id: "bg", label: "Fundo" },
-    { id: "star", label: "Estrelas", default: { dark: "#ffffff", light: "#ffffff" } },
-    { id: "shooting", label: "Estrela cadente", default: { dark: "#ffffff", light: "#ffffff" } },
+    { id: "bg", label: t("Fundo") },
+    { id: "star", label: t("Estrelas"), default: { dark: "#ffffff", light: "#ffffff" } },
+    { id: "shooting", label: t("Estrela cadente"), default: { dark: "#ffffff", light: "#ffffff" } },
   ],
   nebula: [
-    { id: "violet", label: "Cor principal", default: { dark: "#802bea", light: "#802bea" } },
-    { id: "lilac", label: "Cor clara", default: { dark: "#cc9efa", light: "#cc9efa" } },
-    { id: "pink", label: "Destaque", default: { dark: "#ff7acc", light: "#ff7acc" } },
+    { id: "violet", label: t("Cor principal"), default: { dark: "#802bea", light: "#802bea" } },
+    { id: "lilac", label: t("Cor clara"), default: { dark: "#cc9efa", light: "#cc9efa" } },
+    { id: "pink", label: t("Destaque"), default: { dark: "#ff7acc", light: "#ff7acc" } },
   ],
   orbits: [
-    { id: "bg", label: "Fundo" },
-    { id: "stroke", label: "Traço", default: { dark: "#e6c7ff", light: null } },
-    { id: "orbitColor", label: "Órbitas", default: { dark: "#7b6aa6", light: null } },
-    { id: "planetColor", label: "Planetas", default: { dark: "#e6c7ff", light: null } },
-    { id: "moonColor", label: "Luas", default: { dark: "#e6c7ff", light: null } },
-    { id: "asteroidColor", label: "Asteroides", default: { dark: "#ffb8d1", light: null } },
-    { id: "starColor", label: "Estrelas", default: { dark: "#ffe9a8", light: null } },
+    { id: "bg", label: t("Fundo") },
+    { id: "stroke", label: t("Traço"), default: { dark: "#e6c7ff", light: null } },
+    { id: "orbitColor", label: t("Órbitas"), default: { dark: "#7b6aa6", light: null } },
+    { id: "planetColor", label: t("Planetas"), default: { dark: "#e6c7ff", light: null } },
+    { id: "moonColor", label: t("Luas"), default: { dark: "#e6c7ff", light: null } },
+    { id: "asteroidColor", label: t("Asteroides"), default: { dark: "#ffb8d1", light: null } },
+    { id: "starColor", label: t("Estrelas"), default: { dark: "#ffe9a8", light: null } },
   ],
-  solid: [{ id: "bg", label: "Fundo" }],
+  solid: [{ id: "bg", label: t("Fundo") }],
 };
 
 /**

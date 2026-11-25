@@ -42,6 +42,7 @@ import {
   normalizeSeverity,
   typeInfo,
 } from "../review/issueTypes.js";
+import { t } from "../../shared/i18n.js";
 
 /** Espera antes de reanalisar depois de uma alteração (agrupa salvamentos seguidos). */
 const RESCAN_DELAY_MS = 1200;
@@ -560,7 +561,7 @@ export class IssueService {
       before,
       after,
       actor: this.changelog.systemActor(),
-      meta: { reason: "Linha do tempo atualizada pelo sistema a partir dos eventos" },
+      meta: { reason: t("Linha do tempo atualizada pelo sistema a partir dos eventos") },
       bookPath: book,
     });
   }
@@ -584,10 +585,10 @@ export class IssueService {
     const rel = "assets/events/timeline.md";
     const abs = `${this.bookPath}/${rel}`;
     const { content } = await this.fileService.readFile(abs);
-    if (content === null) throw new Error("A linha do tempo (assets/events/timeline.md) não existe neste livro.");
+    if (content === null) throw new Error(t("A linha do tempo (assets/events/timeline.md) não existe neste livro."));
     const { frontmatter } = splitFrontmatter(content);
     const saved = await this.fileService.saveTempFile(abs, frontmatter + timelineMarkdown(ordered), { actor });
-    if (!saved?.success) throw new Error(saved?.error || "Falha ao salvar a linha do tempo.");
+    if (!saved?.success) throw new Error(saved?.error || t("Falha ao salvar a linha do tempo."));
     if (actor?.type === "ai") this.changelog?.markAiDraft(abs);
     uiBus.emit("temp-file:saved", normalizePath(abs));
     if (normalizePath(this.state.currentFilePath || "").replace(/\.temp$/, "") === normalizePath(abs)) {
@@ -737,29 +738,29 @@ export class IssueService {
    */
   async fix(id) {
     const issue = this.find(id);
-    if (!issue) throw new Error("Esse issue não existe mais.");
+    if (!issue) throw new Error(t("Esse issue não existe mais."));
     if (typeof issue.suggestion?.replace !== "string") {
-      throw new Error("Este issue não tem uma correção automática.");
+      throw new Error(t("Este issue não tem uma correção automática."));
     }
     const meta = await this.fileMetadata(issue.file);
     if (meta && meta.humanWrite === false) {
-      throw new Error("Este arquivo é somente leitura: a correção não pode ser aplicada.");
+      throw new Error(t("Este arquivo é somente leitura: a correção não pode ser aplicada."));
     }
 
     const abs = `${this.bookPath}/${issue.file}`;
     const { content } = await this.fileService.readFile(abs);
-    if (content === null) throw new Error("Não foi possível ler o arquivo.");
+    if (content === null) throw new Error(t("Não foi possível ler o arquivo."));
     const at = this.locate(content, issue.excerpt, issue.start ?? 0);
     if (at < 0) {
       await this.scan({ only: [issue.file] });
-      throw new Error("O trecho foi alterado desde a análise. O issue foi atualizado.");
+      throw new Error(t("O trecho foi alterado desde a análise. O issue foi atualizado."));
     }
 
     const next = content.slice(0, at) + issue.suggestion.replace + content.slice(at + issue.excerpt.length);
     const saved = await this.fileService.saveTempFile(abs, next, {
       actor: this.changelog?.systemActor(),
     });
-    if (!saved?.success) throw new Error(saved?.error || "Falha ao salvar a correção.");
+    if (!saved?.success) throw new Error(saved?.error || t("Falha ao salvar a correção."));
 
     // Issue resolvido: sai do cache e dos registrados; o arquivo é reanalisado
     this.removeIssue(id);
@@ -898,7 +899,7 @@ export class IssueService {
    * @returns {Promise<{registered: number, skipped: Array<{index: number, reason: string}>}>}
    */
   async register(items, actor) {
-    if (!this.data) throw new Error("Nenhum livro selecionado.");
+    if (!this.data) throw new Error(t("Nenhum livro selecionado."));
     const skipped = [];
     const added = [];
 
@@ -906,22 +907,22 @@ export class IssueService {
       const item = items[index] || {};
       const type = ISSUE_TYPES[item.type] ? item.type : null;
       if (!type) {
-        skipped.push({ index, reason: `Tipo "${item.type}" desconhecido. Use um de: ${Object.keys(ISSUE_TYPES).join(", ")}.` });
+        skipped.push({ index, reason: t('Tipo "{type}" desconhecido. Use um de: {types}.', { type: item.type, types: Object.keys(ISSUE_TYPES).join(", ") }) });
         continue;
       }
       if (this.data.dismissed.types[type]) {
-        skipped.push({ index, reason: `O autor dispensou o tipo "${type}": não registre issues dele.` });
+        skipped.push({ index, reason: t('O autor dispensou o tipo "{type}": não registre issues dele.', { type }) });
         continue;
       }
       if (!item.file || !item.message) {
-        skipped.push({ index, reason: "Informe 'file' e 'message'." });
+        skipped.push({ index, reason: t("Informe 'file' e 'message'.") });
         continue;
       }
 
       const file = String(item.file).replace(/^\/+/, "");
       const { content } = await this.fileService.readFile(`${this.bookPath}/${file}`);
       if (content === null) {
-        skipped.push({ index, reason: `O arquivo "${file}" não existe.` });
+        skipped.push({ index, reason: t('O arquivo "{file}" não existe.', { file }) });
         continue;
       }
       let start = null;
@@ -932,7 +933,7 @@ export class IssueService {
         let at = -1;
         for (let n = 0; n < nth; n++) at = content.indexOf(excerpt, at + 1);
         if (at < 0) {
-          skipped.push({ index, reason: `O trecho informado não foi encontrado em "${file}". Copie o texto exatamente como está no arquivo.` });
+          skipped.push({ index, reason: t('O trecho informado não foi encontrado em "{file}". Copie o texto exatamente como está no arquivo.', { file }) });
           continue;
         }
         start = at;
@@ -942,7 +943,7 @@ export class IssueService {
       const info = typeInfo(type);
       const id = `a-${shortHash(`${file}|${type}|${excerpt}|${item.message}`)}`;
       if (this.data.dismissed.issues[id] || this.data.registered.issues.some((i) => i.id === id)) {
-        skipped.push({ index, reason: "Esse issue já foi registrado ou dispensado." });
+        skipped.push({ index, reason: t("Esse issue já foi registrado ou dispensado.") });
         continue;
       }
 

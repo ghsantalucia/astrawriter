@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   /** Abre um diálogo nativo para seleção de diretórios. */
   selectFolder: () => ipcRenderer.invoke("select-folder"),
 
+  /** Idioma do app (leitura síncrona, para a interface já nascer traduzida) e troca de idioma (recarrega a tela). */
+  language: ipcRenderer.sendSync("language-get"),
+  setLanguage: (code) => ipcRenderer.invoke("language-set", code),
+
   /** Quantas das palavras o dicionário do idioma não reconhece (contador do rodapé do editor). */
   findMisspelled: (language, words) =>
     ipcRenderer.invoke("spell-check", language, words),

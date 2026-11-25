@@ -2,17 +2,17 @@
 <nav class="explorer-tabs">
   <button class="tab-btn" folder="notes">
     <i class="fa-regular fa-bookmark"></i>
-    <span>Anotações</span>
+    <span>{{t "Anotações"}}</span>
     <span class="tab-badge" data-badge="notes" hidden></span>
   </button>
   <button class="tab-btn active" folder="content">
     <i class="fa-regular fa-pen-to-square"></i>
-    <span>Escrita</span>
+    <span>{{t "Escrita"}}</span>
     <span class="tab-badge" data-badge="content" hidden></span>
   </button>
   <button class="tab-btn" folder="assets">
     <i class="fa-regular fa-compass"></i>
-    <span>Mundo</span>
+    <span>{{t "Mundo"}}</span>
     <span class="tab-badge" data-badge="assets" hidden></span>
   </button>
 </nav>
@@ -25,21 +25,21 @@
     event-click="central:open"
     data-central="system"
     data-tab="productivity"
-    title="Abrir Produtividade (gráfico e registros)"
-    aria-label="Abrir Produtividade"
+    title="{{t 'Abrir Produtividade (gráfico e registros)'}}"
+    aria-label="{{t 'Abrir Produtividade'}}"
   >
     <i class="fa-regular fa-clock prod-icon"></i>
   </button>
   <span class="prod-time" id="prod-time">00:00:00</span>
-  <span class="prod-status" id="prod-status">pausado</span>
+  <span class="prod-status" id="prod-status">{{t "pausado"}}</span>
   <span class="prod-spacer"></span>
-  <button type="button" class="prod-btn" id="prod-toggle" event-click="productivity:toggle" title="Iniciar o cronômetro">
+  <button type="button" class="prod-btn" id="prod-toggle" event-click="productivity:toggle" title="{{t 'Iniciar o cronômetro'}}">
     <i class="fa-solid fa-play"></i>
   </button>
-  <button type="button" class="prod-btn" id="prod-reset" event-click="productivity:reset" title="Zerar: encerra o registro atual e recomeça">
+  <button type="button" class="prod-btn" id="prod-reset" event-click="productivity:reset" title="{{t 'Zerar: encerra o registro atual e recomeça'}}">
     <i class="fa-solid fa-rotate-left"></i>
   </button>
-  <button type="button" class="prod-auto" id="prod-auto" event-click="productivity:auto">Auto</button>
+  <button type="button" class="prod-auto" id="prod-auto" event-click="productivity:auto">{{t "Auto"}}</button>
 </div>
 
 <!-- Barra de pesquisa (título e conteúdo dos arquivos) -->
@@ -49,7 +49,7 @@
     type="text"
     id="explorer-search-input"
     class="explorer-search-input"
-    placeholder="Título, texto ou #tag (vírgula separa termos)"
+    placeholder="{{t 'Título, texto ou #tag (vírgula separa termos)'}}"
     autocomplete="off"
     spellcheck="false"
     event-input="search:changed"
@@ -58,7 +58,7 @@
     type="button"
     id="explorer-search-clear"
     class="explorer-search-clear"
-    title="Limpar pesquisa"
+    title="{{t 'Limpar pesquisa'}}"
     event-click="search:clear"
     hidden
   >
@@ -70,12 +70,12 @@
 <div
   class="explorer-toolbar"
   role="toolbar"
-  aria-label="Ferramentas do explorer"
+  aria-label="{{t 'Ferramentas do explorer'}}"
 >
   <label
     class="mini-btn mini-toggle"
-    data-tooltip="Arquivos avançados"
-    aria-label="Arquivos avançados"
+    data-tooltip="{{t 'Arquivos avançados'}}"
+    aria-label="{{t 'Arquivos avançados'}}"
   >
     <input
       type="checkbox"
@@ -88,8 +88,8 @@
   <button
     type="button"
     class="mini-btn"
-    data-tooltip="Abrir ou fechar todas as pastas"
-    aria-label="Abrir ou fechar todas as pastas"
+    data-tooltip="{{t 'Abrir ou fechar todas as pastas'}}"
+    aria-label="{{t 'Abrir ou fechar todas as pastas'}}"
     event-click="folders:toggle-all"
   >
     <i class="fa-solid fa-folder-tree"></i>
@@ -98,8 +98,8 @@
     type="button"
     class="mini-btn"
     data-tab="content"
-    data-tooltip="Novo capítulo"
-    aria-label="Novo capítulo"
+    data-tooltip="{{t 'Novo capítulo'}}"
+    aria-label="{{t 'Novo capítulo'}}"
     event-click="chapter:create"
   >
     <i class="fa-solid fa-file-circle-plus"></i>
@@ -108,8 +108,8 @@
     type="button"
     class="mini-btn"
     data-tab="notes"
-    data-tooltip="Nova pasta"
-    aria-label="Nova pasta"
+    data-tooltip="{{t 'Nova pasta'}}"
+    aria-label="{{t 'Nova pasta'}}"
     event-click="folder:create"
     data-parent="notes"
   >
@@ -120,8 +120,8 @@
     class="mini-btn mini-ai-lock"
     id="btn-notes-ai-lock"
     data-tab="notes"
-    data-tooltip="Bloquear ou liberar a escrita da IA nas anotações"
-    aria-label="Bloquear ou liberar a escrita da IA nas anotações"
+    data-tooltip="{{t 'Bloquear ou liberar a escrita da IA nas anotações'}}"
+    aria-label="{{t 'Bloquear ou liberar a escrita da IA nas anotações'}}"
     event-click="notes:toggle-ai-lock"
   >
     <i class="fa-solid fa-lock mini-locked"></i>
@@ -131,8 +131,8 @@
     type="button"
     class="mini-btn"
     data-tab="notes"
-    data-tooltip="Nova anotação"
-    aria-label="Nova anotação"
+    data-tooltip="{{t 'Nova anotação'}}"
+    aria-label="{{t 'Nova anotação'}}"
     event-click="note:create"
   >
     <i class="fa-solid fa-file-circle-plus"></i>
@@ -142,7 +142,7 @@
 <!-- Mensagem exibida quando a pesquisa não encontra nada na aba atual -->
 <div id="search-empty" class="search-empty" hidden>
   <i class="fa-regular fa-face-frown"></i>
-  <span>Sem resultados para a pesquisa</span>
+  <span>{{t "Sem resultados para a pesquisa"}}</span>
 </div>
 
 <!-- Conteúdo da Árvore de Arquivos -->

@@ -7,6 +7,7 @@
 import { uiBus } from "../events/uiBus.js";
 import { appSettings } from "../utils/appSettings.js";
 import { applyThemeCss, findTheme } from "../utils/themes.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Minutos desde a meia-noite de um horário `HH:MM`.
@@ -58,7 +59,7 @@ export class AppearanceService {
     const preset: any = appSettings.def("ui.themePreset");
     preset.get = () => findTheme(appSettings.values["ui.themePreset"])?.id || preset.default;
     preset.set = (value) => {
-      if (!findTheme(value)) throw new Error(`Tema "${value}" não encontrado.`);
+      if (!findTheme(value)) throw new Error(t("Tema \"{value}\" não encontrado.", { value }));
       appSettings.values["ui.themePreset"] = value;
       appSettings.save();
     };

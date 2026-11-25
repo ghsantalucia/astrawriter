@@ -10,6 +10,7 @@ import { MAX_RECENT, clearExchanges, ensureDebugLoaded, isPinned, listExchanges,
 import { builtinSkillNames, listSkills } from "../../../ai/skills/index.js";
 import { PROFILES, PROFILE_OPTIONS, detectProfile, resolveAnalysis, toSaved } from "../../../ai/profiles.js";
 import { confirmModal, esc, mount, plural, shortDate, switchRow } from "./panelKit.js";
+import { t, getLanguage } from "../../../../shared/i18n.js";
 
 /**
  * Lista de modelos de um provedor (da API, se já carregada; senão o catálogo padrão).
@@ -26,7 +27,7 @@ function modelsOf(state, provider) {
  * @param {number} n - Número.
  * @returns {string}
  */
-const fmt = (n) => Number(n || 0).toLocaleString("pt-BR");
+const fmt = (n) => Number(n || 0).toLocaleString(getLanguage());
 
 /** Alfinete em SVG: só o contorno quando não está fixado; o CSS (`.cn-pin.on`) preenche quando está. */
 const PIN_SVG =
@@ -51,7 +52,7 @@ export class AiPanel {
    */
   constructor(ctx) {
     this.ctx = ctx;
-    this.title = "Central de IA";
+    this.title = t("Central de IA");
     this.usageDays = 7;
     this.unsubscribe = null;
     /** Aba de skills (biblioteca, loja, página da skill e formulário). */
@@ -82,14 +83,14 @@ export class AiPanel {
    */
   getTabs() {
     return [
-      { id: "model", label: "Contas e modelo", icon: "fa-robot" },
-      { id: "fallback", label: "Fallback de contas", icon: "fa-shuffle" },
-      { id: "usage", label: "Uso por modelo", icon: "fa-chart-column" },
-      { id: "analysis", label: "Perfil e análises", icon: "fa-gauge-high" },
+      { id: "model", label: t("Contas e modelo"), icon: "fa-robot" },
+      { id: "fallback", label: t("Fallback de contas"), icon: "fa-shuffle" },
+      { id: "usage", label: t("Uso por modelo"), icon: "fa-chart-column" },
+      { id: "analysis", label: t("Perfil e análises"), icon: "fa-gauge-high" },
       { separator: true },
-      { id: "debug", label: "Depuração", icon: "fa-bug" },
-      { id: "errors", label: "Log de erros", icon: "fa-triangle-exclamation" },
-      { id: "skills", label: "Skills", icon: "fa-wand-magic-sparkles" },
+      { id: "debug", label: t("Depuração"), icon: "fa-bug" },
+      { id: "errors", label: t("Log de erros"), icon: "fa-triangle-exclamation" },
+      { id: "skills", label: t("Skills"), icon: "fa-wand-magic-sparkles" },
     ];
   }
 
@@ -100,13 +101,13 @@ export class AiPanel {
    */
   getHeader(tab) {
     const titles = {
-      model: ["Contas e modelo de IA", "Cadastre quantas contas quiser (várias Gemini, várias Claude...), cada uma com a sua chave e um apelido. A conta ativa e o modelo valem para o chat e as análises; as chaves nunca são exibidas por inteiro."],
-      fallback: ["Fallback de contas", "Se a conta ativa ficar sem cota ou o serviço estiver instável, o app tenta a próxima da lista automaticamente."],
-      errors: ["Log de erros da IA", "Erros retornados pela IA, do mais recente para o mais antigo (sem chaves de API). O arquivo é limitado: os registros mais antigos são descartados."],
-      usage: ["Uso por modelo", "Requisições e tokens contados pelo app neste computador (a API nem sempre informa a cota restante)."],
-      analysis: ["Perfil de uso e análises", "Escolha quanto a IA trabalha (e gasta tokens) neste app, como nas configurações de qualidade de um jogo. Mexer em qualquer opção muda o perfil para Personalizado."],
-      debug: ["Depuração", "Os últimos 10 turnos de conversa com a IA: o texto completo enviado (instruções do sistema, histórico e mensagem), a resposta, as tools usadas e os tokens. Use o alfinete para salvar um turno importante; a chave de API nunca aparece aqui."],
-      skills: ["Skills", "Pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Algumas rodam só quando você manda; outras rodam sozinhas em gatilhos (como ao sincronizar)."],
+      model: [t("Contas e modelo de IA"), t("Cadastre quantas contas quiser (várias Gemini, várias Claude...), cada uma com a sua chave e um apelido. A conta ativa e o modelo valem para o chat e as análises; as chaves nunca são exibidas por inteiro.")],
+      fallback: [t("Fallback de contas"), t("Se a conta ativa ficar sem cota ou o serviço estiver instável, o app tenta a próxima da lista automaticamente.")],
+      errors: [t("Log de erros da IA"), t("Erros retornados pela IA, do mais recente para o mais antigo (sem chaves de API). O arquivo é limitado: os registros mais antigos são descartados.")],
+      usage: [t("Uso por modelo"), t("Requisições e tokens contados pelo app neste computador (a API nem sempre informa a cota restante).")],
+      analysis: [t("Perfil de uso e análises"), t("Escolha quanto a IA trabalha (e gasta tokens) neste app, como nas configurações de qualidade de um jogo. Mexer em qualquer opção muda o perfil para Personalizado.")],
+      debug: [t("Depuração"), t("Os últimos 10 turnos de conversa com a IA: o texto completo enviado (instruções do sistema, histórico e mensagem), a resposta, as tools usadas e os tokens. Use o alfinete para salvar um turno importante; a chave de API nunca aparece aqui.")],
+      skills: [t("Skills"), t("Pacotes de instruções que a IA executa usando as tools, compartilhados entre todos os livros. Algumas rodam só quando você manda; outras rodam sozinhas em gatilhos (como ao sincronizar).")],
     };
     const [subtitle, lead] = titles[tab] || ["", ""];
     return { subtitle, lead };
@@ -155,19 +156,19 @@ export class AiPanel {
     const mask = (key) => (key ? `••••${esc(key.slice(-4))}` : "");
     const ctxWindow = this.ai.getContextWindow();
 
-    const toolModeLabels = { auto: "Automático", native: "Nativas", simulated: "Simuladas" };
+    const toolModeLabels = { auto: t("Automático"), native: t("Nativas"), simulated: t("Simuladas") };
     /** Campo rotulado dentro do cartão da conta. */
     const field = (label, control, title = "") => `<div class="cn-acct-field" ${title ? `title="${esc(title)}"` : ""}><span>${label}</span><div>${control}</div></div>`;
     const extras = (a, info) => {
       const parts = [];
       if (info?.toolModes) {
-        parts.push(field("Tools", `<select class="cn-select" data-change="toolmode" data-id="${esc(a.id)}">${Object.entries(toolModeLabels).map(([v, t]) => `<option value="${v}" ${(a.toolMode || "auto") === v ? "selected" : ""}>${t}</option>`).join("")}</select>`, "Como a IA usa as tools neste modelo. Automático: tenta o modo nativo e, se o modelo recusar, simula."));
+        parts.push(field(t("Tools"), `<select class="cn-select" data-change="toolmode" data-id="${esc(a.id)}">${Object.entries(toolModeLabels).map(([v, lbl]) => `<option value="${v}" ${(a.toolMode || "auto") === v ? "selected" : ""}>${lbl}</option>`).join("")}</select>`, t("Como a IA usa as tools neste modelo. Automático: tenta o modo nativo e, se o modelo recusar, simula.")));
       }
       if (info?.id === "ollama") {
-        parts.push(field("Contexto", `<input class="cn-input" type="number" min="2048" step="1024" value="${esc(a.numCtx || info.defaultContext)}" data-change="numctx" data-id="${esc(a.id)}" />`, "Contexto (tokens) pedido ao Ollama. O padrão dele (4096) é pequeno para este app."));
+        parts.push(field(t("Contexto"), `<input class="cn-input" type="number" min="2048" step="1024" value="${esc(a.numCtx || info.defaultContext)}" data-change="numctx" data-id="${esc(a.id)}" />`, t("Contexto (tokens) pedido ao Ollama. O padrão dele (4096) é pequeno para este app.")));
       }
       if (info?.editableUrl) {
-        parts.push(field("Endereço", `<input class="cn-input" value="${esc(a.baseUrl || info.defaultUrl || "")}" data-change="baseurl" data-id="${esc(a.id)}" placeholder="endereço do servidor" title="Endereço do servidor" />`));
+        parts.push(field(t("Endereço"), `<input class="cn-input" value="${esc(a.baseUrl || info.defaultUrl || "")}" data-change="baseurl" data-id="${esc(a.id)}" placeholder="${t("endereço do servidor")}" title="${t("Endereço do servidor")}" />`));
       }
       return parts.join("");
     };
@@ -175,28 +176,28 @@ export class AiPanel {
       const list = modelsOf(this.state, a.provider);
       const input = list.length
         ? `<select class="cn-select" data-change="model" data-id="${esc(a.id)}">${options(list, a.model || info?.defaultModel)}</select>`
-        : `<input class="cn-input" value="${esc(a.model || "")}" data-change="model" data-id="${esc(a.id)}" placeholder="nome do modelo" />`;
-      return `<div class="cn-nowrap cn-grow">${input}${info?.id !== "mock" ? `<button class="cn-btn small ghost" data-act="refresh-models" data-id="${esc(a.id)}" title="Atualizar a lista de modelos"><i class="fa-solid fa-rotate"></i></button>` : ""}</div>`;
+        : `<input class="cn-input" value="${esc(a.model || "")}" data-change="model" data-id="${esc(a.id)}" placeholder="${t("nome do modelo")}" />`;
+      return `<div class="cn-nowrap cn-grow">${input}${info?.id !== "mock" ? `<button class="cn-btn small ghost" data-act="refresh-models" data-id="${esc(a.id)}" title="${t("Atualizar a lista de modelos")}"><i class="fa-solid fa-rotate"></i></button>` : ""}</div>`;
     };
 
     const cards = accounts
       .map((a) => {
         const info = getProviderInfo(a.provider);
         const keyOk = Boolean(a.apiKey) || !info?.requiresKey;
-        const keyPill = keyOk ? `<span class="cn-pill success">${info?.requiresKey ? mask(a.apiKey) : "sem chave"}</span>` : '<span class="cn-pill error">sem chave</span>';
+        const keyPill = keyOk ? `<span class="cn-pill success">${info?.requiresKey ? mask(a.apiKey) : t("sem chave")}</span>` : `<span class="cn-pill error">${t("sem chave")}</span>`;
         const keyBtn =
-          (info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? "Trocar chave" : "Definir chave"}</button>` : "") +
-          (a.apiKey ? `<button class="cn-btn small ghost" data-act="copy-key" data-id="${esc(a.id)}" title="Copiar a chave para a área de transferência"><i class="fa-regular fa-copy"></i> Copiar</button>` : "");
+          (info?.requiresKey || info?.editableUrl ? `<button class="cn-btn small ghost" data-act="key" data-id="${esc(a.id)}">${a.apiKey ? t("Trocar chave") : t("Definir chave")}</button>` : "") +
+          (a.apiKey ? `<button class="cn-btn small ghost" data-act="copy-key" data-id="${esc(a.id)}" title="${t("Copiar a chave para a área de transferência")}"><i class="fa-regular fa-copy"></i> ${t("Copiar")}</button>` : "");
         const active = a.id === activeId;
         return `<article class="cn-acct ${active ? "active" : ""}" data-id="${esc(a.id)}">
           <header class="cn-acct-head">
-            <label class="cn-acct-use" title="Usar esta conta"><input type="radio" class="cn-cbx-input" name="active-account" value="${esc(a.id)}" ${active ? "checked" : ""} data-change="activate" /><span class="cn-cbx round" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span>${active ? "Em uso" : "Usar"}</span></label>
-            ${a.provider === "mock" ? '<span class="cn-pill" title="Sempre existe: é o que responde no chat quando nenhuma IA está conectada">embutido</span>' : `<button class="cn-btn small ghost" data-act="remove" data-id="${esc(a.id)}" title="Remover conta"><i class="fa-regular fa-trash-can"></i></button>`}
+            <label class="cn-acct-use" title="${t("Usar esta conta")}"><input type="radio" class="cn-cbx-input" name="active-account" value="${esc(a.id)}" ${active ? "checked" : ""} data-change="activate" /><span class="cn-cbx round" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span>${active ? t("Em uso") : t("Usar")}</span></label>
+            ${a.provider === "mock" ? `<span class="cn-pill" title="${t("Sempre existe: é o que responde no chat quando nenhuma IA está conectada")}">${t("embutido")}</span>` : `<button class="cn-btn small ghost" data-act="remove" data-id="${esc(a.id)}" title="${t("Remover conta")}"><i class="fa-regular fa-trash-can"></i></button>`}
           </header>
-          <input class="cn-input cn-acct-nick" value="${esc(a.nickname)}" data-change="nick" data-id="${esc(a.id)}" maxlength="40" title="Apelido da conta" />
+          <input class="cn-input cn-acct-nick" value="${esc(a.nickname)}" data-change="nick" data-id="${esc(a.id)}" maxlength="40" title="${t("Apelido da conta")}" />
           <small class="cn-acct-provider">${esc(info?.label || a.provider)}</small>
-          ${field("Modelo", modelCell(a, info))}
-          ${field("Chave de API", `<span class="cn-keycell-row">${keyPill}${keyBtn}</span>`)}
+          ${field(t("Modelo"), modelCell(a, info))}
+          ${field(t("Chave de API"), `<span class="cn-keycell-row">${keyPill}${keyBtn}</span>`)}
           ${extras(a, info)}
         </article>`;
       })
@@ -205,36 +206,36 @@ export class AiPanel {
     const root = mount(
       el,
       `<section class="cn-section">
-         <h4>Contas de IA</h4>
+         <h4>${t("Contas de IA")}</h4>
          ${
            accounts.length
              ? `<div class="cn-acct-grid">${cards}</div>`
-             : '<p class="cn-hint">Nenhuma conta. Adicione uma abaixo.</p>'
+             : `<p class="cn-hint">${t("Nenhuma conta. Adicione uma abaixo.")}</p>`
          }
-         ${ctxWindow ? `<p class="cn-hint">Janela de contexto do modelo ativo: <strong>${fmt(ctxWindow)}</strong> tokens.</p>` : ""}
+         ${ctxWindow ? `<p class="cn-hint">${t("Janela de contexto do modelo ativo: <strong>{tokens}</strong> tokens.", { tokens: fmt(ctxWindow) })}</p>` : ""}
          <div id="key-editor" class="cn-row" hidden>
-           <input class="cn-input" id="key-input" type="password" autocomplete="off" spellcheck="false" placeholder="Cole a chave de API" style="min-width:320px" />
-           <button class="cn-btn primary small" data-act="key-save">Salvar chave</button>
-           <button class="cn-btn small ghost" data-act="key-cancel">Cancelar</button>
+           <input class="cn-input" id="key-input" type="password" autocomplete="off" spellcheck="false" placeholder="${t("Cole a chave de API")}" style="min-width:320px" />
+           <button class="cn-btn primary small" data-act="key-save">${t("Salvar chave")}</button>
+           <button class="cn-btn small ghost" data-act="key-cancel">${t("Cancelar")}</button>
          </div>
        </section>
        <section class="cn-section">
-         <h4>Adicionar conta</h4>
+         <h4>${t("Adicionar conta")}</h4>
          <div class="cn-row">
-           <label class="cn-field"><span>Provedor</span>
+           <label class="cn-field"><span>${t("Provedor")}</span>
              <select class="cn-select" id="new-provider" data-change="new-provider">${AI_PROVIDERS.filter((p) => p.id !== "mock").map((p) => `<option value="${p.id}">${esc(p.label)}</option>`).join("")}</select></label>
-           <label class="cn-field"><span>Apelido</span>
-             <input class="cn-input" id="new-nick" maxlength="40" placeholder="Ex.: Gemini pessoal" /></label>
-           <label class="cn-field" style="min-width:260px"><span>Chave de API</span>
-             <input class="cn-input" id="new-key" type="password" autocomplete="off" spellcheck="false" placeholder="Cole a chave" /></label>
-           <label class="cn-field"><span>Modelo</span>
+           <label class="cn-field"><span>${t("Apelido")}</span>
+             <input class="cn-input" id="new-nick" maxlength="40" placeholder="${t("Ex.: Gemini pessoal")}" /></label>
+           <label class="cn-field" style="min-width:260px"><span>${t("Chave de API")}</span>
+             <input class="cn-input" id="new-key" type="password" autocomplete="off" spellcheck="false" placeholder="${t("Cole a chave")}" /></label>
+           <label class="cn-field"><span>${t("Modelo")}</span>
              <input class="cn-input" id="new-model" list="new-model-list" style="min-width:200px" value="${esc(AI_PROVIDERS[0].defaultModel)}" />
              <datalist id="new-model-list">${AI_PROVIDERS[0].models.map((m) => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join("")}</datalist></label>
-           <label class="cn-field" id="new-url-field" hidden style="min-width:260px"><span>Endereço do servidor</span>
+           <label class="cn-field" id="new-url-field" hidden style="min-width:260px"><span>${t("Endereço do servidor")}</span>
              <input class="cn-input" id="new-url" spellcheck="false" /></label>
          </div>
          <p class="cn-hint" id="new-hint">${esc(AI_PROVIDERS[0].hint || "")}</p>
-         <div class="cn-row"><button class="cn-btn primary" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar conta</button></div>
+         <div class="cn-row"><button class="cn-btn primary" data-act="add"><i class="fa-solid fa-plus"></i> ${t("Adicionar conta")}</button></div>
        </section>`,
       {
         activate: async (input) => {
@@ -254,7 +255,7 @@ export class AiPanel {
           (root.querySelector("#new-model") as HTMLInputElement).value = info?.defaultModel || "";
           root.querySelector("#new-model-list").innerHTML = list.map((m) => `<option value="${esc(m.id)}">${esc(m.label || m.id)}</option>`).join("");
           (root.querySelector("#new-key") as HTMLInputElement).disabled = !info?.requiresKey && !info?.editableUrl;
-          (root.querySelector("#new-key") as HTMLInputElement).placeholder = info?.requiresKey ? "Cole a chave" : "Chave (opcional)";
+          (root.querySelector("#new-key") as HTMLInputElement).placeholder = info?.requiresKey ? t("Cole a chave") : t("Chave (opcional)");
           (root.querySelector("#new-url-field") as HTMLInputElement).hidden = !info?.editableUrl;
           (root.querySelector("#new-url") as HTMLInputElement).value = info?.defaultUrl || "";
           root.querySelector("#new-hint").textContent = info?.hint || "";
@@ -276,7 +277,7 @@ export class AiPanel {
           if (!account) return;
           try {
             const models = await this.ai.listModels(account.provider, account.id);
-            this.ctx.toast(models ? `${plural(models.length, "modelo encontrado", "modelos encontrados")}.` : "Nenhum modelo encontrado (confira a chave e o endereço).", models ? "success" : "info");
+            this.ctx.toast(models ? `${plural(models.length, "modelo encontrado", "modelos encontrados")}.` : t("Nenhum modelo encontrado (confira a chave e o endereço)."), models ? "success" : "info");
             if (models && !account.model) await this.ai.saveAccount({ id: account.id, provider: account.provider, nickname: account.nickname, model: models[0].id });
             this.ctx.refresh();
           } catch (error) {
@@ -295,9 +296,9 @@ export class AiPanel {
           if (!account?.apiKey) return;
           try {
             await navigator.clipboard.writeText(account.apiKey);
-            this.ctx.toast("Chave copiada para a área de transferência.", "success");
+            this.ctx.toast(t("Chave copiada para a área de transferência."), "success");
           } catch {
-            this.ctx.toast("Não foi possível copiar a chave.", "error");
+            this.ctx.toast(t("Não foi possível copiar a chave."), "error");
           }
         },
         "key-cancel": () => {
@@ -306,16 +307,16 @@ export class AiPanel {
         "key-save": async () => {
           const account = accounts.find((a) => a.id === this.editingKey);
           const value = (root.querySelector("#key-input") as HTMLInputElement).value.trim();
-          if (!account || !value) return this.ctx.toast("Cole a chave de API.", "error");
+          if (!account || !value) return this.ctx.toast(t("Cole a chave de API."), "error");
           await this.ai.saveAccount({ id: account.id, provider: account.provider, nickname: account.nickname, apiKey: value });
           this.ai.listModels(account.provider, account.id).catch(() => null);
-          this.ctx.toast("Chave salva.", "success");
+          this.ctx.toast(t("Chave salva."), "success");
         },
         add: async () => {
           const provider = (root.querySelector("#new-provider") as HTMLInputElement).value;
           const info = getProviderInfo(provider);
           const apiKey = (root.querySelector("#new-key") as HTMLInputElement).value.trim();
-          if (info?.requiresKey && !apiKey) return this.ctx.toast("Cole a chave de API da conta.", "error");
+          if (info?.requiresKey && !apiKey) return this.ctx.toast(t("Cole a chave de API da conta."), "error");
           try {
             const id = await this.ai.saveAccount({
               provider,
@@ -336,7 +337,7 @@ export class AiPanel {
                 }
               })
               .catch(() => null);
-            this.ctx.toast("Conta adicionada.", "success");
+            this.ctx.toast(t("Conta adicionada."), "success");
           } catch (error) {
             this.ctx.toast(error.message, "error");
           }
@@ -345,10 +346,10 @@ export class AiPanel {
           const account = accounts.find((a) => a.id === btn.dataset.id);
           if (!account) return;
           confirmModal(this.ctx.uiBus, {
-            title: "Remover a conta?",
+            title: t("Remover a conta?"),
             danger: true,
-            confirmText: "Remover",
-            html: `<p>A conta <strong>${esc(account.nickname)}</strong> e a chave dela serão apagadas deste computador.</p>`,
+            confirmText: t("Remover"),
+            html: `<p>${t("A conta <strong>{name}</strong> e a chave dela serão apagadas deste computador.", { name: esc(account.nickname) })}</p>`,
             onConfirm: () => this.ai.removeAccount(account.id),
           });
         },
@@ -371,7 +372,7 @@ export class AiPanel {
     const active = this.ai.activeAccount();
     const save = async (next) => {
       const ok = await this.ai.saveExtraSettings({ fallback: next });
-      if (!ok) this.ctx.toast("Não foi possível salvar.", "error");
+      if (!ok) this.ctx.toast(t("Não foi possível salvar."), "error");
     };
     const nameOf = (id) => accounts.find((a) => a.id === id);
 
@@ -379,13 +380,13 @@ export class AiPanel {
       .map((item, i) => {
         const account = nameOf(item.accountId);
         return `<tr>
-          <td>${i + 1}º</td>
+          <td>${t("{n}º", { n: i + 1 })}</td>
           <td><strong>${esc(account.nickname)}</strong></td>
           <td>${esc(getProviderInfo(account.provider)?.label || account.provider)}</td>
           <td>${esc(item.model || account.model)}</td>
           <td style="text-align:right">
-            <button class="cn-btn small ghost" data-act="up" data-i="${i}" ${i === 0 ? "disabled" : ""} title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
-            <button class="cn-btn small ghost" data-act="remove" data-i="${i}" title="Remover"><i class="fa-solid fa-xmark"></i></button>
+            <button class="cn-btn small ghost" data-act="up" data-i="${i}" ${i === 0 ? "disabled" : ""} title="${t("Subir")}"><i class="fa-solid fa-arrow-up"></i></button>
+            <button class="cn-btn small ghost" data-act="remove" data-i="${i}" title="${t("Remover")}"><i class="fa-solid fa-xmark"></i></button>
           </td></tr>`;
       })
       .join("");
@@ -394,19 +395,19 @@ export class AiPanel {
     const root = mount(
       el,
       `<section class="cn-section">
-         ${switchRow({ id: "fb-enabled", attrs: 'data-change="toggle"', checked: fb.enabled, title: "Usar fallback automático", hint: "Troca de conta sozinho quando a ativa não puder responder." })}
-         <p class="cn-hint">Conta ativa: <strong>${esc(active?.nickname || "—")}</strong>. Quando ela recusa por limite de uso ou o serviço está indisponível, a mesma mensagem é reenviada à primeira conta da lista, depois à seguinte. Só acontece se nenhuma alteração em arquivos já tiver sido feita naquela resposta. Cada troca fica no changelog com o autor "Sistema".</p>
-         ${chain.length ? `<table class="cn-table"><thead><tr><th>Ordem</th><th>Conta</th><th>Provedor</th><th>Modelo</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="cn-hint">Nenhuma conta na lista de fallback.</p>'}
+         ${switchRow({ id: "fb-enabled", attrs: 'data-change="toggle"', checked: fb.enabled, title: t("Usar fallback automático"), hint: t("Troca de conta sozinho quando a ativa não puder responder.") })}
+         <p class="cn-hint">${t("Conta ativa: <strong>{name}</strong>. Quando ela recusa por limite de uso ou o serviço está indisponível, a mesma mensagem é reenviada à primeira conta da lista, depois à seguinte. Só acontece se nenhuma alteração em arquivos já tiver sido feita naquela resposta. Cada troca fica no changelog com o autor \"Sistema\".", { name: esc(active?.nickname || "—") })}</p>
+         ${chain.length ? `<table class="cn-table"><thead><tr><th>${t("Ordem")}</th><th>${t("Conta")}</th><th>${t("Provedor")}</th><th>${t("Modelo")}</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="cn-hint">${t("Nenhuma conta na lista de fallback.")}</p>`}
        </section>
        <section class="cn-section">
-         <h4>Adicionar à lista</h4>
+         <h4>${t("Adicionar à lista")}</h4>
          ${
            candidates.length
              ? `<div class="cn-row">
                  <select class="cn-select" id="fb-account">${candidates.map((a) => `<option value="${esc(a.id)}">${esc(a.nickname)} · ${esc(a.model)}</option>`).join("")}</select>
-                 <button class="cn-btn" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                 <button class="cn-btn" data-act="add"><i class="fa-solid fa-plus"></i> ${t("Adicionar")}</button>
                </div>`
-             : '<p class="cn-hint">Não há outras contas para adicionar. Cadastre mais contas na aba "Contas e modelo".</p>'
+             : `<p class="cn-hint">${t("Não há outras contas para adicionar. Cadastre mais contas na aba \"Contas e modelo\".")}</p>`
          }
        </section>`,
       {
@@ -436,7 +437,7 @@ export class AiPanel {
     const rows = raw
       .map(
         (e) => `<details class="cn-log-item">
-          <summary><span class="cn-pill error">${esc(e.status || "erro")}</span> <strong>${esc(e.provider || "")}</strong> ${esc(e.model || "")}
+          <summary><span class="cn-pill error">${esc(e.status || t("erro"))}</span> <strong>${esc(e.provider || "")}</strong> ${esc(e.model || "")}
             <small> · ${shortDate(e.ts)}</small></summary>
           <p class="cn-hint" style="margin-top:6px">${esc(e.message)}</p>
           ${e.details ? `<pre class="cn-code">${esc(typeof e.details === "string" ? e.details : JSON.stringify(e.details, null, 1))}</pre>` : ""}
@@ -445,16 +446,16 @@ export class AiPanel {
       .join("");
     mount(
       el,
-      `<div class="cn-row"><button class="cn-btn small" data-act="clear" ${raw.length ? "" : "disabled"}><i class="fa-regular fa-trash-can"></i> Limpar log</button>
+      `<div class="cn-row"><button class="cn-btn small" data-act="clear" ${raw.length ? "" : "disabled"}><i class="fa-regular fa-trash-can"></i> ${t("Limpar log")}</button>
          <span class="cn-hint">${plural(raw.length, "registro", "registros")}.</span></div>
-       ${raw.length ? `<div class="cn-log">${rows}</div>` : '<div class="cn-empty">Nenhum erro registrado.</div>'}`,
+       ${raw.length ? `<div class="cn-log">${rows}</div>` : `<div class="cn-empty">${t("Nenhum erro registrado.")}</div>`}`,
       {
         clear: () =>
           confirmModal(this.ctx.uiBus, {
-            title: "Limpar o log de erros da IA?",
+            title: t("Limpar o log de erros da IA?"),
             danger: true,
-            confirmText: "Limpar log",
-            html: `<p>Todos os <strong>${raw.length}</strong> registros serão apagados. Esta ação não pode ser desfeita.</p>`,
+            confirmText: t("Limpar log"),
+            html: `<p>${t("Todos os <strong>{count}</strong> registros serão apagados. Esta ação não pode ser desfeita.", { count: raw.length })}</p>`,
             onConfirm: async () => {
               await window.electronAPI.clearAiErrorLog();
               this.ctx.refresh();
@@ -477,7 +478,7 @@ export class AiPanel {
     const session = this.state.aiUsage || {};
     const total = report.reduce((s, r) => ({ requests: s.requests + r.requests, input: s.input + r.input, output: s.output + r.output }), { requests: 0, input: 0, output: 0 });
     const max = Math.max(1, ...report.map((r) => r.input + r.output));
-    const periods = [[1, "Hoje"], [7, "7 dias"], [30, "30 dias"]]
+    const periods = [[1, t("Hoje")], [7, t("7 dias")], [30, t("30 dias")]]
       .map(([d, label]) => `<button class="rv-chip ${this.usageDays === d ? "active" : ""}" data-act="period" data-days="${d}">${label}</button>`)
       .join("");
 
@@ -485,17 +486,17 @@ export class AiPanel {
       el,
       `<div class="rv-chips">${periods}</div>
        <div class="cn-stats">
-         <div class="cn-stat"><strong>${fmt(total.requests)}</strong><span>requisições</span></div>
-         <div class="cn-stat"><strong>${fmt(total.input)}</strong><span>tokens enviados</span></div>
-         <div class="cn-stat"><strong>${fmt(total.output)}</strong><span>tokens recebidos</span></div>
-         <div class="cn-stat"><strong>${fmt(session.inputTokens + session.outputTokens)}</strong><span>tokens na sessão do chat</span></div>
+         <div class="cn-stat"><strong>${fmt(total.requests)}</strong><span>${t("requisições")}</span></div>
+         <div class="cn-stat"><strong>${fmt(total.input)}</strong><span>${t("tokens enviados")}</span></div>
+         <div class="cn-stat"><strong>${fmt(total.output)}</strong><span>${t("tokens recebidos")}</span></div>
+         <div class="cn-stat"><strong>${fmt(session.inputTokens + session.outputTokens)}</strong><span>${t("tokens na sessão do chat")}</span></div>
        </div>
        <section class="cn-section">
-         <h4>Por modelo</h4>
+         <h4>${t("Por modelo")}</h4>
          ${
            report.length === 0
-             ? '<p class="cn-hint">Nenhum uso registrado neste período.</p>'
-             : `<table class="cn-table"><thead><tr><th>Modelo</th><th>Requisições</th><th>Enviados</th><th>Recebidos</th><th style="width:22%"></th></tr></thead><tbody>
+             ? `<p class="cn-hint">${t("Nenhum uso registrado neste período.")}</p>`
+             : `<table class="cn-table"><thead><tr><th>${t("Modelo")}</th><th>${t("Requisições")}</th><th>${t("Enviados")}</th><th>${t("Recebidos")}</th><th style="width:22%"></th></tr></thead><tbody>
                 ${report
                   .map(
                     (r) => `<tr><td><strong>${esc(r.model)}</strong><br><small>${esc(getProviderInfo(r.provider)?.label || r.provider)}</small></td>
@@ -505,7 +506,7 @@ export class AiPanel {
                   .join("")}</tbody></table>`
          }
        </section>
-       <p class="cn-hint">O app guarda os últimos 30 dias neste computador. Os valores são uma contagem local, não a fatura do provedor.</p>`,
+       <p class="cn-hint">${t("O app guarda os últimos 30 dias neste computador. Os valores são uma contagem local, não a fatura do provedor.")}</p>`,
       {
         period: (btn) => {
           this.usageDays = Number(btn.dataset.days);
@@ -545,24 +546,24 @@ export class AiPanel {
       const root = mount(
         el,
         `<section class="cn-section">
-           <h4>Perfil de uso</h4>
+           <h4>${t("Perfil de uso")}</h4>
            <div class="cn-profiles" role="radiogroup">
              ${PROFILES.map((p) => `<button class="cn-profile ${p.id === current ? "active" : ""}" data-act="profile" data-id="${p.id}" role="radio" aria-checked="${p.id === current}">${esc(p.label)}</button>`).join("")}
-             <span class="cn-profile custom ${current === "custom" ? "active" : ""}" title="Aparece quando você muda uma opção manualmente">Personalizado</span>
+             <span class="cn-profile custom ${current === "custom" ? "active" : ""}" title="${t("Aparece quando você muda uma opção manualmente")}">${t("Personalizado")}</span>
            </div>
-           <p class="cn-hint">${current === "custom" ? "Você ajustou as opções manualmente. Escolha um perfil para voltar a um conjunto pronto." : esc(profile.description)}</p>
-           ${pending && this.ctx.services.analysis.settings().onSync ? `<p class="cn-hint">Neste livro: ${plural(pending.files.length, "arquivo pendente de análise", "arquivos pendentes de análise")} (≈ ${fmt(pending.tokens)} tokens), ${plural(digests, "arquivo já analisado", "arquivos já analisados")}.</p>` : ""}
+           <p class="cn-hint">${current === "custom" ? t("Você ajustou as opções manualmente. Escolha um perfil para voltar a um conjunto pronto.") : esc(profile.description)}</p>
+           ${pending && this.ctx.services.analysis.settings().onSync ? `<p class="cn-hint">${t("Neste livro: {pending} (≈ {tokens} tokens), {analyzed}.", { pending: plural(pending.files.length, "arquivo pendente de análise", "arquivos pendentes de análise"), tokens: fmt(pending.tokens), analyzed: plural(digests, "arquivo já analisado", "arquivos já analisados") })}</p>` : ""}
          </section>
          ${groups
            .map((g) => `<section class="cn-section"><h4>${esc(g)}</h4>${PROFILE_OPTIONS.filter((o) => o.group === g).map(control).join("")}</section>`)
            .join("")}
          <section class="cn-section">
-           <h4>Como o app economiza tokens</h4>
+           <h4>${t("Como o app economiza tokens")}</h4>
            <ul class="cn-hint" style="margin:0;padding-left:18px;line-height:1.7">
-             <li>Cada arquivo é lido pela IA <strong>uma única vez</strong>; só é reanalisado se o conteúdo mudar (hash) ou se você ligar algo que o resumo ainda não tem.</li>
-             <li>A IA guarda um <strong>digest</strong> (resumo, fatos, eventos) em <code>.system/digests/</code>; consultas e conferências usam o digest, não o capítulo.</li>
-             <li>Erros de links, ortografia, palavras repetidas e a ordem da linha do tempo são achados <strong>sem IA</strong>; contradições também, e só os casos duvidosos são verificados, com citações curtas.</li>
-             <li>O esboço e a análise de cada capítulo não entram na análise: só o manuscrito, as fichas e as anotações.</li>
+             <li>${t("Cada arquivo é lido pela IA <strong>uma única vez</strong>; só é reanalisado se o conteúdo mudar (hash) ou se você ligar algo que o resumo ainda não tem.")}</li>
+             <li>${t("A IA guarda um <strong>digest</strong> (resumo, fatos, eventos) em <code>.system/digests/</code>; consultas e conferências usam o digest, não o capítulo.")}</li>
+             <li>${t("Erros de links, ortografia, palavras repetidas e a ordem da linha do tempo são achados <strong>sem IA</strong>; contradições também, e só os casos duvidosos são verificados, com citações curtas.")}</li>
+             <li>${t("O esboço e a análise de cada capítulo não entram na análise: só o manuscrito, as fichas e as anotações.")}</li>
            </ul>
          </section>`,
         {
@@ -600,33 +601,33 @@ export class AiPanel {
   async renderDebug(el) {
     const bookPath = this.state.currentBookPath;
     await Promise.all([loadPinned(bookPath), ensureDebugLoaded(bookPath)]);
-    const KIND = { chat: "Chat", digest: "Resumo de arquivo", verify: "Verificação de contradições" };
+    const KIND = { chat: t("Chat"), digest: t("Resumo de arquivo"), verify: t("Verificação de contradições") };
     const block = (title, text) =>
       `<h4 style="margin:10px 0 4px;font-size:.8rem">${title}</h4><pre class="cn-code" style="max-height:340px;overflow:auto">${esc(text)}</pre>`;
     const duration = (ms) => (ms ? (ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`) : "");
 
     const item = (x, saved) => {
-      const tokens = x.usage ? `${fmt(x.usage.input)} enviados · ${fmt(x.usage.output)} recebidos` : "tokens não informados";
+      const tokens = x.usage ? t("{input} enviados · {output} recebidos", { input: fmt(x.usage.input), output: fmt(x.usage.output) }) : t("tokens não informados");
       const pinned = saved || isPinned(x.uid);
       return `<details class="cn-log-item" data-id="${esc(x.uid)}" ${this.openDebug.has(x.uid) ? "open" : ""}>
         <summary>
-          <span class="cn-pill ${x.status === "error" ? "error" : x.status === "ok" ? "success" : "warning"}">${x.status === "running" ? "em andamento" : x.status === "ok" ? "ok" : "erro"}</span>
+          <span class="cn-pill ${x.status === "error" ? "error" : x.status === "ok" ? "success" : "warning"}">${x.status === "running" ? t("em andamento") : x.status === "ok" ? t("ok") : t("erro")}</span>
           <strong>${esc(KIND[x.kind] || x.kind)}</strong> · ${esc(getProviderInfo(x.provider)?.label || x.provider)} · ${esc(x.model)}
-          ${x.fallbackFrom ? `<span class="cn-pill warning">fallback de ${esc(x.fallbackFrom)}</span>` : ""}
+          ${x.fallbackFrom ? `<span class="cn-pill warning">${t("fallback de {name}", { name: esc(x.fallbackFrom) })}</span>` : ""}
           <small> · ${shortDate(x.startedAt)} · ${tokens}${x.tools.length ? ` · ${plural(x.tools.length, "tool", "tools")}` : ""}</small>
-          <button class="cn-pin ${pinned ? "on" : ""}" data-act="${pinned ? "unpin" : "pin"}" data-uid="${esc(x.uid)}" aria-pressed="${pinned}" aria-label="${pinned ? "Desafixar turno" : "Fixar turno"}" title="${pinned ? "Fixado: clique para desafixar (o registro salvo será apagado)" : "Fixar este turno (salva o registro no livro)"}">${PIN_SVG}</button>
+          <button class="cn-pin ${pinned ? "on" : ""}" data-act="${pinned ? "unpin" : "pin"}" data-uid="${esc(x.uid)}" aria-pressed="${pinned}" aria-label="${pinned ? t("Desafixar turno") : t("Fixar turno")}" title="${pinned ? t("Fixado: clique para desafixar (o registro salvo será apagado)") : t("Fixar este turno (salva o registro no livro)")}">${PIN_SVG}</button>
         </summary>
         <ul class="cn-hint" style="margin:6px 0 0;padding-left:18px">
-          <li>Modelo: <strong>${esc(x.model)}</strong> (${esc(getProviderInfo(x.provider)?.label || x.provider)}) · início ${shortDate(x.startedAt)}${x.durationMs ? ` · duração ${duration(x.durationMs)}` : ""}</li>
-          <li>Tokens: ${fmt(x.usage?.input)} enviados, ${fmt(x.usage?.output)} recebidos · ${plural(x.usage?.requests || 1, "rodada", "rodadas")} (chamadas ao modelo) nesta interação</li>
-          <li>Tools oferecidas: ${fmt(x.toolsOffered)} · usadas: ${x.tools.length ? esc([...new Set(x.tools.map((t) => t.name))].join(", ")) : "nenhuma"}</li>
-          <li>Instruções do sistema: ${fmt(x.systemChars)} caracteres · histórico: ${plural(x.historyMessages || 0, "mensagem", "mensagens")}</li>
+          <li>${t("Modelo")}: <strong>${esc(x.model)}</strong> (${esc(getProviderInfo(x.provider)?.label || x.provider)}) · ${t("início")} ${shortDate(x.startedAt)}${x.durationMs ? ` · ${t("duração")} ${duration(x.durationMs)}` : ""}</li>
+          <li>${t("Tokens: {input} enviados, {output} recebidos · {rounds} (chamadas ao modelo) nesta interação", { input: fmt(x.usage?.input), output: fmt(x.usage?.output), rounds: plural(x.usage?.requests || 1, "rodada", "rodadas") })}</li>
+          <li>${t("Tools oferecidas: {offered} · usadas: {used}", { offered: fmt(x.toolsOffered), used: x.tools.length ? esc([...new Set(x.tools.map((tool) => tool.name))].join(", ")) : t("nenhuma") })}</li>
+          <li>${t("Instruções do sistema: {chars} caracteres · histórico: {history}", { chars: fmt(x.systemChars), history: plural(x.historyMessages || 0, "mensagem", "mensagens") })}</li>
         </ul>
-        ${block("Instruções do sistema (prompt padrão enviado)", x.system || "(não registrado)")}
-        ${x.history?.length ? block(`Histórico enviado (${x.history.length})`, x.history.map((m) => `[${m.role}]\n${m.content}`).join("\n\n---\n\n")) : ""}
-        ${block("Mensagem do usuário", x.prompt)}
-        ${x.tools.length ? `<h4 style="margin:10px 0 4px;font-size:.8rem">Tools usadas (${x.tools.length})</h4>${x.tools.map((t, i) => `<pre class="cn-code" style="max-height:220px;overflow:auto"><strong>${i + 1}. ${esc(t.name)}</strong>${t.isError ? " (erro)" : ""}\n${esc(t.args)}\n→ ${esc(t.output)}</pre>`).join("")}` : ""}
-        ${block(x.error ? "Erro" : "Resposta da IA", x.error || x.response || "(sem texto)")}
+        ${block(t("Instruções do sistema (prompt padrão enviado)"), x.system || t("(não registrado)"))}
+        ${x.history?.length ? block(t("Histórico enviado ({count})", { count: x.history.length }), x.history.map((m) => `[${m.role}]\n${m.content}`).join("\n\n---\n\n")) : ""}
+        ${block(t("Mensagem do usuário"), x.prompt)}
+        ${x.tools.length ? `<h4 style="margin:10px 0 4px;font-size:.8rem">${t("Tools usadas ({count})", { count: x.tools.length })}</h4>${x.tools.map((tool, i) => `<pre class="cn-code" style="max-height:220px;overflow:auto"><strong>${i + 1}. ${esc(tool.name)}</strong>${tool.isError ? ` (${t("erro")})` : ""}\n${esc(tool.args)}\n→ ${esc(tool.output)}</pre>`).join("")}` : ""}
+        ${block(x.error ? t("Erro") : t("Resposta da IA"), x.error || x.response || t("(sem texto)"))}
       </details>`;
     };
 
@@ -638,20 +639,20 @@ export class AiPanel {
       const saved = listPinned();
       const section = (title, hint, list, isSaved) =>
         `<section class="cn-section"><h4>${title}</h4>${hint ? `<p class="cn-hint">${hint}</p>` : ""}${
-          list.length ? `<div class="cn-log">${list.map((x) => item(x, isSaved)).join("")}</div>` : '<div class="cn-empty">Nada por aqui.</div>'
+          list.length ? `<div class="cn-log">${list.map((x) => item(x, isSaved)).join("")}</div>` : `<div class="cn-empty">${t("Nada por aqui.")}</div>`
         }</section>`;
       const tab = this.debugTab === "pinned" ? "pinned" : "recent";
       const tabs = `<div class="rv-chips" role="tablist">
-        <button class="rv-chip ${tab === "recent" ? "active" : ""}" role="tab" aria-selected="${tab === "recent"}" data-act="debug-tab" data-tab="recent">Recentes <b>${all.length}</b></button>
-        <button class="rv-chip ${tab === "pinned" ? "active" : ""}" role="tab" aria-selected="${tab === "pinned"}" data-act="debug-tab" data-tab="pinned">Fixados <b>${saved.length}</b></button>
+        <button class="rv-chip ${tab === "recent" ? "active" : ""}" role="tab" aria-selected="${tab === "recent"}" data-act="debug-tab" data-tab="recent">${t("Recentes")} <b>${all.length}</b></button>
+        <button class="rv-chip ${tab === "pinned" ? "active" : ""}" role="tab" aria-selected="${tab === "pinned"}" data-act="debug-tab" data-tab="pinned">${t("Fixados")} <b>${saved.length}</b></button>
       </div>`;
       const body =
         tab === "pinned"
-          ? section("Turnos fixados", bookPath ? "Salvos em .system/debug do livro. Não somem ao fechar o app." : "Abra um livro para fixar turnos.", saved, true)
-          : `<div class="cn-row"><button class="cn-btn small" data-act="clear" ${all.length ? "" : "disabled"}><i class="fa-regular fa-trash-can"></i> Limpar recentes</button>
-               <span class="cn-hint">Só os ${MAX_RECENT} turnos mais recentes são mantidos (salvos no livro, sobrevivem ao reiniciar o app).</span></div>
-             ${section(`Turnos recentes do chat (${chat.length}/${MAX_RECENT})`, "", chat, false)}
-             ${background.length ? section(`Análises em segundo plano (${background.length}/${MAX_RECENT})`, "Resumos de arquivos e verificações de contradições.", background, false) : ""}`;
+          ? section(t("Turnos fixados"), bookPath ? t("Salvos em .system/debug do livro. Não somem ao fechar o app.") : t("Abra um livro para fixar turnos."), saved, true)
+          : `<div class="cn-row"><button class="cn-btn small" data-act="clear" ${all.length ? "" : "disabled"}><i class="fa-regular fa-trash-can"></i> ${t("Limpar recentes")}</button>
+               <span class="cn-hint">${t("Só os {max} turnos mais recentes são mantidos (salvos no livro, sobrevivem ao reiniciar o app).", { max: MAX_RECENT })}</span></div>
+             ${section(t("Turnos recentes do chat ({count}/{max})", { count: chat.length, max: MAX_RECENT }), "", chat, false)}
+             ${background.length ? section(t("Análises em segundo plano ({count}/{max})", { count: background.length, max: MAX_RECENT }), t("Resumos de arquivos e verificações de contradições."), background, false) : ""}`;
 
       mount(
         el,
@@ -664,17 +665,17 @@ export class AiPanel {
           clear: () => clearExchanges(),
           pin: async (btn, event) => {
             event.preventDefault();
-            if (!bookPath) return this.ctx.toast("Abra um livro para fixar turnos.", "info");
+            if (!bookPath) return this.ctx.toast(t("Abra um livro para fixar turnos."), "info");
             await pinExchange(btn.dataset.uid, bookPath);
-            this.ctx.toast("Turno fixado.", "success");
+            this.ctx.toast(t("Turno fixado."), "success");
           },
           unpin: (btn, event) => {
             event.preventDefault();
             confirmModal(this.ctx.uiBus, {
-              title: "Desafixar este turno?",
+              title: t("Desafixar este turno?"),
               danger: true,
-              confirmText: "Desafixar e apagar",
-              html: "<p>O registro salvo deste turno será <strong>apagado</strong> e não poderá ser recuperado. Se ele ainda estiver entre os 10 mais recentes, continua visível até sair da lista.</p>",
+              confirmText: t("Desafixar e apagar"),
+              html: `<p>${t("O registro salvo deste turno será <strong>apagado</strong> e não poderá ser recuperado. Se ele ainda estiver entre os 10 mais recentes, continua visível até sair da lista.")}</p>`,
               onConfirm: () => unpinExchange(btn.dataset.uid, bookPath),
             });
           },

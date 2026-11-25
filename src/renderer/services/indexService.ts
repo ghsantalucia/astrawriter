@@ -5,6 +5,7 @@
  */
 
 import { normalizePath } from "../utils/helpers.js";
+import { t } from "../../shared/i18n.js";
 import {
   addIndexLink,
   entityIndexPath,
@@ -46,7 +47,7 @@ export async function addEntityToIndex({
     before,
     after,
     actor,
-    meta: { reason: `Ficha criada (${title})` },
+    meta: { reason: t("Ficha criada ({title})", { title }) },
     bookPath: book,
   });
   return true;
@@ -65,7 +66,7 @@ export async function removeFromIndexes({
   book,
   relPaths,
   changelog,
-  reason = "Arquivo excluído",
+  reason = t("Arquivo excluído"),
 }) {
   const byIndex = new Map();
   for (const rel of relPaths) {

@@ -15,6 +15,7 @@ import { uiBus } from "../events/uiBus.js";
 import { normalizePath } from "../utils/helpers.js";
 import { parseYaml, stringifyYaml } from "../utils/markdown.js";
 import { flattenBookTree, toInternalHref } from "../utils/bookFiles.js";
+import { t } from "../../shared/i18n.js";
 
 /** Categorias oficiais onde o usuário pode criar pastas (caminhos relativos ao livro). */
 const CATEGORY_ROOTS = [
@@ -61,7 +62,7 @@ export class FolderService {
    */
   requireBook() {
     if (!this.state.currentBookPath)
-      throw new Error("Nenhum livro selecionado.");
+      throw new Error(t("Nenhum livro selecionado."));
     return normalizePath(this.state.currentBookPath).replace(/\/+$/, "");
   }
 
@@ -86,9 +87,9 @@ export class FolderService {
   async createFolder(parentRel, name, actor = this.changelog.userActor()) {
     const book = this.requireBook();
     const title = String(name || "").trim();
-    if (!title) throw new Error("Informe um nome para a pasta.");
+    if (!title) throw new Error(t("Informe um nome para a pasta."));
     if (!this.canCreateIn(parentRel)) {
-      throw new Error("Não é permitido criar pastas neste local.");
+      throw new Error(t("Não é permitido criar pastas neste local."));
     }
 
     const siblings =
@@ -118,7 +119,7 @@ export class FolderService {
     const ymlPath = `${book}/${rel}/folder.yml`;
     const saved = await window.electronAPI.saveFile(ymlPath, yml);
     if (!saved?.success)
-      throw new Error(saved?.error || "Falha ao criar a pasta.");
+      throw new Error(saved?.error || t("Falha ao criar a pasta."));
     await this.changelog.record({
       action: "create",
       filePath: ymlPath,
@@ -165,10 +166,10 @@ export class FolderService {
    */
   async renameFolder(rel, name) {
     const title = String(name || "").trim();
-    if (!title) throw new Error("Informe um nome para a pasta.");
+    if (!title) throw new Error(t("Informe um nome para a pasta."));
     const { path, text, meta } = await this.readFolderMeta(rel);
     if (meta.userRename !== true)
-      throw new Error("Esta pasta não pode ser renomeada.");
+      throw new Error(t("Esta pasta não pode ser renomeada."));
 
     meta.title = title;
     const next = stringifyYaml(meta);
@@ -199,7 +200,7 @@ export class FolderService {
     const next = stringifyYaml(meta);
     const saved = await window.electronAPI.saveFile(path, next);
     if (!saved?.success)
-      throw new Error(saved?.error || "Falha ao salvar a pasta.");
+      throw new Error(saved?.error || t("Falha ao salvar a pasta."));
     await this.changelog.record({
       action: "update",
       filePath: path,
@@ -257,7 +258,7 @@ export class FolderService {
     const book = this.requireBook();
     const { meta } = await this.readFolderMeta(rel);
     if (meta.userDelete !== true)
-      throw new Error("Esta pasta não pode ser excluída.");
+      throw new Error(t("Esta pasta não pode ser excluída."));
 
     const dir = `${book}/${rel}`;
     const snapshots = [];
@@ -268,7 +269,7 @@ export class FolderService {
 
     const removed = await window.electronAPI.deleteFolder(dir);
     if (!removed?.success)
-      throw new Error(removed?.error || "Falha ao excluir a pasta.");
+      throw new Error(removed?.error || t("Falha ao excluir a pasta."));
 
     for (const { file, before } of snapshots) {
       this.changelog.clearDraft(file);
@@ -279,7 +280,7 @@ export class FolderService {
         filePath: file,
         before,
         actor,
-        meta: { reason: `Pasta excluída (${rel})` },
+        meta: { reason: t("Pasta excluída ({rel})", { rel }) },
       });
     }
 
@@ -287,7 +288,7 @@ export class FolderService {
       book,
       relPaths: snapshots.map(({ file }) => file.slice(book.length + 1)),
       changelog: this.changelog,
-      reason: `Pasta excluída (${rel}): links removidos do índice`,
+      reason: t("Pasta excluída ({rel}): links removidos do índice", { rel }),
     });
 
     this.notify("folder:deleted", { bookPath: book, rel });
@@ -308,12 +309,12 @@ export class FolderService {
     if (!from || !to || from !== to) {
       return {
         ok: false,
-        reason: "Não é permitido mover arquivos entre categorias diferentes.",
+        reason: t("Não é permitido mover arquivos entre categorias diferentes."),
       };
     }
     const parent = normalizePath(fileRel).split("/").slice(0, -1).join("/");
     if (parent === normalizePath(destRel)) {
-      return { ok: false, reason: "O arquivo já está nesta pasta." };
+      return { ok: false, reason: t("O arquivo já está nesta pasta.") };
     }
     return { ok: true };
   }
@@ -339,7 +340,7 @@ export class FolderService {
     const to = `${book}/${destRel}/${name}`;
     const moved = await window.electronAPI.renamePath(from, to);
     if (!moved?.success)
-      throw new Error(moved?.error || "Falha ao mover o arquivo.");
+      throw new Error(moved?.error || t("Falha ao mover o arquivo."));
     // O rascunho acompanha o arquivo (se não existir, ignora)
     await window.electronAPI
       .renamePath(`${from}.temp`, `${to}.temp`)
@@ -370,17 +371,17 @@ export class FolderService {
     if (!a || !b || a !== b) {
       return {
         ok: false,
-        reason: "Não é permitido mover pastas entre categorias diferentes.",
+        reason: t("Não é permitido mover pastas entre categorias diferentes."),
       };
     }
     if (dest === from || dest.startsWith(`${from}/`)) {
       return {
         ok: false,
-        reason: "Uma pasta não pode ser movida para dentro dela mesma.",
+        reason: t("Uma pasta não pode ser movida para dentro dela mesma."),
       };
     }
     if (from.split("/").slice(0, -1).join("/") === dest) {
-      return { ok: false, reason: "A pasta já está neste local." };
+      return { ok: false, reason: t("A pasta já está neste local.") };
     }
     return { ok: true };
   }
@@ -403,7 +404,7 @@ export class FolderService {
 
     const { meta } = await this.readFolderMeta(from);
     if (meta.userRename !== true)
-      throw new Error("Esta pasta não pode ser movida.");
+      throw new Error(t("Esta pasta não pode ser movida."));
 
     const oldDir = `${book}/${from}`;
     const newDir = `${book}/${dest}/${from.split("/").pop()}`;
@@ -413,7 +414,7 @@ export class FolderService {
 
     const moved = await window.electronAPI.renamePath(oldDir, newDir);
     if (!moved?.success)
-      throw new Error(moved?.error || "Falha ao mover a pasta.");
+      throw new Error(moved?.error || t("Falha ao mover a pasta."));
 
     for (const oldFile of files) {
       const newFile = newDir + normalizePath(oldFile).slice(oldDir.length);
@@ -466,7 +467,7 @@ export class FolderService {
             after,
             actor: this.changelog.systemActor(),
             meta: {
-              reason: "Links internos atualizados após mover um arquivo",
+              reason: t("Links internos atualizados após mover um arquivo"),
             },
           });
         }

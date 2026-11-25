@@ -5,6 +5,7 @@
 import { uiBus } from "../../events/uiBus.js";
 import { domainBus } from "../../events/domainBus.js";
 import { normalizePath } from "../../utils/helpers.js";
+import { t } from "../../../shared/i18n.js";
 
 export async function fetchBooks(state, bookService) {
   try {
@@ -202,7 +203,7 @@ export function onAiLock(locked) {
   if (locked) {
     uiBus.emit("editor-overlay:open", {
       key: "ai-lock",
-      message: "Aguarde enquanto a IA trabalha no seu projeto...",
+      message: t("Aguarde enquanto a IA trabalha no seu projeto..."),
       showSpinner: true,
     });
     uiBus.emit("editor:lock");

@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from "../../../utils/helpers.js";
+import { t, getLanguage } from "../../../../shared/i18n.js";
 
 /**
  * Escapa texto para uso em HTML.
@@ -48,13 +49,13 @@ export function mount(host, html, handlers = {}) {
  * @param {() => any} options.onConfirm - Chamado ao confirmar.
  * @returns {void}
  */
-export function confirmModal(uiBus, { title, html, confirmText = "Confirmar", danger = false, onConfirm }) {
+export function confirmModal(uiBus, { title, html, confirmText = t("Confirmar"), danger = false, onConfirm }) {
   uiBus.emit("modal:open", {
     id: `central-confirm-${Date.now()}`,
     title,
     content: `<div class="cn-confirm">${html}</div>`,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
         text: confirmText,
         class: danger ? "btn-danger" : "btn-primary",
@@ -100,7 +101,7 @@ export function formatBytes(bytes) {
     value /= 1024;
     i++;
   }
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: value < 10 ? 2 : 1 })} ${units[i]}`;
+  return `${value.toLocaleString(getLanguage(), { maximumFractionDigits: value < 10 ? 2 : 1 })} ${units[i]}`;
 }
 
 /**
@@ -111,7 +112,7 @@ export function formatBytes(bytes) {
  * @returns {string}
  */
 export function plural(n, one, many) {
-  return `${n} ${n === 1 ? one : many}`;
+  return `${n} ${t(n === 1 ? one : many)}`;
 }
 
 /**

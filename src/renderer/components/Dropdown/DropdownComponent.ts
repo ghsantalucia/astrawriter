@@ -7,6 +7,7 @@
 
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 import { Component } from "../Component.js";
 
 /**
@@ -54,11 +55,11 @@ export class DropdownComponent extends Component {
 
     return {
       isOpen: this.isOpen,
-      label: selected?.label || this.config.placeholder || "Selecione",
-      emptyLabel: this.config.emptyLabel || "Nenhuma opção",
+      label: selected?.label || this.config.placeholder || t("Selecione"),
+      emptyLabel: this.config.emptyLabel || t("Nenhuma opção"),
       selectEvent: this.config.selectEvent,
       itemEditEvent: this.config.itemEditEvent,
-      itemEditTitle: this.config.itemEditTitle || "Editar",
+      itemEditTitle: this.config.itemEditTitle || t("Editar"),
       actions: this.config.actions || [],
       items: this.items.map((item) => ({
         ...item,

@@ -13,6 +13,7 @@
 
 import { parseMarkdown } from "../../utils/markdown.js";
 import { tagColorIndex } from "../../../shared/tags.js";
+import { getLanguage, t } from "../../../shared/i18n.js";
 
 /**
  * Cor sugerida para uma skill, calculada do nome (sempre a mesma), com o mesmo método das cores das tags.
@@ -35,6 +36,9 @@ export function autoSkillColor(key) {
 
 const rawBuiltin = import.meta.glob("./*.md", { query: "?raw", import: "default", eager: true });
 const rawMarket = import.meta.glob("./market/*.md", { query: "?raw", import: "default", eager: true });
+// Versões em inglês (mesmo nome de arquivo e mesmo `name`; só o texto muda)
+const rawBuiltinEn = import.meta.glob("./en/*.md", { query: "?raw", import: "default", eager: true });
+const rawMarketEn = import.meta.glob("./market/en/*.md", { query: "?raw", import: "default", eager: true });
 
 /**
  * Converte o texto de um arquivo de skill no objeto da skill.
@@ -52,7 +56,7 @@ export function parseSkill(raw, origin) {
     title: String(m.title || m.name),
     description: String(m.description || ""),
     details: String(m.details || ""),
-    author: String(m.author || "Desconhecido"),
+    author: String(m.author || t("Desconhecido")),
     version: String(m.version || "1.0.0"),
     kind: m.kind === "recurring" ? "recurring" : "once",
     triggers: list(m.triggers),
@@ -89,6 +93,40 @@ const market = new Map();
 for (const raw of Object.values(rawMarket)) {
   const skill = parseSkill(raw, "market");
   if (skill) market.set(skill.slug, skill);
+}
+
+/** Versões em inglês das skills do app e do catálogo, pelo nome. @type {Map<string, Object>} */
+const builtinEn = new Map();
+for (const raw of Object.values(rawBuiltinEn)) {
+  const skill = parseSkill(raw, "builtin");
+  if (skill) builtinEn.set(skill.slug, skill);
+}
+const marketEn = new Map();
+for (const raw of Object.values(rawMarketEn)) {
+  const skill = parseSkill(raw, "market");
+  if (skill) marketEn.set(skill.slug, skill);
+}
+
+/**
+ * Versão da skill no idioma ativo (avaliada na hora): em inglês, a skill do app/catálogo ainda não editada vira a versão
+ * inglesa de mesmo nome; sem a versão inglesa, em português ou para skills do usuário/editadas, volta a própria skill.
+ * @param {Object} skill - Skill da biblioteca.
+ * @returns {Object}
+ */
+function localized(skill) {
+  if (getLanguage() !== "en" || skill.edited || skill.origin === "user") return skill;
+  const en = (skill.origin === "market" ? marketEn : builtinEn).get(skill.slug) || builtinEn.get(skill.slug) || marketEn.get(skill.slug);
+  if (!en) return skill;
+  return { ...skill, title: en.title, description: en.description, details: en.details, triggers: en.triggers, tags: en.tags, inputs: en.inputs, body: en.body };
+}
+
+/**
+ * Versão da skill no idioma do app (as do app e do catálogo que o usuário não editou; em português devolve a própria skill).
+ * @param {Object} skill - Skill (da biblioteca, do app ou do catálogo).
+ * @returns {Object}
+ */
+export function localizeSkill(skill) {
+  return skill ? localized(skill) : skill;
 }
 
 /** Skills instaladas na biblioteca do usuário (todas as que a IA enxerga), pelo nome. */
@@ -128,12 +166,17 @@ export function builtinSkillNames() {
 export function listSkills() {
   const names = new Set([...(library.size ? [] : builtin.keys())]);
   const out = [];
-  for (const s of library.values()) {
+  for (const raw of library.values()) {
+    const s = localized(raw);
     out.push({ name: s.slug, description: s.description, custom: s.origin !== "builtin" });
     names.add(s.slug);
   }
   // Antes da biblioteca carregar, valem as do app
-  for (const s of builtin.values()) if (!library.has(s.slug) && !library.size) out.push({ name: s.slug, description: s.description });
+  for (const raw of builtin.values()) {
+    if (library.has(raw.slug) || library.size) continue;
+    const s = localized(raw);
+    out.push({ name: s.slug, description: s.description });
+  }
   return out;
 }
 
@@ -143,5 +186,6 @@ export function listSkills() {
  * @returns {Object|undefined}
  */
 export function getSkill(name) {
-  return library.get(name) || (library.size ? undefined : builtin.get(name));
+  const skill = library.get(name) || (library.size ? undefined : builtin.get(name));
+  return skill ? localized(skill) : skill;
 }

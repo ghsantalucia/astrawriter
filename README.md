@@ -14,7 +14,7 @@
 
 ## Visão Geral
 
-O **Astra Writer** é uma aplicação desktop para Windows, criada para resolver os desafios de organização e continuidade textual em grandes projetos literários. A ferramenta trabalha direto com arquivos no seu computador (_file-driven_), sem banco de dados, e se conecta a provedores de IA com a chave do próprio usuário (_Bring-Your-Key_). As chaves ficam só na máquina de quem usa.
+O **Astra Writer** é uma aplicação desktop para Windows, em **português e inglês**, criada para resolver os desafios de organização e continuidade textual em grandes projetos literários. A ferramenta trabalha direto com arquivos no seu computador (_file-driven_), sem banco de dados, e se conecta a provedores de IA com a chave do próprio usuário (_Bring-Your-Key_). As chaves ficam só na máquina de quem usa.
 
 ### Modos de Operação
 
@@ -35,7 +35,7 @@ Na primeira abertura o app instala o livro **Manual de Uso**. Para aprender a us
 
 **Para quem escreve**
 
-- [Guia do Usuário](docs/guia-do-usuario.md): como usar o aplicativo, passo a passo (o mesmo conteúdo do livro Manual de Uso).
+- [Guia do Usuário](docs/guia-do-usuario.md) ([English](docs/user-guide.en.md)): como usar o aplicativo, passo a passo (o mesmo conteúdo do livro Manual de Uso).
 - [Guia de Instalação e Release](docs/guia-de-instalacao.md): como instalar, onde ficam seus dados e como gerar o instalador (`npm run release`).
 - [Funcionalidades](docs/features/index.md) e [Skills](docs/features/skills.md): o que o app oferece e como estendê-lo.
 
@@ -53,6 +53,7 @@ Na primeira abertura o app instala o livro **Manual de Uso**. Para aprender a us
 
 - **Separação de Processos (Electron):** isolamento entre o processo principal (_Main_), a ponte segura de comunicação (_Preload_, com _context isolation_) e a camada visual (_Renderer_).
 - **TypeScript:** todo o código de `src/` é `.ts` e tipado; `npm run typecheck` roda sem erros.
+- **Multi-idioma (i18n):** português e inglês, com o português como chave de tradução (`t("texto")`) e dicionários em `src/shared/i18n/en`. Veja [Tradução (i18n)](docs/i18n-glossario.md).
 - **Eventos (Pub-Sub):** biblioteca `Mitt` em dois barramentos independentes: `domainBus` (regras de negócio e sistema de arquivos) e `uiBus` (intenções de interface e animações).
 - **Componentes co-locados:** cada componente da interface encapsula sua lógica, template e estilos, e é instanciado de forma central (Inversão de Controle).
 - **Monitoramento em tempo real:** `Chokidar` no processo principal observa o sistema de arquivos e propaga as mudanças ao frontend via IPC.

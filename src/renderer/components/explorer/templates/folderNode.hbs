@@ -7,7 +7,7 @@
   <span class="folder-name">
     <i class="fa-solid fa-chevron-right tree-arrow"></i>
     {{#if isUserFolder}}
-    <span class="icon-folder-user" title="Pasta criada por você">
+    <span class="icon-folder-user" title="{{t 'Pasta criada por você'}}">
       <i class="fa-solid {{#if isOpen}}fa-folder-open{{else}}fa-folder{{/if}} icon-folder"></i>
       <i class="fa-solid fa-user folder-user-badge"></i>
     </span>
@@ -22,7 +22,7 @@
     <button
       type="button"
       class="folder-act-btn"
-      title="Novo item em {{meta.title}}"
+      title="{{t 'Novo item em {name}' name=meta.title}}"
       event-click="entity:create"
       data-folder="{{createFolder}}"
     >
@@ -33,7 +33,7 @@
     <button
       type="button"
       class="folder-act-btn"
-      title="Nova anotação em {{meta.title}}"
+      title="{{t 'Nova anotação em {name}' name=meta.title}}"
       event-click="note:create"
       data-folder="{{createNoteFolder}}"
     >
@@ -41,19 +41,19 @@
     </button>
     {{/if}}
     {{#if canCreateFolder}}
-    <button type="button" class="folder-act-btn" title="Nova pasta em {{meta.title}}"
+    <button type="button" class="folder-act-btn" title="{{t 'Nova pasta em {name}' name=meta.title}}"
       event-click="folder:create" data-parent="{{bookRelative}}">
       <i class="fa-solid fa-folder-plus"></i>
     </button>
     {{/if}}
     {{#if canRename}}
-    <button type="button" class="folder-act-btn" title="Renomear pasta"
+    <button type="button" class="folder-act-btn" title="{{t 'Renomear pasta'}}"
       event-click="folder:rename" data-folder="{{bookRelative}}" data-title="{{meta.title}}">
       <i class="fa-solid fa-pen"></i>
     </button>
     {{/if}}
     {{#if canDeleteFolder}}
-    <button type="button" class="folder-act-btn folder-act-danger" title="Excluir pasta e tudo o que há dentro"
+    <button type="button" class="folder-act-btn folder-act-danger" title="{{t 'Excluir pasta e tudo o que há dentro'}}"
       event-click="folder:delete" data-folder="{{bookRelative}}">
       <i class="fa-regular fa-trash-can"></i>
     </button>
@@ -62,8 +62,8 @@
     <button
       type="button"
       class="folder-act-btn folder-act-danger"
-      title="Excluir capítulo"
-      aria-label="Excluir {{meta.title}}"
+      title="{{t 'Excluir capítulo'}}"
+      aria-label="{{t 'Excluir {name}' name=meta.title}}"
       event-click="chapter:delete"
       data-folder="{{chapterFolder}}"
       data-title="{{meta.title}}"

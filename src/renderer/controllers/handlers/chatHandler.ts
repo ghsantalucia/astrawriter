@@ -4,17 +4,14 @@
 
 import { uiBus } from "../../events/uiBus.js";
 import { domainBus } from "../../events/domainBus.js";
+import { t } from "../../../shared/i18n.js";
 
 /** Indica se uma mensagem está sendo processada (evita respostas prontas simultâneas). */
 let isBusy = false;
 
 /** Rótulo de cada tipo de item criado, usado nos avisos do sistema no chat. */
-const CREATION_LABELS = {
-  book: "Livro",
-  chapter: "Capítulo",
-  entity: "Ficha",
-  note: "Anotação",
-};
+const creationLabel = (kind) =>
+  ({ book: () => t("Livro"), chapter: () => t("Capítulo"), entity: () => t("Ficha"), note: () => t("Anotação") })[kind]?.() || t("Item");
 
 /**
  * Mostra (e grava no histórico) uma mensagem "system" no chat, usada para eventos importantes realizados pela IA.
@@ -43,9 +40,9 @@ export async function onSystemNotice({ text }, aiService) {
  */
 export async function onCreationNotice(payload, aiService) {
   if (payload?.source !== "ai") return;
-  const label = CREATION_LABELS[payload.kind] || "Item";
+  const label = creationLabel(payload.kind);
   await onSystemNotice(
-    { text: `${label} "${payload.title}" - Criado` },
+    { text: t("{label} \"{title}\" - Criado", { label, title: payload.title }) },
     aiService,
   );
 }
@@ -123,7 +120,7 @@ export async function onSendMessage({ promptText }, aiService) {
   } catch (error) {
     // Interrompida pelo autor (botão de parar): só um aviso discreto na conversa
     if (error?.name === "AbortError") {
-      await onSystemNotice({ text: "Você interrompeu a IA." }, aiService);
+      await onSystemNotice({ text: t("Você interrompeu a IA.") }, aiService);
       return;
     }
     console.error("[ChatHandler] Falha ao processar mensagem do chat:", error);
@@ -133,7 +130,7 @@ export async function onSendMessage({ promptText }, aiService) {
     // Mostra o motivo do erro na conversa e o grava no histórico (marcado como erro: não vai de contexto para a IA)
     const errorMessage = {
       role: "assistant",
-      content: `**Não consegui responder.** ${error.message || "Ocorreu um erro ao processar sua solicitação."}`,
+      content: t("**Não consegui responder.** {message}", { message: error.message || t("Ocorreu um erro ao processar sua solicitação.") }),
       timestamp: new Date().toISOString(),
       error: true,
     };

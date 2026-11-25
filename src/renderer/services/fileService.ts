@@ -5,6 +5,7 @@
 import { uiBus } from "../events/uiBus.js";
 import { parseMarkdown, stringifyFrontmatter } from "../utils/markdown.js";
 import { stripAutoLinkMarks } from "../components/Editor/editorTools.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Serviço de manipulação e persistência de arquivos locais via IPC do Electron.
@@ -34,7 +35,7 @@ export class FileService {
    */
   async saveFile(fullPath, content) {
     if (!fullPath) {
-      return { success: false, error: "Caminho de arquivo inválido." };
+      return { success: false, error: t("Caminho de arquivo inválido.") };
     }
 
     try {
@@ -80,7 +81,7 @@ export class FileService {
       );
       return {
         success: false,
-        error: error.message || "Erro desconhecido ao salvar.",
+        error: error.message || t("Erro desconhecido ao salvar."),
       };
     }
   }
@@ -170,7 +171,7 @@ export class FileService {
    * @returns {Promise<Object>} Resultado da operação de salvamento.
    */
   async saveTempFile(fullPath, content, options = {}) {
-    if (!fullPath) return { success: false, error: "Caminho inválido." };
+    if (!fullPath) return { success: false, error: t("Caminho inválido.") };
     const tempPath = this.getTempPath(fullPath);
     const actor = (options as any).actor || this.changelog?.userActor();
 
@@ -271,7 +272,7 @@ export class FileService {
    * @returns {Promise<{success: boolean, error?: string}>}
    */
   async syncFile(filePath) {
-    if (!filePath) return { success: false, error: "Caminho inválido" };
+    if (!filePath) return { success: false, error: t("Caminho inválido") };
 
     let contentToSave = null;
 
@@ -290,7 +291,7 @@ export class FileService {
       if (!readRes.content) {
         return {
           success: false,
-          error: "Não foi possível ler o arquivo temporário.",
+          error: t("Não foi possível ler o arquivo temporário."),
         };
       }
 

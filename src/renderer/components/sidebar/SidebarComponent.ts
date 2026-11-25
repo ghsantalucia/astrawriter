@@ -4,6 +4,7 @@
 
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 import { Component } from "../Component.js";
 import { DropdownComponent } from "../Dropdown/DropdownComponent.js";
 
@@ -32,24 +33,24 @@ export class SidebarComponent extends Component {
       "#book-dropdown-container",
       context,
       {
-        placeholder: "Clique para selecionar um livro",
-        emptyLabel: "Nenhum livro encontrado",
+        placeholder: t("Clique para selecionar um livro"),
+        emptyLabel: t("Nenhum livro encontrado"),
         selectEvent: "book:selected",
         itemEditEvent: "book:edit",
-        itemEditTitle: "Editar este livro (abre a Central do Livro)",
+        itemEditTitle: t("Editar este livro (abre a Central do Livro)"),
         actions: [
           {
-            label: "Criar novo livro",
+            label: t("Criar novo livro"),
             icon: "fa-solid fa-plus",
             event: "book:create",
           },
           {
-            label: "Importar livro (.zip)",
+            label: t("Importar livro (.zip)"),
             icon: "fa-solid fa-file-import",
             event: "book:import",
           },
           {
-            label: "Importar de um arquivo (Word, PDF, texto)",
+            label: t("Importar de um arquivo (Word, PDF, texto)"),
             icon: "fa-solid fa-file-word",
             event: "book:import-file",
           },

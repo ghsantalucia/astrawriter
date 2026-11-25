@@ -33,6 +33,7 @@ import {
   parseJsonLoose,
   verifyPrompt,
 } from "../review/digest.js";
+import { t, intlLocale } from "../../shared/i18n.js";
 
 const STATE_FILE = `${DIGEST_DIR}/_state.json`;
 /** Orçamento padrão de tokens por análise (estimado). */
@@ -205,8 +206,8 @@ export class AnalysisService {
    * @returns {Promise<{digests: number, verified: number, issues: number, stoppedBy: string|null}>}
    */
   async run({ budgetTokens }: any = {}) {
-    if (this.running) throw new Error("Já existe uma análise em andamento.");
-    if (!this.book) throw new Error("Nenhum livro selecionado.");
+    if (this.running) throw new Error(t("Já existe uma análise em andamento."));
+    if (!this.book) throw new Error(t("Nenhum livro selecionado."));
     this.running = true;
     this.cancelled = false;
     const book = this.book;
@@ -295,7 +296,7 @@ export class AnalysisService {
       this.state,
     );
     const digest = normalizeDigest(parseJsonLoose(reply.text), body);
-    if (!digest) throw new Error(`A IA não devolveu um digest válido para "${f.title}".`);
+    if (!digest) throw new Error(t("A IA não devolveu um digest válido para \"{title}\".", { title: f.title }));
 
     const hash = await sha1(content);
     await writeSystemJson(this.book, `${DIGEST_DIR}/${f.rel}.json`, {
@@ -431,7 +432,7 @@ export class AnalysisService {
    * @private
    */
   notifyError(error) {
-    uiBus.emit("toast:show", { message: `Análise interrompida: ${error.message}`, type: "error" });
+    uiBus.emit("toast:show", { message: t("Análise interrompida: {error}", { error: error.message }), type: "error" });
   }
 
   // ========== Depois de sincronizar ========== //
@@ -453,17 +454,22 @@ export class AnalysisService {
       return;
     }
     const model = `${this.state.aiProvider} · ${this.state.aiSettings.providers[this.state.aiProvider]?.model || ""}`;
+    const syncedText =
+      pending.files.length === 1
+        ? t("{count} arquivo foi sincronizado e ainda não passou pela análise da IA (resumo de metadados e conferência de contradições).", { count: pending.files.length })
+        : t("{count} arquivos foram sincronizados e ainda não passaram pela análise da IA (resumo de metadados e conferência de contradições).", { count: pending.files.length });
+    const tokensText = pending.tokens.toLocaleString(intlLocale());
     uiBus.emit("modal:open", {
       id: "analysis-offer",
-      title: "Analisar os arquivos atualizados?",
+      title: t("Analisar os arquivos atualizados?"),
       content: `<div class="cn-confirm">
-        <p>${pending.files.length} ${pending.files.length === 1 ? "arquivo foi sincronizado" : "arquivos foram sincronizados"} e ainda não passaram pela análise da IA (resumo de metadados e conferência de contradições).</p>
-        <p>Custo estimado: <strong>~${pending.tokens.toLocaleString("pt-BR")} tokens</strong> com o modelo ${model}. Arquivos inalterados nunca são reanalisados.</p>
-        <p>Você também pode analisar depois, na Central de Revisões.</p></div>`,
+        <p>${syncedText}</p>
+        <p>${t("Custo estimado: <strong>~{tokens} tokens</strong> com o modelo {model}. Arquivos inalterados nunca são reanalisados.", { tokens: tokensText, model })}</p>
+        <p>${t("Você também pode analisar depois, na Central de Revisões.")}</p></div>`,
       buttons: [
-        { text: "Depois", class: "btn-secondary" },
+        { text: t("Depois"), class: "btn-secondary" },
         {
-          text: "Analisar agora",
+          text: t("Analisar agora"),
           class: "btn-primary",
           onClick: async (modal) => {
             modal.close();
@@ -479,13 +485,13 @@ export class AnalysisService {
    * @returns {Promise<Object>}
    */
   async runWithToasts() {
-    uiBus.emit("toast:show", { message: "Análise da IA iniciada. Você pode continuar escrevendo.", type: "info" });
+    uiBus.emit("toast:show", { message: t("Análise da IA iniciada. Você pode continuar escrevendo."), type: "info" });
     const result = await this.run();
-    const parts = [`${result.digests} arquivo(s) analisado(s)`];
-    if (result.verified) parts.push(`${result.verified} verificação(ões)`);
-    if (result.issues) parts.push(`${result.issues} pendência(s) nova(s)`);
-    if (result.stoppedBy === "budget") parts.push("parou no orçamento de tokens; rode de novo para continuar");
-    uiBus.emit("toast:show", { message: `Análise concluída: ${parts.join(", ")}.`, type: result.stoppedBy && result.stoppedBy !== "budget" ? "error" : "success" });
+    const parts = [t("{count} arquivo(s) analisado(s)", { count: result.digests })];
+    if (result.verified) parts.push(t("{count} verificação(ões)", { count: result.verified }));
+    if (result.issues) parts.push(t("{count} pendência(s) nova(s)", { count: result.issues }));
+    if (result.stoppedBy === "budget") parts.push(t("parou no orçamento de tokens; rode de novo para continuar"));
+    uiBus.emit("toast:show", { message: t("Análise concluída: {summary}.", { summary: parts.join(", ") }), type: result.stoppedBy && result.stoppedBy !== "budget" ? "error" : "success" });
     return result;
   }
 

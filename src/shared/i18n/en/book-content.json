@@ -1,0 +1,20 @@
+{
+  "Capítulo {n}": "Chapter {n}",
+  "Índice de Capítulos": "Chapters Index",
+  "Capítulo excluído ({name})": "Chapter deleted ({name})",
+  "Capítulos renumerados": "Chapters renumbered",
+  "Capítulo excluído ({name}) e capítulos seguintes renumerados": "Chapter deleted ({name}) and following chapters renumbered",
+  "Arquivo excluído: link removido do índice": "File deleted: link removed from the index",
+  "Arquivo excluído": "File deleted",
+  "Pasta excluída ({rel})": "Folder deleted ({rel})",
+  "Pasta excluída ({rel}): links removidos do índice": "Folder deleted ({rel}): links removed from the index",
+  "Links internos atualizados após mover um arquivo": "Internal links updated after moving a file",
+  "Ficha criada ({title})": "Sheet created ({title})",
+  "Linha do tempo atualizada pelo sistema a partir dos eventos": "Timeline updated by the system from the events",
+  "Tipo \"{type}\" desconhecido. Use um de: {types}.": "Unknown type \"{type}\". Use one of: {types}.",
+  "O autor dispensou o tipo \"{type}\": não registre issues dele.": "The author dismissed the type \"{type}\": do not register issues of this type.",
+  "Informe 'file' e 'message'.": "Provide 'file' and 'message'.",
+  "O arquivo \"{file}\" não existe.": "The file \"{file}\" does not exist.",
+  "O trecho informado não foi encontrado em \"{file}\". Copie o texto exatamente como está no arquivo.": "The given excerpt was not found in \"{file}\". Copy the text exactly as it is in the file.",
+  "Esse issue já foi registrado ou dispensado.": "This issue was already registered or dismissed."
+}

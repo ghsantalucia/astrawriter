@@ -6,6 +6,7 @@
 
 import { uiBus } from "../events/uiBus.js";
 import { appSettings } from "../utils/appSettings.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Serviço da rotina de inicialização.
@@ -78,7 +79,7 @@ export class StartupService {
     // Sem o atualizador (desenvolvimento ou sistema sem suporte): só avisa se há versão nova nas releases
     if (!result?.supported) {
       const info = await window.electronAPI.checkUpdate();
-      if (info?.status === "available") uiBus.emit("toast:show", { message: `Há uma nova versão do app: ${info.latest}. Veja em Configurações → Central do Sistema → Atualização.`, type: "info" });
+      if (info?.status === "available") uiBus.emit("toast:show", { message: t("Há uma nova versão do app: {version}. Veja em Configurações → Central do Sistema → Atualização.", { version: info.latest }), type: "info" });
     }
   }
 
@@ -91,11 +92,11 @@ export class StartupService {
   async promptUpdate(status) {
     this.updatePrompted = true;
     const choice = await this.ask({
-      title: "Atualização pronta",
-      html: `<p>Uma nova versão do Astra Writer${status.version ? ` (<strong>${status.version}</strong>)` : ""} foi baixada.</p><p>Reiniciar agora para instalar? Seus livros e configurações são mantidos. Se escolher depois, a atualização é instalada na próxima vez que você abrir o app.</p>`,
+      title: t("Atualização pronta"),
+      html: `<p>${t("Uma nova versão do Astra Writer{version} foi baixada.", { version: status.version ? ` (<strong>${status.version}</strong>)` : "" })}</p><p>${t("Reiniciar agora para instalar? Seus livros e configurações são mantidos. Se escolher depois, a atualização é instalada na próxima vez que você abrir o app.")}</p>`,
       buttons: [
-        { text: "Depois", class: "btn-secondary", value: "later" },
-        { text: "Reiniciar e atualizar", class: "btn-primary", value: "install" },
+        { text: t("Depois"), class: "btn-secondary", value: "later" },
+        { text: t("Reiniciar e atualizar"), class: "btn-primary", value: "install" },
       ],
     });
     if (choice === "install") window.electronAPI.installUpdate();
@@ -112,7 +113,7 @@ export class StartupService {
     if (!backup.due()) return;
     const result = await backup.runNow();
     uiBus.emit("toast:show", {
-      message: result.success ? `Backup automático concluído: ${result.count} ${result.count === 1 ? "livro copiado" : "livros copiados"}.` : `O backup automático falhou: ${result.error}`,
+      message: result.success ? (result.count === 1 ? t("Backup automático concluído: {count} livro copiado.", { count: result.count }) : t("Backup automático concluído: {count} livros copiados.", { count: result.count })) : t("O backup automático falhou: {error}", { error: result.error }),
       type: result.success ? "success" : "error",
     });
   }

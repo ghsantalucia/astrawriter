@@ -12,6 +12,7 @@
  * estado entre pedidos, o sumário (e as definições liberadas) vão em todo pedido; o que muda é o tamanho deles.
  */
 
+import { t } from "../../shared/i18n.js";
 import { compactDescription } from "./compact.js";
 import { toolRegistry } from "./aiTools.js";
 
@@ -127,11 +128,11 @@ export class ToolView {
     return {
       name: SPECS_TOOL,
       description:
-        "Devolve a especificação completa (descrição e parâmetros) de tools do sumário e as libera para uso. Chame antes de usar uma tool que só aparece no sumário.",
+        t("Devolve a especificação completa (descrição e parâmetros) de tools do sumário e as libera para uso. Chame antes de usar uma tool que só aparece no sumário."),
       parameters: {
         type: "object",
         properties: {
-          names: { type: "array", items: { type: "string" }, description: "Nomes das tools do sumário." },
+          names: { type: "array", items: { type: "string" }, description: t("Nomes das tools do sumário.") },
         },
         required: ["names"],
       },
@@ -145,13 +146,13 @@ export class ToolView {
   promptNote() {
     // Modo Mínimo: a IA só lê. Sem este aviso ela descreve tools de edição que não tem e chega a afirmar que alterou arquivos
     if (this.mode === "minimal" && !this.allow) {
-      return "\n\n# Modo de uso mínimo\nNeste modo você SÓ pode LER arquivos (`read_file`, pelos caminhos do Mapa do livro) e mostrar botões (`show_buttons`). Você NÃO tem tools para alterar ou criar nada, nem para pedir outras tools. Se o autor pedir uma alteração ou criação, não finja nem diga que fez: explique que neste perfil você só lê e ofereça um botão (`show_buttons` com action `open-central`, central `ai`, tab `analysis`) para ele trocar o perfil de uso da IA.";
+      return "\n\n" + t("# Modo de uso mínimo\nNeste modo você SÓ pode LER arquivos (`read_file`, pelos caminhos do Mapa do livro) e mostrar botões (`show_buttons`). Você NÃO tem tools para alterar ou criar nada, nem para pedir outras tools. Se o autor pedir uma alteração ou criação, não finja nem diga que fez: explique que neste perfil você só lê e ofereça um botão (`show_buttons` com action `open-central`, central `ai`, tab `analysis`) para ele trocar o perfil de uso da IA.");
     }
     if (!this.usesSummary) return "";
     const full = this.fullNames();
     const rest = toolRegistry.getDefinitions().filter((d) => !full.has(d.name));
     if (rest.length === 0) return "";
-    return `\n\n# Outras tools (sumário)\nAlém das tools declaradas, existem as abaixo. Para usar uma delas, chame antes \`${SPECS_TOOL}\` com os nomes (recebe a especificação e a tool fica liberada). Para ALTERAR um arquivo existente peça \`replace_in_file\`, \`append_to_file\` ou \`write_file\`; não use as tools de criação para isso.\n${rest.map((d) => `- ${d.name}: ${oneLine(d)}`).join("\n")}`;
+    return `\n\n${t("# Outras tools (sumário)\nAlém das tools declaradas, existem as abaixo. Para usar uma delas, chame antes `{specsTool}` com os nomes (recebe a especificação e a tool fica liberada). Para ALTERAR um arquivo existente peça `replace_in_file`, `append_to_file` ou `write_file`; não use as tools de criação para isso.", { specsTool: SPECS_TOOL })}\n${rest.map((d) => `- ${d.name}: ${oneLine(d)}`).join("\n")}`;
   }
 
   /**
@@ -166,8 +167,8 @@ export class ToolView {
     if (!this.fullNames().has(name)) {
       return {
         output: this.usesSummary
-          ? `A tool "${name}" ainda não está liberada: chame ${SPECS_TOOL} com o nome dela.`
-          : `A tool "${name}" não está disponível neste modo de uso da IA.`,
+          ? t('A tool "{name}" ainda não está liberada: chame {specsTool} com o nome dela.', { name, specsTool: SPECS_TOOL })
+          : t('A tool "{name}" não está disponível neste modo de uso da IA.', { name }),
         isError: true,
       };
     }
@@ -181,7 +182,7 @@ export class ToolView {
    */
   specs(args) {
     const wanted = Array.isArray(args?.names) ? args.names.map(String) : [];
-    if (wanted.length === 0) return { output: "Informe 'names' com os nomes das tools do sumário.", isError: true };
+    if (wanted.length === 0) return { output: t("Informe 'names' com os nomes das tools do sumário."), isError: true };
     const all = new Map(toolRegistry.getDefinitions().map((d) => [d.name, d]));
     const found = [];
     const missing = [];

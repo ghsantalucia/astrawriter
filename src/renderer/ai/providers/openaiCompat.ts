@@ -4,6 +4,7 @@
  * informa o endereço padrão. Suporta tool calling nativo e, quando o modelo não o tem, o modo simulado.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { AiApiError, formatDuration } from "../apiError.js";
 import { activeSignal } from "../abort.js";
 import { normalizeHistory, runToolLoop } from "../toolLoop.js";
@@ -46,7 +47,7 @@ export async function requestJson({ provider, label, url, body, apiKey, model = 
   } catch (error) {
     if (error?.name === "AbortError") throw error;
     throw new AiApiError(
-      `${label}: não foi possível conectar a ${new URL(url).origin}. Confira se o serviço está em execução e o endereço está correto.`,
+      t("{label}: não foi possível conectar a {origin}. Confira se o serviço está em execução e o endereço está correto.", { label, origin: new URL(url).origin }),
       { provider, model, details: String(error?.message || error) },
     );
   }
@@ -62,19 +63,19 @@ export async function requestJson({ provider, label, url, body, apiKey, model = 
     const retryAfterMs = seconds * 1000 || undefined;
     return Promise.reject(
       new AiApiError(
-        `Limite de uso de ${label} atingido para o modelo ${model}.${retryAfterMs ? ` Tente novamente em cerca de ${formatDuration(retryAfterMs)}.` : ""} ${text}`,
+        `${t("Limite de uso de {label} atingido para o modelo {model}.", { label, model })}${retryAfterMs ? ` ${t("Tente novamente em cerca de {time}.", { time: formatDuration(retryAfterMs) })}` : ""} ${text}`,
         { ...info, retryAfterMs, quotaPeriod: "other" },
       ),
     );
   }
   const reason =
     status === 401 || status === 403
-      ? `chave de API inválida ou sem permissão (${status}).`
+      ? t("chave de API inválida ou sem permissão ({status}).", { status })
       : status === 404
-        ? `modelo ou endereço não encontrado (404). ${text}`
+        ? t("modelo ou endereço não encontrado (404). {text}", { text })
         : status >= 500
-          ? `serviço indisponível (${status}). Tente novamente em instantes.`
-          : `erro ${status}. ${text}`;
+          ? t("serviço indisponível ({status}). Tente novamente em instantes.", { status })
+          : t("erro {status}. {text}", { status, text });
   return Promise.reject(new AiApiError(`${label}: ${reason}`, info));
 }
 
@@ -142,7 +143,7 @@ export function createCompatProvider({ id, label, baseUrl: defaultUrl, request =
 
   async function sendRequest(args) {
     const { config } = args;
-    if (!config.model) throw new Error(`Escolha um modelo para ${label} na Central de IA.`);
+    if (!config.model) throw new Error(t("Escolha um modelo para {label} na Central de IA.", { label }));
     const key = `${baseOf(config)}|${config.model}`;
     const mode = config.toolMode || "auto";
     if (mode === "simulated" || (mode === "auto" && needsSimulation(key))) return run({ ...args, simulated: true });

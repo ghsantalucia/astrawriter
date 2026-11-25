@@ -3,6 +3,7 @@
  * sugestões (eventos cadastrados e eventos citados que ainda não têm ficha).
  */
 
+import { intlLocale } from "../../shared/i18n.js";
 import { foldText } from "./helpers.js";
 import { isEventFile, splitNames } from "../review/timeline.js";
 
@@ -72,5 +73,5 @@ export function collectEventNames(files) {
       pending.push(name);
     }
   }
-  return { titles: titles.sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true })), pending };
+  return { titles: titles.sort((a, b) => a.localeCompare(b, intlLocale(), { numeric: true })), pending };
 }

@@ -14,6 +14,7 @@ import historyTpl from "../../components/Modal/templates/history.hbs?raw";
 import compareTpl from "../../components/Modal/templates/historyCompare.hbs?raw";
 import * as fileHandler from "./fileHandler.js";
 import { onTreeChanged } from "./creationHandler.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Abre o modal com o histórico de versões do arquivo aberto no editor.
@@ -25,7 +26,7 @@ import { onTreeChanged } from "./creationHandler.js";
 export async function onHistoryOpen(state, changelog, services) {
   if (!state.currentFilePath) {
     uiBus.emit("toast:show", {
-      message: "Abra um arquivo para ver o histórico.",
+      message: t("Abra um arquivo para ver o histórico."),
       type: "info",
     });
     return;
@@ -47,14 +48,14 @@ export async function onHistoryOpen(state, changelog, services) {
 
   uiBus.emit("modal:open", {
     id: "file-history-modal",
-    title: `Histórico — ${fileTitle}`,
+    title: t("Histórico — {title}", { title: fileTitle }),
     content: Handlebars.compile(historyTpl)({
       fileTitle,
       entries,
       restoredFrom,
     }),
     windowClass: "modal-log",
-    buttons: [{ text: "Fechar", class: "btn-secondary" }],
+    buttons: [{ text: t("Fechar"), class: "btn-secondary" }],
     onMounted: (historyModal) => {
       historyModal.element.addEventListener("click", (e) => {
         const button = e.target.closest(".btn-history-restore");
@@ -100,7 +101,7 @@ async function openCompare({
   const preview = await changelog.preview(filePath, entry.id);
   if (!preview?.success) {
     uiBus.emit("toast:show", {
-      message: `Não foi possível carregar a versão: ${preview?.error || "erro desconhecido"}`,
+      message: t("Não foi possível carregar a versão: {error}", { error: preview?.error || t("erro desconhecido") }),
       type: "error",
     });
     return;
@@ -112,13 +113,13 @@ async function openCompare({
 
   uiBus.emit("modal:open", {
     id: "history-compare-modal",
-    title: `Restaurar versão — ${fileTitle}`,
+    title: t("Restaurar versão — {title}", { title: fileTitle }),
     content: Handlebars.compile(compareTpl)({
       ...comparison,
       versionTitle:
         entry.action === "original"
-          ? "Versão original (antes do primeiro registro)"
-          : `Versão de ${entry.time}`,
+          ? t("Versão original (antes do primeiro registro)")
+          : t("Versão de {time}", { time: entry.time }),
       actorLabel: entry.actorLabel,
       actorClass: entry.actorClass,
       hasDraft,
@@ -126,9 +127,9 @@ async function openCompare({
     windowClass: "modal-wide",
     buttons: [
       // Cancelar apenas fecha este modal: o do histórico, que estava por baixo, volta a aparecer
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Restaurar esta versão",
+        text: t("Restaurar esta versão"),
         class: "btn-danger",
         onClick: async (compareModal) => {
           const done = await performRestore({
@@ -169,7 +170,7 @@ async function performRestore({
 
   if (!result?.success) {
     uiBus.emit("toast:show", {
-      message: `Não foi possível restaurar: ${result?.error || "erro desconhecido"}`,
+      message: t("Não foi possível restaurar: {error}", { error: result?.error || t("erro desconhecido") }),
       type: "error",
     });
     return false;
@@ -190,7 +191,7 @@ async function performRestore({
   domainBus.emit("file:restored", payload);
 
   uiBus.emit("toast:show", {
-    message: `"${fileTitle}" restaurado.`,
+    message: t("\"{title}\" restaurado.", { title: fileTitle }),
     type: "success",
   });
   return true;

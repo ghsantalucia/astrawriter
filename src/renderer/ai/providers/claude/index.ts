@@ -2,6 +2,7 @@
  * @file Módulo do Provedor Claude (Anthropic).
  */
 
+import { t } from "../../../../shared/i18n.js";
 import { fetchModels, createMessage } from "./client.js";
 import { normalizeHistory, runToolLoop } from "../../toolLoop.js";
 
@@ -26,7 +27,7 @@ export async function sendRequest({
 }) {
   if (!config.apiKey) {
     throw new Error(
-      "Chave de API do Claude não configurada. Defina-a em Configurações.",
+      t("Chave de API do Claude não configurada. Defina-a em Configurações."),
     );
   }
 

@@ -4,6 +4,8 @@
  * então a lista funciona também como lista de permissão: a IA nunca emite eventos fora dela.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /** Evento disparado pelos botões de resposta pronta (envia o texto como mensagem do usuário). */
 export const QUICK_REPLY_EVENT = "chat:quick-reply";
 
@@ -18,38 +20,37 @@ export const QUICK_REPLY_EVENT = "chat:quick-reply";
 export const CHAT_ACTIONS = {
   "open-file": {
     event: "editor:open-file",
-    description: "Abre um arquivo do livro no editor (requer `path`).",
+    get description() { return t("Abre um arquivo do livro no editor (requer `path`)."); },
     params: ["path"],
   },
   "open-sync": {
     event: "sync:open-modal",
-    description: "Abre a janela de sincronização de rascunhos pendentes.",
+    get description() { return t("Abre a janela de sincronização de rascunhos pendentes."); },
   },
   "open-central": {
     event: "central:open",
-    description: "Abre uma central do app (requer `central`: issues, book, ai ou system; opcional `tab`).",
+    get description() { return t("Abre uma central do app (requer `central`: issues, book, ai ou system; opcional `tab`)."); },
     params: ["central"],
   },
   "open-settings": {
     event: "settings:open",
-    description: "Abre as configurações do aplicativo.",
+    get description() { return t("Abre as configurações do aplicativo."); },
   },
   "edit-variables": {
     event: "variables:open-modal",
-    description: "Abre a edição das variáveis do arquivo aberto no editor.",
+    get description() { return t("Abre a edição das variáveis do arquivo aberto no editor."); },
   },
   "new-chapter": {
     event: "chapter:create",
-    description: "Abre o assistente de criação de capítulo.",
+    get description() { return t("Abre o assistente de criação de capítulo."); },
   },
   "new-note": {
     event: "note:create",
-    description: "Abre a criação de uma nova anotação.",
+    get description() { return t("Abre a criação de uma nova anotação."); },
   },
   "new-entity": {
     event: "entity:create",
-    description:
-      "Abre o assistente de nova ficha em uma pasta do mundo (requer `folder`, ex.: assets/characters).",
+    get description() { return t("Abre o assistente de nova ficha em uma pasta do mundo (requer `folder`, ex.: assets/characters)."); },
     params: ["folder"],
   },
 };

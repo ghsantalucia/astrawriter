@@ -4,6 +4,7 @@
  */
 
 import { appSettings } from "../utils/appSettings.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Serviço de backup.
@@ -40,9 +41,9 @@ export class BackupService {
    * @returns {Promise<{success: boolean, count?: number, error?: string}>}
    */
   async runNow() {
-    if (!this.configured) return { success: false, error: "Escolha uma pasta de backup primeiro." };
+    if (!this.configured) return { success: false, error: t("Escolha uma pasta de backup primeiro.") };
     const result = await window.electronAPI.backupBooks(appSettings.get("backup.folder"), appSettings.get("backup.keep"));
     if (result?.success) appSettings.set("backup.lastAt", Date.now());
-    return result || { success: false, error: "Falha ao fazer o backup." };
+    return result || { success: false, error: t("Falha ao fazer o backup.") };
   }
 }

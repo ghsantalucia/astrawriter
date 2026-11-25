@@ -7,6 +7,7 @@ import templateHtml from "./templates/main.hbs?raw";
 import folderNodeTpl from "./templates/folderNode.hbs?raw";
 import fileNodeTpl from "./templates/fileNode.hbs?raw";
 import chapterNodeTpl from "./templates/chapterNode.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 import { ExplorerKeyboard } from "./keyboardNav.js";
 import { tagColorIndex } from "../../../shared/tags.js";
 import { Component } from "../Component.js";
@@ -311,8 +312,8 @@ export class ExplorerComponent extends Component {
     btn.setAttribute(
       "data-tooltip",
       allowed
-        ? "A IA pode alterar as anotações. Clique para bloquear"
-        : "A IA não pode alterar as anotações. Clique para liberar",
+        ? t("A IA pode alterar as anotações. Clique para bloquear")
+        : t("A IA não pode alterar as anotações. Clique para liberar"),
     );
   }
 
@@ -367,7 +368,7 @@ export class ExplorerComponent extends Component {
       if (!hit) return;
       li.querySelector(".file-title-wrapper")?.insertAdjacentHTML(
         "beforeend",
-        '<span class="ai-dot" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>',
+        `<span class="ai-dot" title="${t("Alterado pela IA (some 3 segundos depois de abrir o arquivo)")}"></span>`,
       );
     });
   }
@@ -394,13 +395,13 @@ export class ExplorerComponent extends Component {
       if (counts.error) {
         flags.insertAdjacentHTML(
           "beforeend",
-          `<span class="issue-flag error" title="${counts.error} ${counts.error === 1 ? "erro" : "erros"} nesse arquivo"><i class="fa-solid fa-circle-exclamation"></i>${counts.error}</span>`,
+          `<span class="issue-flag error" title="${counts.error === 1 ? t("{count} erro nesse arquivo", { count: counts.error }) : t("{count} erros nesse arquivo", { count: counts.error })}"><i class="fa-solid fa-circle-exclamation"></i>${counts.error}</span>`,
         );
       }
       if (counts.warning) {
         flags.insertAdjacentHTML(
           "beforeend",
-          `<span class="issue-flag warning" title="${counts.warning} ${counts.warning === 1 ? "sugestão" : "sugestões"} para esse arquivo"><i class="fa-solid fa-triangle-exclamation"></i>${counts.warning}</span>`,
+          `<span class="issue-flag warning" title="${counts.warning === 1 ? t("{count} sugestão para esse arquivo", { count: counts.warning }) : t("{count} sugestões para esse arquivo", { count: counts.warning })}"><i class="fa-solid fa-triangle-exclamation"></i>${counts.warning}</span>`,
         );
       }
       wrapper.appendChild(flags);

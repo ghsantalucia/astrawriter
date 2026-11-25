@@ -13,6 +13,7 @@ import { uiBus } from "../events/uiBus.js";
 import { domainBus } from "../events/domainBus.js";
 import { escapeHtml as esc } from "../utils/helpers.js";
 import { TRIGGERS } from "./skillService.js";
+import { t, intlLocale } from "../../shared/i18n.js";
 
 /** Tempo sem gatilhos depois de uma execução (as gravações da própria skill também geram eventos). */
 const COOLDOWN_MS = 4000;
@@ -178,24 +179,28 @@ export class SkillRunnerService {
     const bookTokens = await this.services.skills.bookTokens();
     const { tokens, basis } = this.services.skills.estimate(skill, bookTokens);
     const trigger = options.trigger && TRIGGERS.get(options.trigger);
-    const from = options.byAi ? "A IA pediu para executar esta skill." : trigger ? `Ela foi disparada por: <strong>${esc(trigger.label)}</strong>.` : "Você pediu para executá-la.";
+    const from = options.byAi ? t("A IA pediu para executar esta skill.") : trigger ? t("Ela foi disparada por: <strong>{trigger}</strong>.", { trigger: esc(trigger.label) }) : t("Você pediu para executá-la.");
+    const toolsText = skill.tools.length ? skill.tools.map((tool) => `<code>${esc(tool)}</code>`).join(", ") : t("nenhuma tool (só conversa)");
+    const costText = tokens
+      ? t("cerca de <strong>{tokens} tokens</strong> ({basis}; o livro tem ~{bookTokens} tokens).", { tokens: tokens.toLocaleString(intlLocale()), basis: esc(basis === "suas execuções" ? t("suas execuções") : basis === "o teste do autor" ? t("o teste do autor") : String(basis ?? "")), bookTokens: bookTokens.toLocaleString(intlLocale()) })
+      : t("sem estimativa ainda (será calculada depois da primeira execução).");
     const edits = skill.tools.some((t) => /write|replace|append|create|delete|move|set_|update_|restore|auto_link|resolve|register/.test(t));
     return new Promise((resolve) => {
       uiBus.emit("modal:open", {
         id: `skill-confirm-${Date.now()}`,
-        title: `Executar a skill “${skill.title}”?`,
+        title: t("Executar a skill “{title}”?", { title: skill.title }),
         content: `<div class="cn-confirm">
           <p>${from}</p>
           <p>${esc(skill.description)}</p>
-          <p><strong>Ela pode usar:</strong> ${skill.tools.length ? skill.tools.map((t) => `<code>${esc(t)}</code>`).join(", ") : "nenhuma tool (só conversa)"}.</p>
-          ${edits ? "<p><strong>Atenção:</strong> esta skill pode <strong>modificar arquivos do seu livro</strong>. As alterações passam pela sua revisão (ou são gravadas direto no modo autônomo) e ficam no changelog para desfazer.</p>" : ""}
-          ${skill.origin === "market" ? "<p><strong>Esta skill veio do catálogo.</strong> Execute apenas se você confia na fonte.</p>" : ""}
-          <p><strong>Custo estimado:</strong> ${tokens ? `cerca de <strong>${tokens.toLocaleString("pt-BR")} tokens</strong> (${esc(basis)}; o livro tem ~${bookTokens.toLocaleString("pt-BR")} tokens).` : "sem estimativa ainda (será calculada depois da primeira execução)."} Os tokens são cobrados pelo seu provedor de IA.</p>
+          <p>${t("<strong>Ela pode usar:</strong> {tools}.", { tools: toolsText })}</p>
+          ${edits ? t("<p><strong>Atenção:</strong> esta skill pode <strong>modificar arquivos do seu livro</strong>. As alterações passam pela sua revisão (ou são gravadas direto no modo autônomo) e ficam no changelog para desfazer.</p>") : ""}
+          ${skill.origin === "market" ? t("<p><strong>Esta skill veio do catálogo.</strong> Execute apenas se você confia na fonte.</p>") : ""}
+          <p>${t("<strong>Custo estimado:</strong> {cost} Os tokens são cobrados pelo seu provedor de IA.", { cost: costText })}</p>
         </div>`,
         onClose: () => resolve(false),
         buttons: [
-          { text: "Cancelar", class: "btn-secondary", onClick: (modal) => (resolve(false), modal.close()) },
-          { text: "Executar", class: "btn-primary", onClick: (modal) => (resolve(true), modal.close()) },
+          { text: t("Cancelar"), class: "btn-secondary", onClick: (modal) => (resolve(false), modal.close()) },
+          { text: t("Executar"), class: "btn-primary", onClick: (modal) => (resolve(true), modal.close()) },
         ],
       });
     });
@@ -212,36 +217,37 @@ export class SkillRunnerService {
     const skills = this.services.skills;
     const bookTokens = await skills.bookTokens();
     this.active = skill.slug;
-    uiBus.emit("chat:system-notice", { text: `Executando a skill “${skill.title}”…` });
+    uiBus.emit("chat:system-notice", { text: t("Executando a skill “{title}”…", { title: skill.title }) });
     const trigger = options.trigger && TRIGGERS.get(options.trigger);
     const context = [
-      trigger ? `Gatilho: ${trigger.label}.` : "Execução pedida pelo autor.",
-      options.payload?.path ? `Arquivo: ${options.payload.path}.` : "",
-      this.state.currentFilePath ? `Arquivo aberto no editor: ${String(this.state.currentFilePath).replace(/\.temp$/, "")}.` : "",
+      trigger ? t("Gatilho: {label}.", { label: trigger.label }) : t("Execução pedida pelo autor."),
+      options.payload?.path ? t("Arquivo: {path}.", { path: options.payload.path }) : "",
+      this.state.currentFilePath ? t("Arquivo aberto no editor: {path}.", { path: String(this.state.currentFilePath).replace(/\.temp$/, "") }) : "",
     ]
       .filter(Boolean)
       .join(" ");
     const unchanged = await this.unchangedFiles(skill);
     const given = (options.inputs || []).length
-      ? `\n\n# Informações fornecidas pelo autor\n${options.inputs.map((a) => `- ${a.question}: ${a.answer}`).join("\n")}`
+      ? `\n\n# ${t("Informações fornecidas pelo autor")}\n${options.inputs.map((a) => `- ${a.question}: ${a.answer}`).join("\n")}`
       : "";
     const fixed = unchanged.size
-      ? " Arquivos marcados como (inalterado desde a última execução) NÃO devem ser relidos nem reanalisados, exceto se as instruções da skill disserem o contrário ou se for indispensável para atualizar outro arquivo."
+      ? ` ${t("Arquivos marcados como (inalterado desde a última execução) NÃO devem ser relidos nem reanalisados, exceto se as instruções da skill disserem o contrário ou se for indispensável para atualizar outro arquivo.")}`
       : "";
-    const prompt = `Execute agora a skill “${skill.title}” seguindo as instruções abaixo ao pé da letra. Use somente as tools disponíveis. ${context}${options.extra ? ` ${options.extra}` : ""}${fixed}${given}\n\n# Instruções da skill\n\n${resolveAnalysis(this.state.aiSettings?.analysis).compact && skill.compact !== false ? compactInstructions(skill.body) : skill.body}`;
+    const prompt = `${t("Execute agora a skill “{title}” seguindo as instruções abaixo ao pé da letra. Use somente as tools disponíveis.", { title: skill.title })} ${context}${options.extra ? ` ${options.extra}` : ""}${fixed}${given}\n\n# ${t("Instruções da skill")}\n\n${resolveAnalysis(this.state.aiSettings?.analysis).compact && skill.compact !== false ? compactInstructions(skill.body) : skill.body}`;
     try {
       const profile = this.state.aiSettings?.analysis;
-      if (profile?.chatOnly) throw new Error("O modo “apenas conversa” está ligado: desligue-o para executar skills.");
+      if (profile?.chatOnly) throw new Error(t("O modo “apenas conversa” está ligado: desligue-o para executar skills."));
       const { text, tokens, readFiles } = await ai.sendMessage({ prompt, history: [], skill, unchanged: [...unchanged], web: skill.web === true });
       skills.recordRun(skill.slug, { ok: true, tokens, trigger: options.trigger || "manual", bookTokens });
       if (options.trigger && options.payload?.path) await this.markDone(skill, options.payload.path);
       // Guarda o hash do que a skill leu: na próxima execução esses arquivos chegam marcados como inalterados
       await this.markMany(skill, readFiles || []);
-      uiBus.emit("chat:system-notice", { text: `Skill “${skill.title}” concluída (${tokens.toLocaleString("pt-BR")} tokens).${text ? ` ${String(text).slice(0, 280)}` : ""}` });
+      const doneText = t("Skill “{title}” concluída ({tokens} tokens).", { title: skill.title, tokens: tokens.toLocaleString(intlLocale()) });
+      uiBus.emit("chat:system-notice", { text: `${doneText}${text ? ` ${String(text).slice(0, 280)}` : ""}` });
       return { ran: true, ok: true, text, tokens };
     } catch (error) {
       skills.recordRun(skill.slug, { ok: false, tokens: 0, trigger: options.trigger || "manual", bookTokens, error: String(error.message || error).slice(0, 200) });
-      uiBus.emit("chat:system-notice", { text: `A skill “${skill.title}” falhou: ${error.message || error}` });
+      uiBus.emit("chat:system-notice", { text: t("A skill “{title}” falhou: {error}", { title: skill.title, error: error.message || error }) });
       return { ran: true, ok: false };
     } finally {
       this.active = null;
@@ -358,22 +364,22 @@ export class SkillRunnerService {
       };
       uiBus.emit("modal:open", {
         id: `skill-inputs-${Date.now()}`,
-        title: `Informações para “${skill.title}”`,
+        title: t("Informações para “{title}”", { title: skill.title }),
         content: `<div class="cn-confirm cn-skill-inputs">
-          <p>Esta skill precisa de algumas informações antes de executar. Preencha cada campo:</p>
+          <p>${t("Esta skill precisa de algumas informações antes de executar. Preencha cada campo:")}</p>
           ${skill.inputs.map((q, i) => `<label class="cn-field"><span>${esc(q)}</span><textarea class="cn-textarea" data-skill-input="${i}" rows="${/amostra|trecho|exemplo|cole/i.test(q) ? 6 : 2}"></textarea></label>`).join("")}
         </div>`,
         onClose: () => finish(null),
         buttons: [
-          { text: "Cancelar", class: "btn-secondary", onClick: (modal) => (finish(null), modal.close()) },
+          { text: t("Cancelar"), class: "btn-secondary", onClick: (modal) => (finish(null), modal.close()) },
           {
-            text: "Continuar",
+            text: t("Continuar"),
             class: "btn-primary",
             onClick: (modal) => {
               const fields = [...document.querySelectorAll<HTMLInputElement>("[data-skill-input]")];
               const answers = skill.inputs.map((question, i) => ({ question, answer: (fields.find((f) => Number(f.dataset.skillInput) === i)?.value || "").trim() }));
               if (answers.some((a) => !a.answer)) {
-                uiBus.emit("toast:show", { message: "Preencha todos os campos para continuar.", type: "error" });
+                uiBus.emit("toast:show", { message: t("Preencha todos os campos para continuar."), type: "error" });
                 return;
               }
               finish(answers);

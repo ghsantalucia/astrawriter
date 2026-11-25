@@ -6,6 +6,7 @@
 import { uiBus } from "../../events/uiBus.js";
 import { buildAutoLinkTerms, flattenBookTree } from "../../utils/bookFiles.js";
 import { normalizePath } from "../../utils/helpers.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Trata o clique no botão "Linkar termos".
@@ -15,14 +16,14 @@ import { normalizePath } from "../../utils/helpers.js";
 export function onAutoLink(state) {
   if (!state.currentFilePath || !state.currentBookPath) {
     uiBus.emit("toast:show", {
-      message: "Abra um arquivo para linkar os termos.",
+      message: t("Abra um arquivo para linkar os termos."),
       type: "info",
     });
     return;
   }
   if (!state.currentFileMetadata?.humanWrite || state.aiLockState) {
     uiBus.emit("toast:show", {
-      message: "Este arquivo está somente leitura no momento.",
+      message: t("Este arquivo está somente leitura no momento."),
       type: "info",
     });
     return;
@@ -39,7 +40,7 @@ export function onAutoLink(state) {
   if (terms.length === 0) {
     uiBus.emit("toast:show", {
       message:
-        "O livro ainda não tem fichas (personagens, locais...) para linkar.",
+        t("O livro ainda não tem fichas (personagens, locais...) para linkar."),
       type: "info",
     });
     return;

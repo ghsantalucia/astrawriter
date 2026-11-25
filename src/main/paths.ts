@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { app } from "electron";
+import { getLanguage } from "../shared/i18n.js";
 
 /**
  * Pasta-base do app: a do executável quando instalado, ou a raiz do projeto em desenvolvimento.
@@ -87,13 +88,13 @@ export function ensureBooksDir() {
 }
 
 /**
- * Pasta com o modelo (template) de livro.
+ * Pasta com o modelo (template) de livro no idioma do app: `templates/book` (português) ou `templates/en/book` (inglês).
+ * Os perfis de template e o Manual de Uso ficam ao lado (`../profiles`, `../manual`).
  * @returns {string}
  */
 export function templatesDir() {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, "templates", "book")
-    : path.join(process.cwd(), "templates", "book");
+  const base = app.isPackaged ? path.join(process.resourcesPath, "templates") : path.join(process.cwd(), "templates");
+  return getLanguage() === "en" ? path.join(base, "en", "book") : path.join(base, "book");
 }
 
 /**

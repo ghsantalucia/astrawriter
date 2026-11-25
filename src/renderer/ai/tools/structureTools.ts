@@ -6,6 +6,7 @@
  * autor "IA" e avisa a interface (`book:structure-changed`) para atualizar o explorer e o editor.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { uiBus } from "../../events/uiBus.js";
 import { normalizePath } from "../../utils/helpers.js";
 import { canDeleteFile } from "../../utils/deletePermission.js";
@@ -34,7 +35,7 @@ const folderParam = (description) => ({ type: "string", description });
  * @throws {Error} Se nenhum livro está selecionado.
  */
 function requireBook(ctx) {
-  if (!ctx.state.currentBookPath) throw new Error("Nenhum livro selecionado.");
+  if (!ctx.state.currentBookPath) throw new Error(t("Nenhum livro selecionado."));
   return normalizePath(ctx.state.currentBookPath).replace(/\/+$/, "");
 }
 
@@ -69,14 +70,14 @@ export function registerStructureTools(registry) {
   registry.register({
     name: "create_folder",
     description:
-      "Cria uma pasta em Anotações (`notes`) ou dentro de uma categoria do Mundo (`assets/characters`, `assets/places`, `assets/elements`), inclusive dentro de pastas já criadas por usuário. Requer que a pasta pai permita escrita da IA.",
+      t("Cria uma pasta em Anotações (`notes`) ou dentro de uma categoria do Mundo (`assets/characters`, `assets/places`, `assets/elements`), inclusive dentro de pastas já criadas por usuário. Requer que a pasta pai permita escrita da IA."),
     parameters: {
       type: "object",
       properties: {
         parent: folderParam(
-          "Pasta pai relativa ao livro, ex.: notes ou assets/characters/protagonistas.",
+          t("Pasta pai relativa ao livro, ex.: notes ou assets/characters/protagonistas."),
         ),
-        name: folderParam("Nome exibido da nova pasta."),
+        name: folderParam(t("Nome exibido da nova pasta.")),
       },
       required: ["parent", "name"],
     },
@@ -86,7 +87,7 @@ export function registerStructureTools(registry) {
       const parentRel = segments.join("/");
       if (!ctx.folders.canCreateIn(parentRel)) {
         throw new Error(
-          "Não é permitido criar pastas neste local. Só em notes e nas categorias do Mundo (assets/characters, assets/places, assets/elements).",
+          t("Não é permitido criar pastas neste local. Só em notes e nas categorias do Mundo (assets/characters, assets/places, assets/elements)."),
         );
       }
       const { metadata } = await locateFolder(ctx.state, segments);
@@ -99,23 +100,23 @@ export function registerStructureTools(registry) {
         ctx.changelog.aiActor(),
       );
       announceStructureChange({});
-      ctx.notice?.(`Pasta "${created.title}" - Criada pela IA`);
-      return `Pasta "${created.title}" criada (caminho: ${created.rel}).`;
+      ctx.notice?.(t('Pasta "{title}" - Criada pela IA', { title: created.title }));
+      return t('Pasta "{title}" criada (caminho: {path}).', { title: created.title, path: created.rel });
     },
   });
 
   registry.register({
     name: "move_file",
     description:
-      "Move um arquivo para outra pasta da MESMA categoria (anotações, personagens, ambientes ou sistemas), corrigindo os links internos que apontavam para ele. Requer permissão de escrita da IA no arquivo e na pasta de destino.",
+      t("Move um arquivo para outra pasta da MESMA categoria (anotações, personagens, ambientes ou sistemas), corrigindo os links internos que apontavam para ele. Requer permissão de escrita da IA no arquivo e na pasta de destino."),
     parameters: {
       type: "object",
       properties: {
         path: {
           type: "string",
-          description: "Arquivo relativo ao livro, ex.: notes/note_001.md",
+          description: t("Arquivo relativo ao livro, ex.: notes/note_001.md"),
         },
-        destination: folderParam("Pasta de destino relativa ao livro."),
+        destination: folderParam(t("Pasta de destino relativa ao livro.")),
       },
       required: ["path", "destination"],
     },
@@ -136,20 +137,20 @@ export function registerStructureTools(registry) {
         ctx.changelog.aiActor(),
       );
       announceStructureChange({ movedFrom: from, movedTo: to });
-      ctx.notice?.(`"${located.title}" - Movido pela IA`);
-      return `"${located.title}" movido para ${to.slice(book.length + 1)}.`;
+      ctx.notice?.(t('"{title}" - Movido pela IA', { title: located.title }));
+      return t('"{title}" movido para {path}.', { title: located.title, path: to.slice(book.length + 1) });
     },
   });
 
   registry.register({
     name: "move_folder",
     description:
-      "Move uma pasta criada pelo usuário (com tudo o que há dentro) para dentro de outra pasta da MESMA categoria, corrigindo os links internos. Requer permissão de escrita da IA na pasta, em todos os arquivos dentro dela e na pasta de destino.",
+      t("Move uma pasta criada pelo usuário (com tudo o que há dentro) para dentro de outra pasta da MESMA categoria, corrigindo os links internos. Requer permissão de escrita da IA na pasta, em todos os arquivos dentro dela e na pasta de destino."),
     parameters: {
       type: "object",
       properties: {
-        path: folderParam("Pasta a mover, relativa ao livro."),
-        destination: folderParam("Pasta de destino relativa ao livro."),
+        path: folderParam(t("Pasta a mover, relativa ao livro.")),
+        destination: folderParam(t("Pasta de destino relativa ao livro.")),
       },
       required: ["path", "destination"],
     },
@@ -161,7 +162,7 @@ export function registerStructureTools(registry) {
       const label = metadata.title || rel;
       assertFolderPermission(metadata, "aiWrite", label);
       if (metadata.userRename !== true) {
-        throw new Error("Esta pasta é estrutural e não pode ser movida.");
+        throw new Error(t("Esta pasta é estrutural e não pode ser movida."));
       }
       for (const file of collectFolderFiles(node, rel)) {
         assertPermission(
@@ -184,21 +185,21 @@ export function registerStructureTools(registry) {
         movedFrom: `${book}/${rel}`,
         movedTo: `${book}/${destRel}/${segments[segments.length - 1]}`,
       });
-      ctx.notice?.(`Pasta "${label}" - Movida pela IA`);
-      return `Pasta "${label}" movida para ${destRel} (${moved} arquivo(s)).`;
+      ctx.notice?.(t('Pasta "{label}" - Movida pela IA', { label }));
+      return t('Pasta "{label}" movida para {path} ({count} arquivo(s)).', { label, path: destRel, count: moved });
     },
   });
 
   registry.register({
     name: "delete_file",
     description:
-      "Exclui um arquivo (e o rascunho dele). Só funciona se o frontmatter do arquivo tiver `aiWrite: true` e `aiDelete: true`. Arquivos de `content/`, índices (`index.md`) e modelos (`template.md`) nunca podem ser excluídos. O link do arquivo é removido do índice. Use apenas quando o autor pedir; a exclusão é registrada no changelog.",
+      t("Exclui um arquivo (e o rascunho dele). Só funciona se o frontmatter do arquivo tiver `aiWrite: true` e `aiDelete: true`. Arquivos de `content/`, índices (`index.md`) e modelos (`template.md`) nunca podem ser excluídos. O link do arquivo é removido do índice. Use apenas quando o autor pedir; a exclusão é registrada no changelog."),
     parameters: {
       type: "object",
       properties: {
         path: {
           type: "string",
-          description: "Arquivo relativo ao livro, ex.: notes/note_001.md",
+          description: t("Arquivo relativo ao livro, ex.: notes/note_001.md"),
         },
       },
       required: ["path"],
@@ -209,7 +210,7 @@ export function registerStructureTools(registry) {
       assertPermission(located, "aiWrite");
       if (!canDeleteFile(located.metadata, located.relPath, "ai")) {
         throw new Error(
-          `Acesso negado: o arquivo "${located.title}" não permite exclusão pela IA (arquivos da escrita, índices e modelos nunca são excluídos; os demais exigem aiDelete: true no frontmatter). Peça ao autor para excluir pela interface.`,
+          t('Acesso negado: o arquivo "{title}" não permite exclusão pela IA (arquivos da escrita, índices e modelos nunca são excluídos; os demais exigem aiDelete: true no frontmatter). Peça ao autor para excluir pela interface.', { title: located.title }),
         );
       }
 
@@ -217,19 +218,19 @@ export function registerStructureTools(registry) {
       const abs = normalizePath(located.originalPath).replace(/\.temp$/, "");
       await ctx.deletion.deleteFile(abs, { who: "ai" });
       announceStructureChange({ deletedPath: abs });
-      ctx.notice?.(`"${located.title}" - Excluído pela IA`);
-      return `"${located.title}" excluído e removido do índice.`;
+      ctx.notice?.(t('"{title}" - Excluído pela IA', { title: located.title }));
+      return t('"{title}" excluído e removido do índice.', { title: located.title });
     },
   });
 
   registry.register({
     name: "delete_folder",
     description:
-      "Exclui uma pasta criada pelo usuário com TUDO o que há dentro. Só funciona se o `folder.yml` tiver `userDelete: true`, `aiWrite: true` e `aiDelete: true`, se todos os arquivos dentro permitirem escrita da IA e nenhum tiver `aiDelete: false`. Os links dos arquivos são removidos dos índices. Use apenas quando o autor pedir.",
+      t("Exclui uma pasta criada pelo usuário com TUDO o que há dentro. Só funciona se o `folder.yml` tiver `userDelete: true`, `aiWrite: true` e `aiDelete: true`, se todos os arquivos dentro permitirem escrita da IA e nenhum tiver `aiDelete: false`. Os links dos arquivos são removidos dos índices. Use apenas quando o autor pedir."),
     parameters: {
       type: "object",
       properties: {
-        path: folderParam("Pasta a excluir, relativa ao livro."),
+        path: folderParam(t("Pasta a excluir, relativa ao livro.")),
       },
       required: ["path"],
     },
@@ -238,12 +239,12 @@ export function registerStructureTools(registry) {
       const segments = parseFolderPath(path, ctx.state.currentBookPath);
       const rel = segments.join("/");
       if (categoryOf(rel) === rel) {
-        throw new Error("As pastas das categorias não podem ser excluídas.");
+        throw new Error(t("As pastas das categorias não podem ser excluídas."));
       }
       const { node, metadata } = await locateFolder(ctx.state, segments);
       const label = metadata.title || rel;
       if (metadata.userDelete !== true) {
-        throw new Error(`A pasta "${label}" não pode ser excluída.`);
+        throw new Error(t('A pasta "{label}" não pode ser excluída.', { label }));
       }
       assertFolderPermission(metadata, "aiWrite", label);
       assertFolderPermission(metadata, "aiDelete", label);
@@ -254,7 +255,7 @@ export function registerStructureTools(registry) {
         );
         if (file.metadata.aiDelete === false) {
           throw new Error(
-            `Acesso negado: o arquivo "${file.title}" dentro da pasta proíbe exclusão pela IA (aiDelete: false).`,
+            t('Acesso negado: o arquivo "{title}" dentro da pasta proíbe exclusão pela IA (aiDelete: false).', { title: file.title }),
           );
         }
       }
@@ -265,8 +266,8 @@ export function registerStructureTools(registry) {
         ctx.changelog.aiActor(),
       );
       announceStructureChange({ deletedPath: `${book}/${rel}` });
-      ctx.notice?.(`Pasta "${label}" - Excluída pela IA`);
-      return `Pasta "${label}" excluída (${deleted} arquivo(s)).`;
+      ctx.notice?.(t('Pasta "{label}" - Excluída pela IA', { label }));
+      return t('Pasta "{label}" excluída ({count} arquivo(s)).', { label, count: deleted });
     },
   });
 }

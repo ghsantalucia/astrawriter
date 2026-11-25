@@ -9,6 +9,7 @@ import { parseMarkdown } from "../../utils/markdown.js";
 import { canDeleteFile, chapterNumber } from "../../utils/deletePermission.js";
 import * as fileHandler from "./fileHandler.js";
 import { onTreeChanged } from "./creationHandler.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Escapa texto para uso seguro em HTML.
@@ -33,7 +34,7 @@ function escapeHtml(text) {
 function ensureUnlocked(state) {
   if (state.currentBookMetadata?.ai_lock || state.aiLockState) {
     uiBus.emit("toast:show", {
-      message: "A IA está trabalhando neste livro. Aguarde para excluir.",
+      message: t("A IA está trabalhando neste livro. Aguarde para excluir."),
       type: "info",
     });
     return false;
@@ -65,7 +66,7 @@ export async function onFileDeleteRequest(payload, state, deletion, services) {
 
   if (!canDeleteFile(metadata, rel, "user")) {
     uiBus.emit("toast:show", {
-      message: "Este arquivo não pode ser excluído.",
+      message: t("Este arquivo não pode ser excluído."),
       type: "error",
     });
     return;
@@ -76,14 +77,14 @@ export async function onFileDeleteRequest(payload, state, deletion, services) {
 
   uiBus.emit("modal:open", {
     id: "confirm-delete-file-modal",
-    title: "Excluir arquivo?",
-    content: `<p>O arquivo <strong>${escapeHtml(title)}</strong> será excluído.</p>
-      ${hasDraft ? "<p>O rascunho não sincronizado dele também será apagado.</p>" : ""}
-      <p>A exclusão fica registrada no changelog do livro.</p>`,
+    title: t("Excluir arquivo?"),
+    content: `${t("<p>O arquivo <strong>{title}</strong> será excluído.</p>", { title: escapeHtml(title) })}
+      ${hasDraft ? t("<p>O rascunho não sincronizado dele também será apagado.</p>") : ""}
+      ${t("<p>A exclusão fica registrada no changelog do livro.</p>")}`,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Excluir",
+        text: t("Excluir"),
         class: "btn-danger",
         onClick: async (modal) => {
           modal.close();
@@ -91,12 +92,12 @@ export async function onFileDeleteRequest(payload, state, deletion, services) {
             await deletion.deleteFile(path);
             await afterDeletion({ state, services, deletedPath: path });
             uiBus.emit("toast:show", {
-              message: `"${title}" excluído.`,
+              message: t("\"{title}\" excluído.", { title }),
               type: "success",
             });
           } catch (error) {
             uiBus.emit("toast:show", {
-              message: `Não foi possível excluir: ${error.message}`,
+              message: t("Não foi possível excluir: {message}", { message: error.message }),
               type: "error",
             });
           }
@@ -136,25 +137,35 @@ export async function onChapterDeleteRequest(
   }
 
   const renumber = summary.renumbered.length
-    ? `<p>Os capítulos seguintes serão renumerados para não ficar nenhum buraco (${summary.renumbered
-        .map(
-          (r) =>
-            `${String(r.from).padStart(2, "0")} → ${String(r.to).padStart(2, "0")}`,
-        )
-        .join(", ")}).</p>`
+    ? t("<p>Os capítulos seguintes serão renumerados para não ficar nenhum buraco ({list}).</p>", {
+        list: summary.renumbered
+          .map((r) => `${String(r.from).padStart(2, "0")} → ${String(r.to).padStart(2, "0")}`)
+          .join(", "),
+      })
     : "";
+
+  const safeTitle = escapeHtml(title);
+  const filesText =
+    summary.files === 1
+      ? t("<p>O capítulo <strong>{title}</strong> será excluído com <strong>todos os arquivos e subpastas</strong> ({count} arquivo).</p>", { title: safeTitle, count: summary.files })
+      : t("<p>O capítulo <strong>{title}</strong> será excluído com <strong>todos os arquivos e subpastas</strong> ({count} arquivos).</p>", { title: safeTitle, count: summary.files });
+  const draftsText = !summary.drafts
+    ? ""
+    : summary.drafts === 1
+      ? t("<p>{count} rascunho não sincronizado será apagado junto.</p>", { count: summary.drafts })
+      : t("<p>{count} rascunhos não sincronizados serão apagados junto.</p>", { count: summary.drafts });
 
   uiBus.emit("modal:open", {
     id: "confirm-delete-chapter-modal",
-    title: "Excluir capítulo?",
-    content: `<p>O capítulo <strong>${escapeHtml(title)}</strong> será excluído com <strong>todos os arquivos e subpastas</strong> (${summary.files} ${summary.files === 1 ? "arquivo" : "arquivos"}).</p>
-      ${summary.drafts ? `<p>${summary.drafts} ${summary.drafts === 1 ? "rascunho não sincronizado será apagado" : "rascunhos não sincronizados serão apagados"} junto.</p>` : ""}
+    title: t("Excluir capítulo?"),
+    content: `${filesText}
+      ${draftsText}
       ${renumber}
-      <p>A exclusão e os ajustes feitos pelo sistema ficam registrados no changelog do livro.</p>`,
+      ${t("<p>A exclusão e os ajustes feitos pelo sistema ficam registrados no changelog do livro.</p>")}`,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Excluir capítulo",
+        text: t("Excluir capítulo"),
         class: "btn-danger",
         onClick: async (modal) => {
           modal.close();
@@ -167,14 +178,14 @@ export async function onChapterDeleteRequest(
               renumbered: result.renumbered,
             });
             uiBus.emit("toast:show", {
-              message: `"${title}" excluído.`,
+              message: t("\"{title}\" excluído.", { title }),
               type: "success",
             });
           } catch (error) {
             // Mesmo com falha parcial, a árvore precisa refletir o que aconteceu no disco
             await afterDeletion({ state, services, renumbered: [] });
             uiBus.emit("toast:show", {
-              message: `Não foi possível excluir: ${error.message}`,
+              message: t("Não foi possível excluir: {message}", { message: error.message }),
               type: "error",
             });
           }

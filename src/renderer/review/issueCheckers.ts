@@ -5,6 +5,7 @@
  */
 
 import { typeInfo } from "./issueTypes.js";
+import { t } from "../../shared/i18n.js";
 
 /** Palavra (letras, números e apóstrofo). */
 const WORD = /[\p{L}\p{N}'’]+/gu;
@@ -140,8 +141,8 @@ export function findBrokenLinkIssues(file, content, existing, toRel) {
         content,
         start: m.index,
         end: m.index + m[0].length,
-        message: `O link para "${m[2].replace(/^\//, "")}" aponta para um arquivo que não existe mais.`,
-        suggestion: { replace: m[1], label: "Remover o link (manter o texto)" },
+        message: t('O link para "{target}" aponta para um arquivo que não existe mais.', { target: m[2].replace(/^\//, "") }),
+        suggestion: { replace: m[1], label: t("Remover o link (manter o texto)") },
         extra: { target: m[2] },
         seen,
       }),
@@ -180,10 +181,10 @@ export function findRepeatedWordIssues(file, content) {
           content,
           start: previous.start,
           end,
-          message: `A palavra "${word}" aparece duas vezes seguidas.`,
+          message: t("A palavra \"{word}\" aparece duas vezes seguidas.", { word }),
           suggestion: {
             replace: previous.word,
-            label: `Manter só "${previous.word}"`,
+            label: t("Manter só \"{word}\"", { word: previous.word }),
           },
           extra: { word: word.toLowerCase() },
           seen,
@@ -234,7 +235,7 @@ export function findTypoIssues(file, content, words, misspelled, repeated = []) 
         content,
         start: w.start,
         end: w.end,
-        message: `"${w.word}" não foi reconhecida pelo dicionário.`,
+        message: t("\"{word}\" não foi reconhecida pelo dicionário.", { word: w.word }),
         extra: { word: w.word },
         seen,
       }),

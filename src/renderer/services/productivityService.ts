@@ -7,6 +7,7 @@
 
 import { uiBus } from "../events/uiBus.js";
 import { appSettings } from "../utils/appSettings.js";
+import { t } from "../../shared/i18n.js";
 
 const KEY = "astra.productivity.v1";
 
@@ -159,7 +160,7 @@ export class ProductivityService {
         this.manualPaused = true;
         this.goalDone = true;
         this.chime();
-        uiBus.emit("toast:show", { message: "Meta de tempo concluída! Bom trabalho.", type: "success" });
+        uiBus.emit("toast:show", { message: t("Meta de tempo concluída! Bom trabalho."), type: "success" });
         uiBus.emit("productivity:changed");
       }
       // Grava de tempos em tempos (um fechamento brusco não perde o registro)
@@ -292,16 +293,16 @@ export class ProductivityService {
     const toggle = document.getElementById("prod-toggle");
     if (toggle) {
       toggle.innerHTML = `<i class="fa-solid ${this.manualPaused ? "fa-play" : "fa-pause"}"></i>`;
-      toggle.title = this.manualPaused ? "Iniciar o cronômetro" : "Pausar o cronômetro";
+      toggle.title = this.manualPaused ? t("Iniciar o cronômetro") : t("Pausar o cronômetro");
     }
     const auto = document.getElementById("prod-auto");
     if (auto) {
       auto.classList.toggle("on", Boolean(appSettings.get("productivity.auto")));
-      auto.title = "Automático: o cronômetro para quando você se ausenta (janela sem foco ou parado) e volta quando você volta";
+      auto.title = t("Automático: o cronômetro para quando você se ausenta (janela sem foco ou parado) e volta quando você volta");
     }
     const label = document.getElementById("prod-status");
     if (label) {
-      label.textContent = this.goalDone ? "meta cumprida ✓" : status === "running" ? (goalMs > 0 ? "faltam" : "contando") : status === "away" ? "ausente" : goalMs > 0 ? `meta ${Math.round(goalMs / 60000)} min` : "pausado";
+      label.textContent = this.goalDone ? t("meta cumprida ✓") : status === "running" ? (goalMs > 0 ? t("faltam") : t("contando")) : status === "away" ? t("ausente") : goalMs > 0 ? t("meta {minutes} min", { minutes: Math.round(goalMs / 60000) }) : t("pausado");
     }
   }
 }

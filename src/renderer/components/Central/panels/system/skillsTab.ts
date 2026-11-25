@@ -10,6 +10,7 @@ import { toolRegistry } from "../../../../ai/aiTools.js";
 import { renderChatMarkdown } from "../../../../utils/chatMarkdown.js";
 import { appSettings } from "../../../../utils/appSettings.js";
 import { confirmModal, esc, mount, plural, switchRow } from "../panelKit.js";
+import { t, getLanguage } from "../../../../../shared/i18n.js";
 
 /**
  * Primeira frase de uma descrição (resumo da tool).
@@ -34,15 +35,15 @@ function toolTable(registry, selected, change, disabled = false) {
     // As tools marcadas primeiro; depois, ordem alfabética
     .sort((a, b) => Number(selected.includes(b.name)) - Number(selected.includes(a.name)) || a.name.localeCompare(b.name))
     .map(
-      (t) => `<label class="cn-tool-row ${selected.includes(t.name) ? "on" : ""}" data-search="${esc(`${t.name} ${t.description}`.toLowerCase())}">
-        <input type="checkbox" class="cn-cbx-input" data-change="${change}" data-id="${esc(t.name)}" ${selected.includes(t.name) ? "checked" : ""} ${disabled ? "disabled" : ""} />
+      (tool) => `<label class="cn-tool-row ${selected.includes(tool.name) ? "on" : ""}" data-search="${esc(`${tool.name} ${tool.description}`.toLowerCase())}">
+        <input type="checkbox" class="cn-cbx-input" data-change="${change}" data-id="${esc(tool.name)}" ${selected.includes(tool.name) ? "checked" : ""} ${disabled ? "disabled" : ""} />
         <span class="cn-cbx" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
-        <code>${esc(t.name)}</code>
-        <small>${esc(firstSentence(t.description))}</small>
+        <code>${esc(tool.name)}</code>
+        <small>${esc(firstSentence(tool.description))}</small>
       </label>`,
     )
     .join("");
-  return `<div class="cn-tool-table"><input class="cn-input cn-tool-filter" data-input="filter-tools" placeholder="Filtrar tools…" />${rows}</div>`;
+  return `<div class="cn-tool-table"><input class="cn-input cn-tool-filter" data-input="filter-tools" placeholder="${t("Filtrar tools…")}" />${rows}</div>`;
 }
 
 /**
@@ -64,7 +65,7 @@ function filterItems(scope, selector, query) {
 }
 
 /** Aviso das skills nativas (podem ser editadas, não removidas). */
-const NATIVE_WARNING = '<div class="cn-warn"><i class="fa-solid fa-triangle-exclamation"></i> <span><strong>Skill nativa.</strong> Ela já vem instalada e funcionalidades do sistema dependem dela, por isso <strong>não pode ser removida</strong>. Você pode editá-la para experimentar melhorias, mas <strong>não mexa se não souber o que está fazendo</strong>: dá para restaurar o original a qualquer momento.</span></div>';
+const nativeWarning = () => `<div class="cn-warn"><i class="fa-solid fa-triangle-exclamation"></i> <span>${t("<strong>Skill nativa.</strong> Ela já vem instalada e funcionalidades do sistema dependem dela, por isso <strong>não pode ser removida</strong>. Você pode editá-la para experimentar melhorias, mas <strong>não mexa se não souber o que está fazendo</strong>: dá para restaurar o original a qualquer momento.")}</span></div>`;
 
 /**
  * Cor do texto legível sobre uma cor de fundo (claro ou escuro, pela luminância).
@@ -81,13 +82,13 @@ function readableOn(hex) {
 /**
  * Caixa de seleção de um gatilho (mesmo visual das tools).
  * @param {string} change - Manipulador `data-change`.
- * @param {{id: string, label: string}} t - Gatilho.
+ * @param {{id: string, label: string}} trig - Gatilho.
  * @param {boolean} on - Marcado?
  * @param {boolean} disabled - Só leitura?
  * @returns {string}
  */
-function trigChip(change, t, on, disabled) {
-  return `<label class="cn-trig ${on ? "on" : ""}"><input type="checkbox" class="cn-cbx-input" data-change="${change}" data-id="${esc(t.id)}" ${on ? "checked" : ""} ${disabled ? "disabled" : ""} /><span class="cn-cbx" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span>${esc(t.label)}</span></label>`;
+function trigChip(change, trig, on, disabled) {
+  return `<label class="cn-trig ${on ? "on" : ""}"><input type="checkbox" class="cn-cbx-input" data-change="${change}" data-id="${esc(trig.id)}" ${on ? "checked" : ""} ${disabled ? "disabled" : ""} /><span class="cn-cbx" aria-hidden="true"><i class="fa-solid fa-check"></i></span><span>${esc(trig.label)}</span></label>`;
 }
 
 /**
@@ -172,21 +173,21 @@ export class SkillsTab {
     const total = this.skills.totalTokens();
     const runs = installed.reduce((n, s) => n + this.skills.runs(s.slug).length, 0);
     const chips = `<div class="rv-chips">
-      <button class="rv-chip ${this.view === "library" ? "active" : ""}" data-act="go" data-view="library">Minhas skills <b>${installed.length}</b></button>
-      <button class="rv-chip ${this.view === "market" ? "active" : ""}" data-act="go" data-view="market">Loja <b>${this.skills.market().filter((m) => !m.installed).length}</b></button>
-      <button class="cn-btn small primary" data-act="new" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Criar skill</button>
+      <button class="rv-chip ${this.view === "library" ? "active" : ""}" data-act="go" data-view="library">${t("Minhas skills")} <b>${installed.length}</b></button>
+      <button class="rv-chip ${this.view === "market" ? "active" : ""}" data-act="go" data-view="market">${t("Loja")} <b>${this.skills.market().filter((m) => !m.installed).length}</b></button>
+      <button class="cn-btn small primary" data-act="new" style="margin-left:auto"><i class="fa-solid fa-plus"></i> ${t("Criar skill")}</button>
     </div>`;
     const permission = `<div class="cn-setting-list">${switchRow({
       attrs: 'data-change="ask-always"',
       checked: ask.value,
       disabled: ask.forced,
-      title: "Todas as skills pedem permissão antes de rodar",
-      hint: ask.forced ? "Marcado automaticamente pelo perfil de uso atual (Mínimo ou Econômico). Ao trocar de perfil, volta ao que você tinha escolhido." : "Toda execução mostra uma janela com o que a skill pode fazer e a estimativa de tokens.",
+      title: t("Todas as skills pedem permissão antes de rodar"),
+      hint: ask.forced ? t("Marcado automaticamente pelo perfil de uso atual (Mínimo ou Econômico). Ao trocar de perfil, volta ao que você tinha escolhido.") : t("Toda execução mostra uma janela com o que a skill pode fazer e a estimativa de tokens."),
     })}</div>`;
     const search = this.view === "library" || this.view === "market"
-      ? `<div class="cn-searchbar"><i class="fa-solid fa-magnifying-glass"></i><input class="cn-input" type="search" data-input="search" value="${esc(this.query)}" placeholder="${this.view === "market" ? "Buscar na loja…" : "Buscar nas suas skills (nome, descrição, tag)…"}" /></div>`
+      ? `<div class="cn-searchbar"><i class="fa-solid fa-magnifying-glass"></i><input class="cn-input" type="search" data-input="search" value="${esc(this.query)}" placeholder="${this.view === "market" ? t("Buscar na loja…") : t("Buscar nas suas skills (nome, descrição, tag)…")}" /></div>`
       : "";
-    return `${chips}${search}${permission}<p class="cn-hint">${plural(runs, "execução", "execuções")} no total · ${total.toLocaleString("pt-BR")} tokens usados por skills.</p>`;
+    return `${chips}${search}${permission}<p class="cn-hint">${t("{runs} no total · {tokens} tokens usados por skills.", { runs: plural(runs, "execução", "execuções"), tokens: total.toLocaleString(getLanguage()) })}</p>`;
   }
 
   /** @returns {Object} Manipuladores comuns da barra superior. @private */
@@ -233,22 +234,22 @@ export class SkillsTab {
         ? ""
         : s.kind === "recurring"
           ? s.enabled
-            ? '<span class="cn-status on"><i class="fa-solid fa-circle"></i> ativa</span>'
-            : '<span class="cn-status off"><i class="fa-regular fa-circle"></i> inativa</span>'
-          : '<span class="cn-status on"><i class="fa-solid fa-circle"></i> disponível</span>';
+            ? `<span class="cn-status on"><i class="fa-solid fa-circle"></i> ${t("ativa")}</span>`
+            : `<span class="cn-status off"><i class="fa-regular fa-circle"></i> ${t("inativa")}</span>`
+          : `<span class="cn-status on"><i class="fa-solid fa-circle"></i> ${t("disponível")}</span>`;
     const badges = [
-      `<span class="cn-pill">${s.kind === "recurring" ? "recorrente" : "uso único"}</span>`,
-      s.native ? '<span class="cn-pill" title="Já vem instalada; o sistema depende dela">nativa</span>' : s.origin === "builtin" ? '<span class="cn-pill">do app</span>' : "",
-      s.edited ? '<span class="cn-pill warning">editado</span>' : "",
-      s.installed ? '<span class="cn-pill success">na biblioteca</span>' : "",
-      s.hasUpdate ? '<span class="cn-pill warning">atualização disponível</span>' : "",
+      `<span class="cn-pill">${s.kind === "recurring" ? t("recorrente") : t("uso único")}</span>`,
+      s.native ? `<span class="cn-pill" title="${t("Já vem instalada; o sistema depende dela")}">${t("nativa")}</span>` : s.origin === "builtin" ? `<span class="cn-pill">${t("do app")}</span>` : "",
+      s.edited ? `<span class="cn-pill warning">${t("editado")}</span>` : "",
+      s.installed ? `<span class="cn-pill success">${t("na biblioteca")}</span>` : "",
+      s.hasUpdate ? `<span class="cn-pill warning">${t("atualização disponível")}</span>` : "",
     ].join(" ");
     const search = `${s.title} ${s.slug} ${s.description} ${s.author} ${s.tags.join(" ")}`.toLowerCase();
     return `<div class="cn-theme cn-skill-card ${where === "library" && s.kind === "recurring" && !s.enabled ? "inactive" : ""}" style="--skill-color:${esc(s.color || autoSkillColor(s.slug))}" data-act="open" data-slug="${esc(s.slug)}" data-where="${where}" data-search="${esc(search)}" tabindex="0">
-      <div class="cn-skill-head"><strong>${esc(s.title)}${s.edited ? ' <small class="cn-edited">(editado)</small>' : ""}</strong>${status}</div>
+      <div class="cn-skill-head"><strong>${esc(s.title)}${s.edited ? ` <small class="cn-edited">(${t("editado")})</small>` : ""}</strong>${status}</div>
       <small>${esc(s.author)} · v${esc(s.version)}</small>
       <span>${esc(s.description)}</span>
-      <div class="cn-row" style="gap:4px">${badges}${s.tags.map((t) => `<span class="cn-pill">#${esc(t)}</span>`).join(" ")}</div>
+      <div class="cn-row" style="gap:4px">${badges}${s.tags.map((tag) => `<span class="cn-pill">#${esc(tag)}</span>`).join(" ")}</div>
       ${where === "library" ? `<small>${plural(runs, "execução", "execuções")}</small>` : ""}
     </div>`;
   }
@@ -280,9 +281,9 @@ export class SkillsTab {
     mount(
       el,
       `<section class="cn-section">${this.topHtml()}
-         ${list.length ? "" : '<div class="cn-empty">Você ainda não tem skills. Veja a <strong>Loja</strong> ou crie a sua.</div>'}
+         ${list.length ? "" : `<div class="cn-empty">${t("Você ainda não tem skills. Veja a <strong>Loja</strong> ou crie a sua.")}</div>`}
          <div class="cn-skill-grid">${list.map((s) => this.cardHtml(s, "library")).join("")}</div>
-         <p class="cn-hint cn-no-results" hidden>Nenhuma skill encontrada para essa busca.</p>
+         <p class="cn-hint cn-no-results" hidden>${t("Nenhuma skill encontrada para essa busca.")}</p>
        </section>`,
       { ...this.topHandlers(), ...this.cardHandlers() },
     );
@@ -300,9 +301,9 @@ export class SkillsTab {
     mount(
       el,
       `<section class="cn-section">${this.topHtml()}
-         <p class="cn-hint">A loja já funciona offline com as skills que vêm com o app. Em breve, usuários poderão compartilhar skills e personalizações aqui.</p>
+         <p class="cn-hint">${t("A loja já funciona offline com as skills que vêm com o app. Em breve, usuários poderão compartilhar skills e personalizações aqui.")}</p>
          <div class="cn-skill-grid">${list.map((s) => this.cardHtml(s, "market")).join("")}</div>
-         <p class="cn-hint cn-no-results" hidden>Nenhuma skill encontrada para essa busca.</p>
+         <p class="cn-hint cn-no-results" hidden>${t("Nenhuma skill encontrada para essa busca.")}</p>
        </section>`,
       { ...this.topHandlers(), ...this.cardHandlers() },
     );
@@ -348,35 +349,35 @@ export class SkillsTab {
     const triggers = inLibrary ? s.triggers : market.triggers;
 
     const triggerList = s.kind === "recurring"
-      ? `<p class="cn-hint">Roda sozinha nestas ocasiões. ${inLibrary ? "Você pode marcar ou desmarcar:" : ""}</p>
-         ${TRIGGER_GROUPS.map((g) => `<details class="cn-trig-group" data-fold="trig:${esc(g.group)}" ${this.isOpen(`trig:${g.group}`, g.triggers.some((t) => triggers.includes(t.id))) ? "open" : ""}><summary>${esc(g.group)}</summary>
-           <div class="cn-trig-grid">${g.triggers.map((t) => trigChip("trigger", t, triggers.includes(t.id), !inLibrary)).join("")}</div></details>`).join("")}`
-      : '<p class="cn-hint">Uso único: roda só quando você manda executar.</p>';
+      ? `<p class="cn-hint">${t("Roda sozinha nestas ocasiões.")} ${inLibrary ? t("Você pode marcar ou desmarcar:") : ""}</p>
+         ${TRIGGER_GROUPS.map((g) => `<details class="cn-trig-group" data-fold="trig:${esc(g.group)}" ${this.isOpen(`trig:${g.group}`, g.triggers.some((trig) => triggers.includes(trig.id))) ? "open" : ""}><summary>${esc(g.group)}</summary>
+           <div class="cn-trig-grid">${g.triggers.map((trig) => trigChip("trigger", trig, triggers.includes(trig.id), !inLibrary)).join("")}</div></details>`).join("")}`
+      : `<p class="cn-hint">${t("Uso único: roda só quando você manda executar.")}</p>`;
 
     const toolList = toolTable(registry, tools, "tool", !inLibrary);
 
     const runRows = runs.length
-      ? `<table class="cn-table"><thead><tr><th>Quando</th><th>Origem</th><th>Resultado</th><th>Tokens</th></tr></thead><tbody>${runs
-          .map((r) => `<tr><td>${new Date(r.at).toLocaleString("pt-BR")}</td><td>${esc(TRIGGERS.get(r.trigger)?.label || (r.trigger === "ai" ? "Pedido da IA" : "Manual"))}</td><td>${r.ok ? '<span class="cn-pill success">sucesso</span>' : `<span class="cn-pill error" title="${esc(r.error || "")}">falha</span>`}</td><td>${(r.tokens || 0).toLocaleString("pt-BR")}</td></tr>`)
+      ? `<table class="cn-table"><thead><tr><th>${t("Quando")}</th><th>${t("Origem")}</th><th>${t("Resultado")}</th><th>${t("Tokens")}</th></tr></thead><tbody>${runs
+          .map((r) => `<tr><td>${new Date(r.at).toLocaleString(getLanguage())}</td><td>${esc(TRIGGERS.get(r.trigger)?.label || (r.trigger === "ai" ? t("Pedido da IA") : t("Manual")))}</td><td>${r.ok ? `<span class="cn-pill success">${t("sucesso")}</span>` : `<span class="cn-pill error" title="${esc(r.error || "")}">${t("falha")}</span>`}</td><td>${(r.tokens || 0).toLocaleString(getLanguage())}</td></tr>`)
           .join("")}</tbody></table>`
-      : '<p class="cn-hint">Nenhuma execução ainda.</p>';
+      : `<p class="cn-hint">${t("Nenhuma execução ainda.")}</p>`;
 
     const actions = inLibrary
-      ? `<button class="cn-btn primary" data-act="run"><i class="fa-solid fa-play"></i> Executar agora</button>
-         <button class="cn-btn" data-act="edit"><i class="fa-solid fa-pen"></i> Editar</button>
-         ${s.hasEditedCopy ? '<button class="cn-btn ghost" data-act="restore">Restaurar o original</button>' : ""}
-         ${market?.hasUpdate ? `<button class="cn-btn" data-act="update">Atualizar para a v${esc(market.version)}</button>` : ""}
-         ${s.removable ? '<button class="cn-btn danger" data-act="remove"><i class="fa-regular fa-trash-can"></i> Remover</button>' : ""}`
-      : `<button class="cn-btn primary" data-act="install"><i class="fa-solid fa-plus"></i> Incluir na biblioteca</button>
-         <button class="cn-btn" data-act="install-run"><i class="fa-solid fa-play"></i> Executar imediatamente</button>`;
+      ? `<button class="cn-btn primary" data-act="run"><i class="fa-solid fa-play"></i> ${t("Executar agora")}</button>
+         <button class="cn-btn" data-act="edit"><i class="fa-solid fa-pen"></i> ${t("Editar")}</button>
+         ${s.hasEditedCopy ? `<button class="cn-btn ghost" data-act="restore">${t("Restaurar o original")}</button>` : ""}
+         ${market?.hasUpdate ? `<button class="cn-btn" data-act="update">${t("Atualizar para a v{version}", { version: esc(market.version) })}</button>` : ""}
+         ${s.removable ? `<button class="cn-btn danger" data-act="remove"><i class="fa-regular fa-trash-can"></i> ${t("Remover")}</button>` : ""}`
+      : `<button class="cn-btn primary" data-act="install"><i class="fa-solid fa-plus"></i> ${t("Incluir na biblioteca")}</button>
+         <button class="cn-btn" data-act="install-run"><i class="fa-solid fa-play"></i> ${t("Executar imediatamente")}</button>`;
 
     const prefs = inLibrary
       ? `<div class="cn-setting-list">
-           ${switchRow({ attrs: 'data-change="ask"', checked: s.askBefore, title: "Pedir permissão antes de ativar", hint: "Marcado por padrão. Desmarcado, a skill roda sozinha quando o gatilho dispara (a opção geral acima ainda vale)." })}
-           ${switchRow({ attrs: 'data-change="compact"', checked: s.compact !== false, title: "Otimizar as instruções ao executar", hint: "Nos perfis Mínimo e Econômico o texto da skill é enviado de forma mais enxuta para gastar menos tokens (compactação de prompt, no estilo “caveman”). DESLIGUE se a skill tem amostras de escrita, exemplos de estilo de um autor ou qualquer texto que precise ser lido exatamente como está: otimizar poderia alterar o estilo." })}
-           ${switchRow({ attrs: 'data-change="web"', checked: s.web === true, title: "Permitir pesquisa na internet", hint: "A IA pode usar a busca na internet do próprio provedor (hoje: Claude e Gemini) durante esta skill. Gasta mais tokens. Em outros provedores a skill roda só com o que o modelo já sabe." })}
-           <div class="cn-setting-row"><span class="cn-switch-text"><strong>Cor da skill</strong><small>Aparece no cartão para achar a skill mais rápido. A sugestão vem do nome.</small></span><span class="cn-row" style="gap:6px"><input type="color" class="cn-skill-color" data-change="color" value="${esc(s.color)}" /><button class="cn-btn small ghost" data-act="color-auto">Automática</button></span></div>
-           ${s.kind === "recurring" ? switchRow({ attrs: 'data-change="enabled"', checked: s.enabled, title: "Ativa", hint: "Desligada, a skill não roda nos gatilhos (continua na biblioteca)." }) : ""}
+           ${switchRow({ attrs: 'data-change="ask"', checked: s.askBefore, title: t("Pedir permissão antes de ativar"), hint: t("Marcado por padrão. Desmarcado, a skill roda sozinha quando o gatilho dispara (a opção geral acima ainda vale).") })}
+           ${switchRow({ attrs: 'data-change="compact"', checked: s.compact !== false, title: t("Otimizar as instruções ao executar"), hint: t("Nos perfis Mínimo e Econômico o texto da skill é enviado de forma mais enxuta para gastar menos tokens (compactação de prompt, no estilo “caveman”). DESLIGUE se a skill tem amostras de escrita, exemplos de estilo de um autor ou qualquer texto que precise ser lido exatamente como está: otimizar poderia alterar o estilo.") })}
+           ${switchRow({ attrs: 'data-change="web"', checked: s.web === true, title: t("Permitir pesquisa na internet"), hint: t("A IA pode usar a busca na internet do próprio provedor (hoje: Claude e Gemini) durante esta skill. Gasta mais tokens. Em outros provedores a skill roda só com o que o modelo já sabe.") })}
+           <div class="cn-setting-row"><span class="cn-switch-text"><strong>${t("Cor da skill")}</strong><small>${t("Aparece no cartão para achar a skill mais rápido. A sugestão vem do nome.")}</small></span><span class="cn-row" style="gap:6px"><input type="color" class="cn-skill-color" data-change="color" value="${esc(s.color)}" /><button class="cn-btn small ghost" data-act="color-auto">${t("Automática")}</button></span></div>
+           ${s.kind === "recurring" ? switchRow({ attrs: 'data-change="enabled"', checked: s.enabled, title: t("Ativa"), hint: t("Desligada, a skill não roda nos gatilhos (continua na biblioteca).") }) : ""}
          </div>`
       : "";
 
@@ -384,25 +385,25 @@ export class SkillsTab {
       el,
       `<section class="cn-section cn-skill-page">
          <header class="cn-skill-hero" style="--skill-color:${esc(s.color)}; --skill-ink:${readableOn(s.color)}">
-           <button class="cn-btn small cn-hero-back" data-act="back"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
-           <h3>${esc(s.title)}${s.edited ? ' <small class="cn-edited">(editado)</small>' : ""}${s.native ? ' <small class="cn-native-badge" title="Skill nativa: o sistema depende dela">nativa</small>' : ""}</h3>
-           <p><strong>${esc(s.author)}</strong> · versão ${esc(s.version)} · ${s.kind === "recurring" ? "recorrente" : "uso único"}${s.native ? " · nativa do app" : s.origin === "builtin" ? " · skill do app" : s.origin === "market" ? " · da loja" : " · sua"}</p>
-           <div class="cn-hero-tags">${s.tags.map((t) => `<span>#${esc(t)}</span>`).join("")}</div>
+           <button class="cn-btn small cn-hero-back" data-act="back"><i class="fa-solid fa-arrow-left"></i> ${t("Voltar")}</button>
+           <h3>${esc(s.title)}${s.edited ? ` <small class="cn-edited">(${t("editado")})</small>` : ""}${s.native ? ` <small class="cn-native-badge" title="${t("Skill nativa: o sistema depende dela")}">${t("nativa")}</small>` : ""}</h3>
+           <p><strong>${esc(s.author)}</strong> · ${t("versão {version}", { version: esc(s.version) })} · ${s.kind === "recurring" ? t("recorrente") : t("uso único")}${s.native ? ` · ${t("nativa do app")}` : s.origin === "builtin" ? ` · ${t("skill do app")}` : s.origin === "market" ? ` · ${t("da loja")}` : ` · ${t("sua")}`}</p>
+           <div class="cn-hero-tags">${s.tags.map((tag) => `<span>#${esc(tag)}</span>`).join("")}</div>
          </header>
-         ${s.native ? NATIVE_WARNING : ""}
-         ${s.inputs?.length ? `<p class="cn-hint"><i class="fa-regular fa-comment-dots"></i> <strong>Antes de executar, pede:</strong> ${s.inputs.map((q) => esc(q)).join(" · ")}</p>` : ""}
+         ${s.native ? nativeWarning() : ""}
+         ${s.inputs?.length ? `<p class="cn-hint"><i class="fa-regular fa-comment-dots"></i> <strong>${t("Antes de executar, pede:")}</strong> ${s.inputs.map((q) => esc(q)).join(" · ")}</p>` : ""}
          <div class="cn-row" style="margin:10px 0">${actions}</div>
          <div class="cn-skill-about">${renderChatMarkdown(s.details || s.description)}</div>
          <div class="cn-stats">
-           <div class="cn-stat"><strong>${est.tokens ? `~${est.tokens.toLocaleString("pt-BR")}` : "—"}</strong><span>tokens estimados neste livro${est.basis ? ` (${esc(est.basis)})` : ""}</span></div>
-           <div class="cn-stat"><strong>${runs.length}</strong><span>execuções</span></div>
-           <div class="cn-stat"><strong>${this.skills.totalTokens(s.slug).toLocaleString("pt-BR")}</strong><span>tokens usados</span></div>
+           <div class="cn-stat"><strong>${est.tokens ? `~${est.tokens.toLocaleString(getLanguage())}` : "—"}</strong><span>${t("tokens estimados neste livro")}${est.basis ? ` (${esc(est.basis)})` : ""}</span></div>
+           <div class="cn-stat"><strong>${runs.length}</strong><span>${t("execuções")}</span></div>
+           <div class="cn-stat"><strong>${this.skills.totalTokens(s.slug).toLocaleString(getLanguage())}</strong><span>${t("tokens usados")}</span></div>
          </div>
          ${prefs}
-         <details class="cn-fold" data-fold="body" ${this.isOpen("body", false) ? "open" : ""}><summary>Texto completo da skill</summary><pre class="cn-code" style="max-height:420px;overflow:auto">${esc(s.body)}</pre></details>
-         <details class="cn-fold" data-fold="triggers" ${this.isOpen("triggers", false) ? "open" : ""}><summary>${s.kind === "recurring" ? "Gatilhos" : "Gatilhos (uso único)"}</summary>${triggerList}</details>
-         <details class="cn-fold" data-fold="tools" ${this.isOpen("tools", false) ? "open" : ""}><summary>Tools que a skill pode usar (${tools.length})</summary><p class="cn-hint">A skill só consegue usar estas ferramentas. ${inLibrary ? "Você pode ajustar a lista, mesmo em uma skill de outra pessoa." : ""}</p>${toolList}</details>
-         <details class="cn-fold" data-fold="runs" ${this.isOpen("runs", runs.length > 0) ? "open" : ""}><summary>Execuções (${runs.length})</summary>${runRows}</details>
+         <details class="cn-fold" data-fold="body" ${this.isOpen("body", false) ? "open" : ""}><summary>${t("Texto completo da skill")}</summary><pre class="cn-code" style="max-height:420px;overflow:auto">${esc(s.body)}</pre></details>
+         <details class="cn-fold" data-fold="triggers" ${this.isOpen("triggers", false) ? "open" : ""}><summary>${s.kind === "recurring" ? t("Gatilhos") : t("Gatilhos (uso único)")}</summary>${triggerList}</details>
+         <details class="cn-fold" data-fold="tools" ${this.isOpen("tools", false) ? "open" : ""}><summary>${t("Tools que a skill pode usar ({count})", { count: tools.length })}</summary><p class="cn-hint">${t("A skill só consegue usar estas ferramentas.")} ${inLibrary ? t("Você pode ajustar a lista, mesmo em uma skill de outra pessoa.") : ""}</p>${toolList}</details>
+         <details class="cn-fold" data-fold="runs" ${this.isOpen("runs", runs.length > 0) ? "open" : ""}><summary>${t("Execuções ({count})", { count: runs.length })}</summary>${runRows}</details>
        </section>`,
       {
         back: () => {
@@ -411,16 +412,16 @@ export class SkillsTab {
         },
         run: () => this.ctx.services.skillRunner.request(s, { manual: true }),
         edit: () => this.startEdit(s),
-        restore: () => confirmModal(this.ctx.uiBus, { title: "Restaurar o original?", danger: true, confirmText: "Restaurar", html: "<p>A sua edição do texto desta skill será descartada e o original volta.</p>", onConfirm: async () => { await this.skills.restore(s.slug); this.ctx.refresh(); } }),
+        restore: () => confirmModal(this.ctx.uiBus, { title: t("Restaurar o original?"), danger: true, confirmText: t("Restaurar"), html: `<p>${t("A sua edição do texto desta skill será descartada e o original volta.")}</p>`, onConfirm: async () => { await this.skills.restore(s.slug); this.ctx.refresh(); } }),
         update: async () => {
           await this.skills.update(s.slug);
-          this.ctx.toast("Skill atualizada para a versão mais recente.", "success");
+          this.ctx.toast(t("Skill atualizada para a versão mais recente."), "success");
           this.ctx.refresh();
         },
-        remove: () => confirmModal(this.ctx.uiBus, { title: "Remover a skill?", danger: true, confirmText: "Remover", html: `<p>A skill <strong>${esc(s.title)}</strong> sai da biblioteca${s.origin === "market" ? " (ela continua na loja)" : " e é apagada"}.</p>`, onConfirm: async () => { await this.skills.remove(s.slug); this.view = "library"; this.ctx.refresh(); } }),
+        remove: () => confirmModal(this.ctx.uiBus, { title: t("Remover a skill?"), danger: true, confirmText: t("Remover"), html: `<p>${s.origin === "market" ? t("A skill <strong>{name}</strong> sai da biblioteca (ela continua na loja).", { name: esc(s.title) }) : t("A skill <strong>{name}</strong> sai da biblioteca e é apagada.", { name: esc(s.title) })}</p>`, onConfirm: async () => { await this.skills.remove(s.slug); this.view = "library"; this.ctx.refresh(); } }),
         install: async () => {
           await this.skills.install(s.slug);
-          this.ctx.toast("Skill incluída na biblioteca.", "success");
+          this.ctx.toast(t("Skill incluída na biblioteca."), "success");
           this.view = "detail";
           this.ctx.refresh();
         },
@@ -491,37 +492,37 @@ export class SkillsTab {
     const editing = Boolean(this.slug);
     const current = editing ? this.skills.get(this.slug) : null;
     const copyNote = current && (current.origin === "builtin" || current.origin === "market")
-      ? '<p class="cn-hint">Esta skill veio do app ou do catálogo: ao salvar o texto, é criada uma <strong>cópia editada</strong> (com ID novo e o selo “editado”). Dá para restaurar o original depois.</p>'
+      ? `<p class="cn-hint">${t("Esta skill veio do app ou do catálogo: ao salvar o texto, é criada uma <strong>cópia editada</strong> (com ID novo e o selo “editado”). Dá para restaurar o original depois.")}</p>`
       : "";
-    const nativeWarn = current?.native ? NATIVE_WARNING : "";
+    const nativeWarn = current?.native ? nativeWarning() : "";
     const registry = toolRegistry.getDefinitions();
 
     mount(
       el,
       `<section class="cn-section">
-         <div class="cn-row"><button class="cn-btn small ghost" data-act="cancel"><i class="fa-solid fa-arrow-left"></i> Voltar</button></div>
-         <h4>${editing ? `Editar “${esc(d.title)}”` : "Criar uma skill"}</h4>
+         <div class="cn-row"><button class="cn-btn small ghost" data-act="cancel"><i class="fa-solid fa-arrow-left"></i> ${t("Voltar")}</button></div>
+         <h4>${editing ? t("Editar “{name}”", { name: esc(d.title) }) : t("Criar uma skill")}</h4>
          ${copyNote}${nativeWarn}
-         <label class="cn-field"><span>Nome</span><input class="cn-input" data-input="f" data-key="title" value="${esc(d.title)}" placeholder="Revisar diálogos" /></label>
-         <label class="cn-field"><span>Identificador (minúsculas e hífens; o que a IA enxerga)</span><input class="cn-input" data-input="f" data-key="slug" value="${esc(d.slug)}" ${editing ? "readonly" : ""} placeholder="revisar-dialogos" /></label>
-         <label class="cn-field"><span>Quando a IA deve usar (descrição curta)</span><input class="cn-input" data-input="f" data-key="description" value="${esc(d.description)}" placeholder="Ao revisar diálogos de um capítulo" /></label>
-         <label class="cn-field"><span>Descrição completa (Markdown, aparece na página da skill)</span><textarea class="cn-textarea" data-input="f" data-key="details" rows="4">${esc(d.details)}</textarea></label>
-         <label class="cn-field"><span>Instruções (o texto que a IA segue ao executar)</span><textarea class="cn-textarea" data-input="f" data-key="body" rows="10" placeholder="Passo a passo que a IA deve seguir...">${esc(d.body)}</textarea></label>
-         <label class="cn-field"><span>Tipo</span><select class="cn-select" data-change="kind"><option value="once" ${d.kind === "once" ? "selected" : ""}>Uso único (executo quando quiser)</option><option value="recurring" ${d.kind === "recurring" ? "selected" : ""}>Recorrente (roda nos gatilhos escolhidos)</option></select></label>
-         <div class="cn-field"><span>Cor da skill (aparece no cartão; a sugestão vem do nome)</span><div class="cn-row" style="gap:8px"><input type="color" class="cn-skill-color" data-change="fcolor" value="${esc(d.color || autoSkillColor(d.slug || d.title))}" /><button class="cn-btn small ghost" data-act="fcolor-auto">Usar a sugestão</button></div></div>
-         <label class="cn-check cn-field-check"><input type="checkbox" data-change="fcompact" ${d.compact !== false ? "checked" : ""} /> <span><strong>Otimizar as instruções ao executar</strong> (perfis Mínimo e Econômico; compactação “caveman”). Desmarque se a skill tem amostras de escrita ou exemplos de estilo: otimizar poderia mudar o estilo.</span></label>
-         <label class="cn-field"><span>Informações que a skill pede ao autor antes de executar (uma por linha; deixe vazio se não precisa)</span><textarea class="cn-textarea" data-input="f" data-key="inputs" rows="3" placeholder="Nome do autor a imitar&#10;Cole aqui amostras de escrita desse autor">${esc((d.inputs || []).join("\n"))}</textarea><small class="cn-hint">Ao executar, uma janela mostra um campo para cada linha. A skill não roda sozinha (por gatilho) se pedir informações.</small></label>
-         <label class="cn-check cn-field-check"><input type="checkbox" data-change="fweb" ${d.web ? "checked" : ""} /> <span><strong>Permitir pesquisa na internet</strong> (busca nativa do provedor: Claude e Gemini). Gasta mais tokens.</span></label>
-         <label class="cn-field"><span>Tags (separadas por vírgula)</span><input class="cn-input" data-input="f" data-key="tags" value="${esc(d.tags.join(", "))}" /></label>
-         ${d.kind === "recurring" ? `<div class="cn-field"><span>Gatilhos (quando roda sozinha)</span>${TRIGGER_GROUPS.map((g) => `<details class="cn-trig-group" ${g.triggers.some((t) => d.triggers.includes(t.id)) ? "open" : ""}><summary>${esc(g.group)}</summary><div class="cn-trig-grid">${g.triggers.map((t) => trigChip("ftrigger", t, d.triggers.includes(t.id), false)).join("")}</div></details>`).join("")}</div>` : ""}
-         <div class="cn-field"><span>Tools que a skill pode usar</span><p class="cn-hint">A skill só consegue usar o que estiver marcado. Marque o mínimo necessário: quem instalar sua skill verá esta lista.</p>
+         <label class="cn-field"><span>${t("Nome")}</span><input class="cn-input" data-input="f" data-key="title" value="${esc(d.title)}" placeholder="${t("Revisar diálogos")}" /></label>
+         <label class="cn-field"><span>${t("Identificador (minúsculas e hífens; o que a IA enxerga)")}</span><input class="cn-input" data-input="f" data-key="slug" value="${esc(d.slug)}" ${editing ? "readonly" : ""} placeholder="${t("revisar-dialogos")}" /></label>
+         <label class="cn-field"><span>${t("Quando a IA deve usar (descrição curta)")}</span><input class="cn-input" data-input="f" data-key="description" value="${esc(d.description)}" placeholder="${t("Ao revisar diálogos de um capítulo")}" /></label>
+         <label class="cn-field"><span>${t("Descrição completa (Markdown, aparece na página da skill)")}</span><textarea class="cn-textarea" data-input="f" data-key="details" rows="4">${esc(d.details)}</textarea></label>
+         <label class="cn-field"><span>${t("Instruções (o texto que a IA segue ao executar)")}</span><textarea class="cn-textarea" data-input="f" data-key="body" rows="10" placeholder="${t("Passo a passo que a IA deve seguir...")}">${esc(d.body)}</textarea></label>
+         <label class="cn-field"><span>${t("Tipo")}</span><select class="cn-select" data-change="kind"><option value="once" ${d.kind === "once" ? "selected" : ""}>${t("Uso único (executo quando quiser)")}</option><option value="recurring" ${d.kind === "recurring" ? "selected" : ""}>${t("Recorrente (roda nos gatilhos escolhidos)")}</option></select></label>
+         <div class="cn-field"><span>${t("Cor da skill (aparece no cartão; a sugestão vem do nome)")}</span><div class="cn-row" style="gap:8px"><input type="color" class="cn-skill-color" data-change="fcolor" value="${esc(d.color || autoSkillColor(d.slug || d.title))}" /><button class="cn-btn small ghost" data-act="fcolor-auto">${t("Usar a sugestão")}</button></div></div>
+         <label class="cn-check cn-field-check"><input type="checkbox" data-change="fcompact" ${d.compact !== false ? "checked" : ""} /> <span>${t("<strong>Otimizar as instruções ao executar</strong> (perfis Mínimo e Econômico; compactação “caveman”). Desmarque se a skill tem amostras de escrita ou exemplos de estilo: otimizar poderia mudar o estilo.")}</span></label>
+         <label class="cn-field"><span>${t("Informações que a skill pede ao autor antes de executar (uma por linha; deixe vazio se não precisa)")}</span><textarea class="cn-textarea" data-input="f" data-key="inputs" rows="3" placeholder="${t("Nome do autor a imitar&#10;Cole aqui amostras de escrita desse autor")}">${esc((d.inputs || []).join("\n"))}</textarea><small class="cn-hint">${t("Ao executar, uma janela mostra um campo para cada linha. A skill não roda sozinha (por gatilho) se pedir informações.")}</small></label>
+         <label class="cn-check cn-field-check"><input type="checkbox" data-change="fweb" ${d.web ? "checked" : ""} /> <span>${t("<strong>Permitir pesquisa na internet</strong> (busca nativa do provedor: Claude e Gemini). Gasta mais tokens.")}</span></label>
+         <label class="cn-field"><span>${t("Tags (separadas por vírgula)")}</span><input class="cn-input" data-input="f" data-key="tags" value="${esc(d.tags.join(", "))}" /></label>
+         ${d.kind === "recurring" ? `<div class="cn-field"><span>${t("Gatilhos (quando roda sozinha)")}</span>${TRIGGER_GROUPS.map((g) => `<details class="cn-trig-group" ${g.triggers.some((trig) => d.triggers.includes(trig.id)) ? "open" : ""}><summary>${esc(g.group)}</summary><div class="cn-trig-grid">${g.triggers.map((trig) => trigChip("ftrigger", trig, d.triggers.includes(trig.id), false)).join("")}</div></details>`).join("")}</div>` : ""}
+         <div class="cn-field"><span>${t("Tools que a skill pode usar")}</span><p class="cn-hint">${t("A skill só consegue usar o que estiver marcado. Marque o mínimo necessário: quem instalar sua skill verá esta lista.")}</p>
            ${toolTable(registry, d.tools, "ftool")}</div>
-         <div class="cn-row"><button class="cn-btn primary" data-act="save"><i class="fa-solid fa-check"></i> ${editing ? "Salvar alterações" : "Criar skill"}</button><button class="cn-btn ghost" data-act="cancel">Cancelar</button></div>
+         <div class="cn-row"><button class="cn-btn primary" data-act="save"><i class="fa-solid fa-check"></i> ${editing ? t("Salvar alterações") : t("Criar skill")}</button><button class="cn-btn ghost" data-act="cancel">${t("Cancelar")}</button></div>
        </section>`,
       {
         f: (input) => {
           const key = input.dataset.key;
-          this.draft[key] = key === "tags" ? input.value.split(",").map((t) => t.trim()).filter(Boolean) : key === "inputs" ? input.value.split("\n").map((t) => t.trim()).filter(Boolean) : input.value;
+          this.draft[key] = key === "tags" ? input.value.split(",").map((x) => x.trim()).filter(Boolean) : key === "inputs" ? input.value.split("\n").map((x) => x.trim()).filter(Boolean) : input.value;
         },
         kind: (select) => {
           this.draft.kind = select.value;
@@ -561,7 +562,7 @@ export class SkillsTab {
           try {
             const slug = await this.skills.save(this.draft, { slug: editing ? this.slug : undefined });
             this.skills.setPrefs(slug, { color: this.draft.color || "", compact: this.draft.compact !== false, web: this.draft.web === true });
-            this.ctx.toast(editing ? "Skill salva." : "Skill criada.", "success");
+            this.ctx.toast(editing ? t("Skill salva.") : t("Skill criada."), "success");
             this.slug = slug;
             this.view = "detail";
             this.ctx.refresh();

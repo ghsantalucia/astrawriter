@@ -13,6 +13,7 @@ import { parseMarkdown } from "../../utils/markdown.js";
 import { escapeHtml, normalizePath } from "../../utils/helpers.js";
 import editorTpl from "../../components/Modal/templates/templateEditor.hbs?raw";
 import "../../components/Modal/templateEditor.css";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Variáveis (campos fixos) de um tipo de template, lidas do template base do livro.
@@ -37,7 +38,7 @@ export async function openTemplateEditor({ profile }) {
   const profiles = await api.profiles();
   const info = profiles.find((p) => p.id === profile);
   if (!info) {
-    uiBus.emit("toast:show", { message: "Perfil de template não encontrado.", type: "error" });
+    uiBus.emit("toast:show", { message: t("Perfil de template não encontrado."), type: "error" });
     return;
   }
 
@@ -56,12 +57,12 @@ export async function openTemplateEditor({ profile }) {
       (k) => `<button type="button" class="tpl-item ${k.id === current ? "active" : ""}" data-kind="${k.id}">
         <strong>${escapeHtml(k.label)}</strong>
         <small>${escapeHtml(k.description)}</small>
-        ${edited.has(k.id) ? '<span class="tpl-edited">editado</span>' : ""}
+        ${edited.has(k.id) ? `<span class="tpl-edited">${t("editado")}</span>` : ""}
       </button>`,
     ).join("");
     const kind = TEMPLATE_KINDS.find((k) => k.id === current);
     $("#tpl-kind-title").textContent = kind.label;
-    $("#tpl-state").textContent = dirty ? "alterações não salvas" : edited.has(current) ? "editado por você" : "original do app";
+    $("#tpl-state").textContent = dirty ? t("alterações não salvas") : edited.has(current) ? t("editado por você") : t("original do app");
     $("#tpl-state").classList.toggle("dirty", dirty);
     const restore = rootOf()?.closest(".app-modal-window")?.querySelector('[data-tpl="restore"]');
     if (restore) restore.disabled = !edited.has(current) && !dirty;
@@ -78,8 +79,8 @@ export async function openTemplateEditor({ profile }) {
     dirty = false;
     const names = await variablesOf(kindId);
     $("#tpl-vars").innerHTML = names.length
-      ? `<span>Campos fixos (não mudam por perfil):</span> ${names.map((n) => `<em>${escapeHtml(n)}</em>`).join("")}`
-      : "<span>Este template não tem campos fixos: só o corpo é editável.</span>";
+      ? `<span>${t("Campos fixos (não mudam por perfil):")}</span> ${names.map((n) => `<em>${escapeHtml(n)}</em>`).join("")}`
+      : t("<span>Este template não tem campos fixos: só o corpo é editável.</span>");
     paint();
   };
 
@@ -88,12 +89,12 @@ export async function openTemplateEditor({ profile }) {
     if (!dirty) return then();
     uiBus.emit("modal:open", {
       id: "template-discard",
-      title: "Descartar alterações?",
-      content: '<div class="cn-confirm"><p>Este template tem alterações que ainda não foram salvas. Se continuar, elas serão perdidas.</p></div>',
+      title: t("Descartar alterações?"),
+      content: `<div class="cn-confirm"><p>${t("Este template tem alterações que ainda não foram salvas. Se continuar, elas serão perdidas.")}</p></div>`,
       buttons: [
-        { text: "Voltar", class: "btn-secondary" },
+        { text: t("Voltar"), class: "btn-secondary" },
         {
-          text: "Descartar",
+          text: t("Descartar"),
           class: "btn-danger",
           onClick: (modal) => {
             modal.close();
@@ -107,13 +108,13 @@ export async function openTemplateEditor({ profile }) {
 
   uiBus.emit("modal:open", {
     id: "template-editor-modal",
-    title: `Templates: ${info.label}`,
+    title: t("Templates: {label}", { label: info.label }),
     content: Handlebars.compile(editorTpl)({ profile: info.label }),
     windowClass: "modal-wide",
     closable: false,
     buttons: [
       {
-        text: "Fechar",
+        text: t("Fechar"),
         class: "btn-secondary",
         onClick: (modal) =>
           confirmDiscard(() => {
@@ -123,23 +124,23 @@ export async function openTemplateEditor({ profile }) {
           }),
       },
       {
-        text: "Restaurar este template",
+        text: t("Restaurar este template"),
         class: "btn-danger",
         onClick: () => {
           uiBus.emit("modal:open", {
             id: "template-restore",
-            title: "Restaurar o template original?",
-            content: `<div class="cn-confirm"><p>A sua edição deste template será descartada e o original do app volta a valer. O original nunca foi alterado.</p></div>`,
+            title: t("Restaurar o template original?"),
+            content: `<div class="cn-confirm"><p>${t("A sua edição deste template será descartada e o original do app volta a valer. O original nunca foi alterado.")}</p></div>`,
             buttons: [
-              { text: "Cancelar", class: "btn-secondary" },
+              { text: t("Cancelar"), class: "btn-secondary" },
               {
-                text: "Restaurar",
+                text: t("Restaurar"),
                 class: "btn-danger",
                 onClick: async (modal) => {
                   modal.close();
                   await api.restore(profile, current);
                   await load(current);
-                  uiBus.emit("toast:show", { message: "Template restaurado ao original.", type: "success" });
+                  uiBus.emit("toast:show", { message: t("Template restaurado ao original."), type: "success" });
                 },
               },
             ],
@@ -147,15 +148,15 @@ export async function openTemplateEditor({ profile }) {
         },
       },
       {
-        text: "Salvar template",
+        text: t("Salvar template"),
         class: "btn-primary",
         onClick: async () => {
           const result = await api.save(profile, current, kit.editor.getMarkdown());
-          if (!result?.success) return uiBus.emit("toast:show", { message: result?.error || "Falha ao salvar o template.", type: "error" });
+          if (!result?.success) return uiBus.emit("toast:show", { message: result?.error || t("Falha ao salvar o template."), type: "error" });
           dirty = false;
           edited.add(current);
           paint();
-          uiBus.emit("toast:show", { message: "Template salvo. Vale para os novos arquivos criados com este perfil.", type: "success" });
+          uiBus.emit("toast:show", { message: t("Template salvo. Vale para os novos arquivos criados com este perfil."), type: "success" });
         },
       },
     ],

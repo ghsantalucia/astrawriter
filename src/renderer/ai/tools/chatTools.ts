@@ -8,6 +8,7 @@
  * e apenas eventos da lista de permissão (`utils/chatActions.js`) são aceitos.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { normalizePath } from "../../utils/helpers.js";
 import { CHAT_ACTIONS, QUICK_REPLY_EVENT } from "../../utils/chatActions.js";
 import { locateFile, parseRelativePath } from "./permissions.js";
@@ -24,7 +25,7 @@ const MAX_BUTTONS = 8;
  */
 async function buildButton(request, ctx) {
   const label = String(request?.label || "").trim();
-  if (!label) throw new Error("Todo botão precisa de um 'label'.");
+  if (!label) throw new Error(t("Todo botão precisa de um 'label'."));
 
   // Resposta pronta: envia o texto (ou o próprio rótulo) como mensagem do usuário
   if (!request.action) {
@@ -35,14 +36,14 @@ async function buildButton(request, ctx) {
   const action = CHAT_ACTIONS[request.action];
   if (!action) {
     throw new Error(
-      `Ação desconhecida: "${request.action}". Disponíveis: ${Object.keys(CHAT_ACTIONS).join(", ")}.`,
+      t('Ação desconhecida: "{action}". Disponíveis: {available}.', { action: request.action, available: Object.keys(CHAT_ACTIONS).join(", ") }),
     );
   }
 
   for (const param of action.params || []) {
     if (!request[param]) {
       throw new Error(
-        `A ação "${request.action}" requer o parâmetro '${param}'.`,
+        t("A ação \"{action}\" requer o parâmetro '{param}'.", { action: request.action, param }),
       );
     }
   }
@@ -64,7 +65,7 @@ async function buildButton(request, ctx) {
     }
     case "open-central":
       if (!["issues", "book", "ai", "system"].includes(String(request.central))) {
-        throw new Error("A ação \"open-central\" aceita central: issues, book, ai ou system.");
+        throw new Error(t('A ação "open-central" aceita central: issues, book, ai ou system.'));
       }
       return { label, event: action.event, data: { central: String(request.central), ...(request.tab ? { tab: String(request.tab) } : {}) } };
     case "new-entity":
@@ -89,44 +90,44 @@ export function registerChatTools(registry) {
 
   registry.register({
     name: "show_buttons",
-    description: `Anexa botões clicáveis à sua resposta (exibidos em grade, 2 por linha). Use para oferecer escolhas rápidas ao autor ou atalhos para ações do app. Botão de resposta pronta: informe 'label' (e opcionalmente 'reply', o texto enviado como se o autor o tivesse digitado). Botão de ação: informe 'action' (${actionList}). Depois de chamar, escreva sua resposta normalmente (os botões aparecem abaixo dela).`,
+    description: t("Anexa botões clicáveis à sua resposta (exibidos em grade, 2 por linha). Use para oferecer escolhas rápidas ao autor ou atalhos para ações do app. Botão de resposta pronta: informe 'label' (e opcionalmente 'reply', o texto enviado como se o autor o tivesse digitado). Botão de ação: informe 'action' ({actionList}). Depois de chamar, escreva sua resposta normalmente (os botões aparecem abaixo dela).", { actionList }),
     parameters: {
       type: "object",
       properties: {
         buttons: {
           type: "array",
-          description: `Botões a exibir (máximo ${MAX_BUTTONS}).`,
+          description: t("Botões a exibir (máximo {max}).", { max: MAX_BUTTONS }),
           items: {
             type: "object",
             properties: {
-              label: { type: "string", description: "Texto do botão (curto)." },
+              label: { type: "string", description: t("Texto do botão (curto).") },
               reply: {
                 type: "string",
                 description:
-                  "Resposta pronta enviada ao clicar (padrão: o próprio label). Ignorado se houver 'action'.",
+                  t("Resposta pronta enviada ao clicar (padrão: o próprio label). Ignorado se houver 'action'."),
               },
               action: {
                 type: "string",
                 enum: Object.keys(CHAT_ACTIONS),
-                description: "Ação nativa do app executada ao clicar.",
+                description: t("Ação nativa do app executada ao clicar."),
               },
               path: {
                 type: "string",
                 description:
-                  "Para action='open-file': caminho do arquivo relativo ao livro.",
+                  t("Para action='open-file': caminho do arquivo relativo ao livro."),
               },
               folder: {
                 type: "string",
                 description:
-                  "Para action='new-entity': pasta da ficha (ex.: assets/characters).",
+                  t("Para action='new-entity': pasta da ficha (ex.: assets/characters)."),
               },
               central: {
                 type: "string",
-                description: "Para action='open-central': issues, book, ai ou system.",
+                description: t("Para action='open-central': issues, book, ai ou system."),
               },
               tab: {
                 type: "string",
-                description: "Para action='open-central': aba da central (opcional, ex.: model).",
+                description: t("Para action='open-central': aba da central (opcional, ex.: model)."),
               },
             },
             required: ["label"],
@@ -137,11 +138,11 @@ export function registerChatTools(registry) {
     },
     async execute({ buttons }, ctx) {
       if (!Array.isArray(buttons) || buttons.length === 0) {
-        throw new Error("Informe ao menos um botão.");
+        throw new Error(t("Informe ao menos um botão."));
       }
       if (!Array.isArray(ctx.buttons)) ctx.buttons = [];
       if (ctx.buttons.length + buttons.length > MAX_BUTTONS) {
-        throw new Error(`No máximo ${MAX_BUTTONS} botões por resposta.`);
+        throw new Error(t("No máximo {max} botões por resposta.", { max: MAX_BUTTONS }));
       }
 
       const built = [];
@@ -149,7 +150,7 @@ export function registerChatTools(registry) {
         built.push(await buildButton(request, ctx));
       ctx.buttons.push(...built);
 
-      return `${built.length} botão(ões) registrado(s). Eles aparecerão abaixo da sua resposta; escreva agora o texto da resposta.`;
+      return t("{count} botão(ões) registrado(s). Eles aparecerão abaixo da sua resposta; escreva agora o texto da resposta.", { count: built.length });
     },
   });
 }

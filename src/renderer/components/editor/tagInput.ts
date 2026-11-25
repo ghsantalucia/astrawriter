@@ -9,6 +9,7 @@ import {
   tagColorIndex,
 } from "../../../shared/tags.js";
 import { escapeHtml, foldText } from "../../utils/helpers.js";
+import { t } from "../../../shared/i18n.js";
 
 /** Quantidade máxima de sugestões exibidas. */
 const MAX_SUGGESTIONS = 8;
@@ -69,7 +70,7 @@ export class TagInput {
     this.onChange = onChange || (() => {});
     this.normalize = normalize || normalizeTag;
     this.parse = parse || parseTags;
-    this.placeholder = placeholder || "Digite e use vírgula ou Enter";
+    this.placeholder = placeholder || t("Digite e use vírgula ou Enter");
     this.label = label || "Tags";
     this.stripHash = stripHash;
     this.colored = colored;
@@ -172,7 +173,7 @@ export class TagInput {
         const safe = escapeHtml(tag);
         const remove = locked
           ? ""
-          : `<button type="button" class="tag-remove" data-remove="${safe}" aria-label="Remover ${safe}">&times;</button>`;
+          : `<button type="button" class="tag-remove" data-remove="${safe}" aria-label="${escapeHtml(t("Remover {tag}", { tag }))}">&times;</button>`;
         return `<span class="tag-chip ${this.colored ? `tag-c${tagColorIndex(tag)}` : "tag-plain"}">${safe}${remove}</span>`;
       })
       .join("");

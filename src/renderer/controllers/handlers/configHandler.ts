@@ -7,6 +7,7 @@ import { domainBus } from "../../events/domainBus.js";
 import { normalizePath } from "../../utils/helpers.js";
 import { spellService } from "../../services/spellService.js";
 import * as bookHandler from "./bookHandler.js";
+import { t, defaultSpellLanguage } from "../../../shared/i18n.js";
 
 export async function onConfigChanged(payload, state, bookService) {
   const bookList = await bookHandler.fetchBooks(state, bookService);
@@ -39,14 +40,14 @@ export async function onAiSettingsSave(data, aiService) {
     const saved = await aiService.selectAccount(data.accountId, data.model);
     if (!saved) {
       uiBus.emit("toast:show", {
-        message: "Não foi possível salvar as configurações de IA.",
+        message: t("Não foi possível salvar as configurações de IA."),
         type: "error",
       });
     }
   } catch (err) {
     console.error("[ConfigHandler] Erro ao salvar configurações de IA:", err);
     uiBus.emit("toast:show", {
-      message: "Erro ao salvar configurações de IA.",
+      message: t("Erro ao salvar configurações de IA."),
       type: "error",
     });
   }
@@ -111,7 +112,7 @@ const SPELL_LANGUAGE_KEY = "app_spell_language";
  * @returns {Promise<void>}
  */
 export async function applySavedSpellLanguage() {
-  const language = localStorage.getItem(SPELL_LANGUAGE_KEY) || "pt-BR";
+  const language = localStorage.getItem(SPELL_LANGUAGE_KEY) || defaultSpellLanguage();
   const select = document.getElementById("spell-language-select") as HTMLSelectElement | null;
   if (select) select.value = language;
 
@@ -151,7 +152,7 @@ export async function onSpellLanguageChanged({ value }) {
   spellService.reset();
   uiBus.emit("spellcheck:changed", { enabled: isSpellcheckEnabled() });
   uiBus.emit("toast:show", {
-    message: "Idioma da correção ortográfica alterado.",
+    message: t("Idioma da correção ortográfica alterado."),
     type: "success",
   });
 }

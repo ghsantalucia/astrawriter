@@ -6,6 +6,7 @@
 
 import { CATEGORIES, ISSUE_TYPES, categoryInfo, typeInfo } from "../../../review/issueTypes.js";
 import { confirmModal, esc, mount, plural, shortDate, switchRow } from "./panelKit.js";
+import { t, getLanguage } from "../../../../shared/i18n.js";
 
 /** Quantos cards aparecem de uma vez em cada categoria (o resto vem em "mostrar mais"). */
 const PAGE_SIZE = 40;
@@ -32,7 +33,7 @@ export class IssuesPanel {
    */
   constructor(ctx) {
     this.ctx = ctx;
-    this.title = "Central de Revisões";
+    this.title = t("Central de Revisões");
     /** Filtro de tipo e quantidade exibida por aba. */
     this.filters = {};
     this.limits = {};
@@ -45,8 +46,8 @@ export class IssuesPanel {
       if (box && p) {
         box.textContent =
           p.phase === "digest"
-            ? `Analisando arquivos: ${p.done}/${p.total}${p.current ? ` (${p.current})` : ""}`
-            : `Conferindo contradições: ${p.done}/${p.total}`;
+            ? t("Analisando arquivos: {done}/{total}", { done: p.done, total: p.total }) + (p.current ? ` (${p.current})` : "")
+            : t("Conferindo contradições: {done}/{total}", { done: p.done, total: p.total });
       }
     });
     ctx.uiBus.on("analysis:changed", () => {
@@ -90,7 +91,7 @@ export class IssuesPanel {
     return [
       {
         id: "overview",
-        label: "Resumo",
+        label: t("Resumo"),
         icon: "fa-gauge-high",
         badges: { error: summary.errors, warning: summary.warnings },
       },
@@ -112,8 +113,8 @@ export class IssuesPanel {
   getHeader(tab) {
     if (tab === "overview") {
       return {
-        subtitle: "Resumo do livro",
-        lead: "Problemas, inconsistências e sugestões encontrados no livro. Erros confirmados são vermelhos; possíveis erros e sugestões, amarelos.",
+        subtitle: t("Resumo do livro"),
+        lead: t("Problemas, inconsistências e sugestões encontrados no livro. Erros confirmados são vermelhos; possíveis erros e sugestões, amarelos."),
       };
     }
     const cat = categoryInfo(tab);
@@ -149,25 +150,25 @@ export class IssuesPanel {
 
     const stats = `
       <div class="cn-stats">
-        <div class="cn-stat ${s.total === 0 ? "success" : ""}"><strong>${s.total}</strong><span>pendências no total</span></div>
-        <div class="cn-stat error"><strong>${s.errors}</strong><span>${s.errors === 1 ? "erro confirmado" : "erros confirmados"}</span></div>
-        <div class="cn-stat warning"><strong>${s.warnings}</strong><span>possíveis erros e sugestões</span></div>
-        <div class="cn-stat"><strong>${fixable}</strong><span>com correção pronta</span></div>
+        <div class="cn-stat ${s.total === 0 ? "success" : ""}"><strong>${s.total}</strong><span>${t("pendências no total")}</span></div>
+        <div class="cn-stat error"><strong>${s.errors}</strong><span>${s.errors === 1 ? t("erro confirmado") : t("erros confirmados")}</span></div>
+        <div class="cn-stat warning"><strong>${s.warnings}</strong><span>${t("possíveis erros e sugestões")}</span></div>
+        <div class="cn-stat"><strong>${fixable}</strong><span>${t("com correção pronta")}</span></div>
       </div>`;
 
     const empty = `
       <div class="cn-empty">
         <i class="fa-solid fa-circle-check"></i>
-        <strong>Tudo certo por aqui.</strong>
-        <p class="cn-hint">Nenhuma pendência encontrada no livro. A central se atualiza sozinha quando você escreve, sincroniza ou a IA registra algo.</p>
+        <strong>${t("Tudo certo por aqui.")}</strong>
+        <p class="cn-hint">${t("Nenhuma pendência encontrada no livro. A central se atualiza sozinha quando você escreve, sincroniza ou a IA registra algo.")}</p>
       </div>`;
 
     const worstHtml =
       worst.length > 0
         ? `<section class="cn-section">
-             <h4>Os mais graves</h4>
+             <h4>${t("Os mais graves")}</h4>
              ${worst.map((i) => this.cardHtml(i, { compact: true })).join("")}
-             ${s.errors > worst.length ? `<p class="cn-hint">Mais ${s.errors - worst.length} erro(s) nas categorias ao lado.</p>` : ""}
+             ${s.errors > worst.length ? `<p class="cn-hint">${t("Mais {count} erro(s) nas categorias ao lado.", { count: s.errors - worst.length })}</p>` : ""}
            </section>`
         : "";
 
@@ -175,41 +176,41 @@ export class IssuesPanel {
     const running = analysis.running;
     const analysisHtml = `
       <section class="cn-section">
-        <h4>Análise da IA</h4>
-        <p class="cn-hint">A IA lê cada arquivo atualizado <strong>uma vez</strong> e guarda um resumo de metadados (fatos, personagens, eventos). Contradições são procuradas nesses resumos e só os casos duvidosos são conferidos pela IA: assim o livro todo é verificado sem gastar tokens à toa. Arquivos novos só entram depois de sincronizados.</p>
+        <h4>${t("Análise da IA")}</h4>
+        <p class="cn-hint">${t("A IA lê cada arquivo atualizado <strong>uma vez</strong> e guarda um resumo de metadados (fatos, personagens, eventos). Contradições são procuradas nesses resumos e só os casos duvidosos são conferidos pela IA: assim o livro todo é verificado sem gastar tokens à toa. Arquivos novos só entram depois de sincronizados.")}</p>
         <p class="cn-hint" id="analysis-progress">${
           running
-            ? "Análise em andamento..."
+            ? t("Análise em andamento...")
             : pending.files.length === 0
-              ? `Tudo em dia: ${pending.analyzed} ${pending.analyzed === 1 ? "arquivo analisado" : "arquivos analisados"}.`
-              : `${plural(pending.files.length, "arquivo aguarda", "arquivos aguardam")} análise (~${pending.tokens.toLocaleString("pt-BR")} tokens estimados). ${pending.analyzed} já analisado(s).`
+              ? t("Tudo em dia: {count}.", { count: plural(pending.analyzed, "arquivo analisado", "arquivos analisados") })
+              : t("{files} análise (~{tokens} tokens estimados). {analyzed} já analisado(s).", { files: plural(pending.files.length, "arquivo aguarda", "arquivos aguardam"), tokens: pending.tokens.toLocaleString(getLanguage()), analyzed: pending.analyzed })
         }</p>
         <div class="cn-row">
           ${
             running
-              ? `<button class="cn-btn" data-act="cancel-analysis"><i class="fa-solid fa-stop"></i> Parar</button>`
-              : `<button class="cn-btn primary" data-act="analyze" ${pending.files.length === 0 ? "disabled" : ""}><i class="fa-solid fa-microscope"></i> Analisar agora</button>`
+              ? `<button class="cn-btn" data-act="cancel-analysis"><i class="fa-solid fa-stop"></i> ${t("Parar")}</button>`
+              : `<button class="cn-btn primary" data-act="analyze" ${pending.files.length === 0 ? "disabled" : ""}><i class="fa-solid fa-microscope"></i> ${t("Analisar agora")}</button>`
           }
         </div>
       </section>`;
 
     const aiHtml = `
       <section class="cn-section">
-        <h4>Correção pela IA</h4>
-        <p class="cn-hint">A IA avalia cada pendência (seguindo as sugestões do sistema) e escolhe a solução de cada uma: aplica a correção segura, resolve contradições pelas fichas e pela Sinopse e deixa para você o que depende de decisão. Só altera arquivos em que a escrita da IA está liberada; as mudanças passam pela sua revisão e ficam no changelog.</p>
+        <h4>${t("Correção pela IA")}</h4>
+        <p class="cn-hint">${t("A IA avalia cada pendência (seguindo as sugestões do sistema) e escolhe a solução de cada uma: aplica a correção segura, resolve contradições pelas fichas e pela Sinopse e deixa para você o que depende de decisão. Só altera arquivos em que a escrita da IA está liberada; as mudanças passam pela sua revisão e ficam no changelog.")}</p>
         <div class="cn-row">
-          <button class="cn-btn primary" data-act="ai-fix" ${s.total === 0 ? "disabled" : ""}><i class="fa-solid fa-wand-magic-sparkles"></i> Corrigir tudo com a IA</button>
-          <button class="cn-btn ghost" data-act="rescan"><i class="fa-solid fa-rotate"></i> Reanalisar o livro</button>
+          <button class="cn-btn primary" data-act="ai-fix" ${s.total === 0 ? "disabled" : ""}><i class="fa-solid fa-wand-magic-sparkles"></i> ${t("Corrigir tudo com a IA")}</button>
+          <button class="cn-btn ghost" data-act="rescan"><i class="fa-solid fa-rotate"></i> ${t("Reanalisar o livro")}</button>
         </div>
       </section>`;
 
     const typesHtml = `
       <section class="cn-section">
-        <h4>Tipos dispensados</h4>
+        <h4>${t("Tipos dispensados")}</h4>
         ${
           dismissed.length === 0
-            ? `<p class="cn-hint">Nenhum. Quando você dispensa um tipo inteiro de pendência, ele aparece aqui e pode ser reativado.</p>`
-            : `<p class="cn-hint">Estes tipos não são mais procurados nem mostrados. Reativar um tipo faz uma varredura do livro só por ele.</p>
+            ? `<p class="cn-hint">${t("Nenhum. Quando você dispensa um tipo inteiro de pendência, ele aparece aqui e pode ser reativado.")}</p>`
+            : `<p class="cn-hint">${t("Estes tipos não são mais procurados nem mostrados. Reativar um tipo faz uma varredura do livro só por ele.")}</p>
                <table class="cn-table"><tbody>
                ${dismissed
                  .map(
@@ -217,7 +218,7 @@ export class IssuesPanel {
                      <td><span class="cn-pill ${typeInfo(d.type).severity}">${esc(d.label)}</span></td>
                      <td>${esc(categoryInfo(d.category)?.label || "")}</td>
                      <td>${shortDate(d.at)}</td>
-                     <td style="text-align:right"><button class="cn-btn small" data-act="restore-type" data-type="${esc(d.type)}"><i class="fa-solid fa-rotate-left"></i> Reativar</button></td>
+                     <td style="text-align:right"><button class="cn-btn small" data-act="restore-type" data-type="${esc(d.type)}"><i class="fa-solid fa-rotate-left"></i> ${t("Reativar")}</button></td>
                    </tr>`,
                  )
                  .join("")}
@@ -227,15 +228,15 @@ export class IssuesPanel {
 
     const dictHtml = `
       <section class="cn-section">
-        <h4>Dicionário do livro</h4>
+        <h4>${t("Dicionário do livro")}</h4>
         ${
           words.length === 0
-            ? `<p class="cn-hint">Nenhuma palavra. Use "Adicionar ao dicionário" nos erros de digitação para aceitar nomes e termos do seu universo.</p>`
-            : `<p class="cn-hint">Palavras aceitas neste livro (${words.length}).</p>
+            ? `<p class="cn-hint">${t("Nenhuma palavra. Use \"Adicionar ao dicionário\" nos erros de digitação para aceitar nomes e termos do seu universo.")}</p>`
+            : `<p class="cn-hint">${t("Palavras aceitas neste livro ({count}).", { count: words.length })}</p>
                <div class="cn-row">${words
                  .map(
                    (w) =>
-                     `<span class="cn-pill">${esc(w)} <button class="cn-btn small ghost" style="padding:0 4px;border:none" title="Remover do dicionário" data-act="remove-word" data-word="${esc(w)}"><i class="fa-solid fa-xmark"></i></button></span>`,
+                     `<span class="cn-pill">${esc(w)} <button class="cn-btn small ghost" style="padding:0 4px;border:none" title="${t("Remover do dicionário")}" data-act="remove-word" data-word="${esc(w)}"><i class="fa-solid fa-xmark"></i></button></span>`,
                  )
                  .join("")}</div>`
         }
@@ -244,26 +245,26 @@ export class IssuesPanel {
     const enabled = this.issues.isEnabled();
     const masterHtml = `
       <div class="cn-setting-list cn-master">
-        ${switchRow({ attrs: 'data-change="reviews-toggle"', checked: enabled, title: "Revisões do sistema neste livro", hint: enabled ? "O sistema procura links quebrados, ortografia, repetições e outras pendências conforme você escreve." : "Desligadas: as pendências já encontradas continuam aqui, mas nada novo é procurado e o contador do rodapé do editor fica oculto. O sublinhado da correção ortográfica no editor continua (ele tem opção própria na aba Ortografia)." })}
+        ${switchRow({ attrs: 'data-change="reviews-toggle"', checked: enabled, title: t("Revisões do sistema neste livro"), hint: enabled ? t("O sistema procura links quebrados, ortografia, repetições e outras pendências conforme você escreve.") : t("Desligadas: as pendências já encontradas continuam aqui, mas nada novo é procurado e o contador do rodapé do editor fica oculto. O sublinhado da correção ortográfica no editor continua (ele tem opção própria na aba Ortografia).") })}
       </div>`;
 
     mount(el, masterHtml + stats + (s.total === 0 ? empty : worstHtml) + analysisHtml + aiHtml + typesHtml + dictHtml, {
       ...this.cardActions(),
       "reviews-toggle": async (input) => {
         await this.issues.setEnabled(input.checked);
-        this.ctx.toast(input.checked ? "Revisões ligadas. Reanalisando o livro..." : "Revisões do sistema desligadas neste livro.", "info");
+        this.ctx.toast(input.checked ? t("Revisões ligadas. Reanalisando o livro...") : t("Revisões do sistema desligadas neste livro."), "info");
         this.ctx.refresh();
       },
       "ai-fix": () => this.fixWithAi("todas"),
       analyze: () => this.askAnalyze(pending),
       "cancel-analysis": () => analysis.cancel(),
       rescan: async () => {
-        this.ctx.toast("Reanalisando o livro...", "info");
+        this.ctx.toast(t("Reanalisando o livro..."), "info");
         await this.issues.rescanAll();
       },
       "restore-type": async (btn) => {
         await this.issues.restoreType(btn.dataset.type);
-        this.ctx.toast("Tipo reativado. O livro foi reanalisado.", "success");
+        this.ctx.toast(t("Tipo reativado. O livro foi reanalisado."), "success");
       },
       "remove-word": async (btn) => {
         await this.issues.removeFromDictionary(btn.dataset.word);
@@ -280,11 +281,11 @@ export class IssuesPanel {
   askAnalyze(pending) {
     const budget = this.ctx.services.analysis.settings().budgetTokens;
     confirmModal(this.ctx.uiBus, {
-      title: "Analisar com a IA?",
-      html: `<p><strong>${plural(pending.files.length, "arquivo", "arquivos")}</strong> serão lidos pela IA (custo estimado: <strong>~${pending.tokens.toLocaleString("pt-BR")} tokens</strong>).</p>
-             <p>O orçamento por análise é de ${budget.toLocaleString("pt-BR")} tokens (mude na Central de IA). Se o orçamento acabar, a análise para e você continua depois.</p>
-             <p>Você pode seguir escrevendo enquanto a análise roda.</p>`,
-      confirmText: "Analisar",
+      title: t("Analisar com a IA?"),
+      html: `<p>${t("<strong>{files}</strong> serão lidos pela IA (custo estimado: <strong>~{tokens} tokens</strong>).", { files: plural(pending.files.length, "arquivo", "arquivos"), tokens: pending.tokens.toLocaleString(getLanguage()) })}</p>
+             <p>${t("O orçamento por análise é de {budget} tokens (mude na Central de IA). Se o orçamento acabar, a análise para e você continua depois.", { budget: budget.toLocaleString(getLanguage()) })}</p>
+             <p>${t("Você pode seguir escrevendo enquanto a análise roda.")}</p>`,
+      confirmText: t("Analisar"),
       onConfirm: () => {
         this.pendingCache = null;
         this.ctx.services.analysis.runWithToasts().catch(() => {});
@@ -303,7 +304,7 @@ export class IssuesPanel {
   fixWithAi(category) {
     const skill = this.ctx.services.skills.get("corrigir-pendencias");
     if (!skill) {
-      this.ctx.toast("A skill \"Corrigir pendências\" não está disponível.", "error");
+      this.ctx.toast(t("A skill \"Corrigir pendências\" não está disponível."), "error");
       return;
     }
     const label = category === "todas" ? "todas as categorias" : categoryInfo(category).label;
@@ -321,11 +322,11 @@ export class IssuesPanel {
   askAiFix() {
     const total = this.issues.summary().total;
     confirmModal(this.ctx.uiBus, {
-      title: "Pedir à IA para corrigir?",
-      html: `<p>A IA vai tentar corrigir <strong>${plural(total, "pendência", "pendências")}</strong> sozinha.</p>
-             <p><strong>Atenção:</strong> a IA pode cometer erros. Ela só altera arquivos em que a escrita da IA está liberada, e todas as alterações vão para rascunho (<code>.temp</code>) e para a tela de revisão, onde você aprova ou descarta.</p>
-             <p>A Central será fechada e a conversa abrirá no chat. Se algo não puder ser corrigido, a IA avisa por lá.</p>`,
-      confirmText: "Pedir à IA",
+      title: t("Pedir à IA para corrigir?"),
+      html: `<p>${t("A IA vai tentar corrigir <strong>{count}</strong> sozinha.", { count: plural(total, "pendência", "pendências") })}</p>
+             <p>${t("<strong>Atenção:</strong> a IA pode cometer erros. Ela só altera arquivos em que a escrita da IA está liberada, e todas as alterações vão para rascunho (<code>.temp</code>) e para a tela de revisão, onde você aprova ou descarta.")}</p>
+             <p>${t("A Central será fechada e a conversa abrirá no chat. Se algo não puder ser corrigido, a IA avisa por lá.")}</p>`,
+      confirmText: t("Pedir à IA"),
       onConfirm: async () => {
         await this.ctx.services.changelog?.recordReview({ kind: "ai-fix", count: total }, this.ctx.services.changelog.userActor());
         this.ctx.close();
@@ -383,7 +384,7 @@ export class IssuesPanel {
     if (all.length === 0) {
       mount(
         el,
-        `${extra}<div class="cn-empty"><i class="fa-solid fa-circle-check"></i><strong>Nenhuma pendência nesta categoria.</strong>
+        `${extra}<div class="cn-empty"><i class="fa-solid fa-circle-check"></i><strong>${t("Nenhuma pendência nesta categoria.")}</strong>
          <p class="cn-hint">${esc(categoryInfo(tab)?.description || "")}</p></div>`,
         handlers,
       );
@@ -393,7 +394,7 @@ export class IssuesPanel {
     const counts = {};
     for (const i of all) counts[i.type] = (counts[i.type] || 0) + 1;
     const chips = [
-      `<button class="rv-chip ${typeFilter ? "" : "active"}" data-act="filter" data-type="">Todos <b>${all.length}</b></button>`,
+      `<button class="rv-chip ${typeFilter ? "" : "active"}" data-act="filter" data-type="">${t("Todos")} <b>${all.length}</b></button>`,
       ...Object.entries(counts).map(
         ([type, n]) =>
           `<button class="rv-chip ${typeFilter === type ? "active" : ""} ${typeInfo(type).severity}" data-act="filter" data-type="${esc(type)}">${esc(typeInfo(type).label)} <b>${n}</b></button>`,
@@ -402,12 +403,12 @@ export class IssuesPanel {
 
     const more =
       shown.length > limit
-        ? `<button class="cn-btn" data-act="more">Mostrar mais (${shown.length - limit} restantes)</button>`
+        ? `<button class="cn-btn" data-act="more">${t("Mostrar mais ({count} restantes)", { count: shown.length - limit })}</button>`
         : "";
 
     mount(
       el,
-      `${extra}${all.length ? `<div class="cn-row" style="margin:6px 0"><button class="cn-btn small primary" data-act="fix-all"><i class="fa-solid fa-wand-magic-sparkles"></i> Corrigir tudo com a IA (${all.length})</button><small class="cn-hint">A IA avalia cada pendência desta aba e escolhe a solução.</small></div>` : ""}<div class="rv-chips">${chips}</div>
+      `${extra}${all.length ? `<div class="cn-row" style="margin:6px 0"><button class="cn-btn small primary" data-act="fix-all"><i class="fa-solid fa-wand-magic-sparkles"></i> ${t("Corrigir tudo com a IA ({count})", { count: all.length })}</button><small class="cn-hint">${t("A IA avalia cada pendência desta aba e escolhe a solução.")}</small></div>` : ""}<div class="rv-chips">${chips}</div>
        <div class="rv-list">${shown.slice(0, limit).map((i) => this.cardHtml(i)).join("")}</div>
        ${more}`,
       handlers,
@@ -426,12 +427,12 @@ export class IssuesPanel {
     const langs = [["pt-BR", "Português (Brasil)"], ["en-US", "English (US)"], ["es-ES", "Español"], ["fr-FR", "Français"]];
     return `
       <section class="cn-section">
-        <h4>Correção ortográfica</h4>
-        <p class="cn-hint">Sublinha palavras desconhecidas, aponta palavras repetidas e mostra os avisos no rodapé do editor. Nomes e apelidos das fichas do livro e as palavras do dicionário do livro nunca são marcados. Estas opções são as mesmas das Configurações.</p>
+        <h4>${t("Correção ortográfica")}</h4>
+        <p class="cn-hint">${t("Sublinha palavras desconhecidas, aponta palavras repetidas e mostra os avisos no rodapé do editor. Nomes e apelidos das fichas do livro e as palavras do dicionário do livro nunca são marcados. Estas opções são as mesmas das Configurações.")}</p>
         <div class="cn-setting-list">
-          ${switchRow({ attrs: 'data-change="spell-toggle"', checked: on, title: "Correção ortográfica e gramatical", hint: "Liga ou desliga todas as verificações de escrita." })}
+          ${switchRow({ attrs: 'data-change="spell-toggle"', checked: on, title: t("Correção ortográfica e gramatical"), hint: t("Liga ou desliga todas as verificações de escrita.") })}
           <label class="cn-setting-row">
-            <span class="cn-switch-text"><strong>Idioma</strong><small>Dicionário usado na correção.</small></span>
+            <span class="cn-switch-text"><strong>${t("Idioma")}</strong><small>${t("Dicionário usado na correção.")}</small></span>
             <select class="cn-select" data-change="spell-lang">${langs.map(([v, l]) => `<option value="${v}" ${v === lang ? "selected" : ""}>${l}</option>`).join("")}</select>
           </label>
         </div>
@@ -448,22 +449,22 @@ export class IssuesPanel {
     const { ordered, events } = this.issues.timelineSuggestion();
     const list =
       ordered.length === 0
-        ? `<p class="cn-hint">Ainda não há eventos. Crie fichas de eventos (com o momento em que ocorreram e a ordem entre eles) e o sistema sugere a linha do tempo, sem gastar IA.</p>`
+        ? `<p class="cn-hint">${t("Ainda não há eventos. Crie fichas de eventos (com o momento em que ocorreram e a ordem entre eles) e o sistema sugere a linha do tempo, sem gastar IA.")}</p>`
         : `<ol class="rv-timeline">${ordered
             .map(
               (e) =>
-                `<li class="${e.inCycle ? "cycle" : ""}"><strong>${esc(e.title)}</strong>${e.when ? ` <span class="cn-pill">${esc(e.when)}</span>` : ""}${e.inCycle ? ' <span class="cn-pill error">ordem circular</span>' : ""}</li>`,
+                `<li class="${e.inCycle ? "cycle" : ""}"><strong>${esc(e.title)}</strong>${e.when ? ` <span class="cn-pill">${esc(e.when)}</span>` : ""}${e.inCycle ? ' <span class="cn-pill error">${t("ordem circular")}</span>' : ""}</li>`,
             )
             .join("")}</ol>`;
     return `
       <section class="cn-section">
-        <h4>Sugestão de linha do tempo (${events} ${events === 1 ? "evento" : "eventos"})</h4>
-        <p class="cn-hint">Calculada pelo sistema a partir do momento e da ordem (antes de / depois de) informados em cada ficha de evento. A linha do tempo oficial só é escrita quando você aprova aqui ou quando a IA a atualiza: ninguém a edita à mão.</p>
+        <h4>${t("Sugestão de linha do tempo ({count})", { count: plural(events, "evento", "eventos") })}</h4>
+        <p class="cn-hint">${t("Calculada pelo sistema a partir do momento e da ordem (antes de / depois de) informados em cada ficha de evento. A linha do tempo oficial só é escrita quando você aprova aqui ou quando a IA a atualiza: ninguém a edita à mão.")}</p>
         ${list}
         <div class="cn-row">
-          <button class="cn-btn" data-act="new-event"><i class="fa-solid fa-plus"></i> Novo evento</button>
-          <button class="cn-btn primary" data-act="apply-timeline" ${ordered.length === 0 ? "disabled" : ""}><i class="fa-solid fa-check"></i> Aprovar e escrever na linha do tempo</button>
-          <button class="cn-btn ghost" data-act="open-timeline"><i class="fa-regular fa-file-lines"></i> Ver linha do tempo</button>
+          <button class="cn-btn" data-act="new-event"><i class="fa-solid fa-plus"></i> ${t("Novo evento")}</button>
+          <button class="cn-btn primary" data-act="apply-timeline" ${ordered.length === 0 ? "disabled" : ""}><i class="fa-solid fa-check"></i> ${t("Aprovar e escrever na linha do tempo")}</button>
+          <button class="cn-btn ghost" data-act="open-timeline"><i class="fa-regular fa-file-lines"></i> ${t("Ver linha do tempo")}</button>
         </div>
       </section>`;
   }
@@ -476,14 +477,14 @@ export class IssuesPanel {
   askApplyTimeline() {
     const { ordered } = this.issues.timelineSuggestion();
     confirmModal(this.ctx.uiBus, {
-      title: "Escrever na linha do tempo?",
-      html: `<p>O arquivo da linha do tempo será reescrito com a ordem sugerida (<strong>${plural(ordered.length, "evento", "eventos")}</strong>).</p>
-             <p>A alteração vai para rascunho (<code>.temp</code>) e só é salva quando você sincronizar. Eventos presos em ordem circular aparecem no fim da lista; corrija-os para uma ordem confiável.</p>`,
-      confirmText: "Escrever",
+      title: t("Escrever na linha do tempo?"),
+      html: `<p>${t("O arquivo da linha do tempo será reescrito com a ordem sugerida (<strong>{count}</strong>).", { count: plural(ordered.length, "evento", "eventos") })}</p>
+             <p>${t("A alteração vai para rascunho (<code>.temp</code>) e só é salva quando você sincronizar. Eventos presos em ordem circular aparecem no fim da lista; corrija-os para uma ordem confiável.")}</p>`,
+      confirmText: t("Escrever"),
       onConfirm: async () => {
         try {
           await this.issues.writeTimeline(ordered, this.ctx.services.changelog.systemActor());
-          this.ctx.toast("Linha do tempo atualizada no rascunho. Sincronize para salvar.", "success");
+          this.ctx.toast(t("Linha do tempo atualizada no rascunho. Sincronize para salvar."), "success");
         } catch (error) {
           this.ctx.toast(error.message, "error");
         }
@@ -502,37 +503,37 @@ export class IssuesPanel {
   cardHtml(issue, { compact = false } = {}) {
     const info = typeInfo(issue.type);
     const sev = issue.severity === "error" ? "error" : "warning";
-    const where = `${esc(this.issues.fileTitle(issue.file))}${issue.line ? ` · linha ${issue.line}` : ""}`;
+    const where = `${esc(this.issues.fileTitle(issue.file))}${issue.line ? ` · ${t("linha {line}", { line: issue.line })}` : ""}`;
     const excerpt = issue.excerpt
       ? `<blockquote class="rv-excerpt">${esc(String(issue.excerpt).slice(0, 220))}</blockquote>`
       : "";
     const fix =
       typeof issue.suggestion?.replace === "string"
-        ? `<div class="rv-suggestion"><i class="fa-solid fa-lightbulb"></i> <span>Solução: <strong>${esc(issue.suggestion.label || `trocar por "${issue.suggestion.replace}"`)}</strong></span></div>`
+        ? `<div class="rv-suggestion"><i class="fa-solid fa-lightbulb"></i> <span>${t("Solução: <strong>{solution}</strong>", { solution: esc(issue.suggestion.label || t("trocar por \"{text}\"", { text: issue.suggestion.replace })) })}</span></div>`
         : issue.type === "typo"
-          ? `<div class="rv-suggestion" data-suggest="${esc(issue.word)}"><i class="fa-solid fa-lightbulb"></i> <span class="rv-suggest-text">Procurando sugestão...</span></div>`
+          ? `<div class="rv-suggestion" data-suggest="${esc(issue.word)}"><i class="fa-solid fa-lightbulb"></i> <span class="rv-suggest-text">${t("Procurando sugestão...")}</span></div>`
           : "";
     const related = (issue.related || [])
       .map(
         (r) =>
-          `<div class="rv-related"><i class="fa-solid fa-link"></i> Também em <a href="#" data-act="goto-related" data-file="${esc(r.file)}" data-excerpt="${esc(r.excerpt)}">${esc(this.issues.fileTitle(r.file))}</a>${r.excerpt ? `: <em>${esc(r.excerpt)}</em>` : ""}</div>`,
+          `<div class="rv-related"><i class="fa-solid fa-link"></i> ${t("Também em")} <a href="#" data-act="goto-related" data-file="${esc(r.file)}" data-excerpt="${esc(r.excerpt)}">${esc(this.issues.fileTitle(r.file))}</a>${r.excerpt ? `: <em>${esc(r.excerpt)}</em>` : ""}</div>`,
       )
       .join("");
 
     const canFix = typeof issue.suggestion?.replace === "string";
     const buttons = `
-      <button class="cn-btn small" data-act="goto" data-id="${esc(issue.id)}"><i class="fa-solid fa-location-arrow"></i> Ir para o trecho</button>
-      ${canFix ? `<button class="cn-btn small primary" data-act="fix" data-id="${esc(issue.id)}"><i class="fa-solid fa-check"></i> Corrigir</button>` : ""}
-      ${issue.type === "typo" ? `<button class="cn-btn small" data-act="dict" data-id="${esc(issue.id)}"><i class="fa-solid fa-book-medical"></i> Adicionar ao dicionário</button>` : ""}
-      <button class="cn-btn small ghost" data-act="dismiss" data-id="${esc(issue.id)}"><i class="fa-regular fa-eye-slash"></i> Dispensar</button>
-      ${compact ? "" : `<button class="cn-btn small ghost" data-act="dismiss-type" data-id="${esc(issue.id)}" title="Dispensar todos os issues deste tipo"><i class="fa-solid fa-ban"></i> Dispensar todos desse tipo</button>`}`;
+      <button class="cn-btn small" data-act="goto" data-id="${esc(issue.id)}"><i class="fa-solid fa-location-arrow"></i> ${t("Ir para o trecho")}</button>
+      ${canFix ? `<button class="cn-btn small primary" data-act="fix" data-id="${esc(issue.id)}"><i class="fa-solid fa-check"></i> ${t("Corrigir")}</button>` : ""}
+      ${issue.type === "typo" ? `<button class="cn-btn small" data-act="dict" data-id="${esc(issue.id)}"><i class="fa-solid fa-book-medical"></i> ${t("Adicionar ao dicionário")}</button>` : ""}
+      <button class="cn-btn small ghost" data-act="dismiss" data-id="${esc(issue.id)}"><i class="fa-regular fa-eye-slash"></i> ${t("Dispensar")}</button>
+      ${compact ? "" : `<button class="cn-btn small ghost" data-act="dismiss-type" data-id="${esc(issue.id)}" title="${t("Dispensar todos os issues deste tipo")}"><i class="fa-solid fa-ban"></i> ${t("Dispensar todos desse tipo")}</button>`}`;
 
     return `
       <article class="rv-card ${sev}" data-id="${esc(issue.id)}">
         <header class="rv-card-head">
-          <span class="rv-dot ${sev}" title="${sev === "error" ? "Erro confirmado" : "Possível erro ou sugestão"}"></span>
+          <span class="rv-dot ${sev}" title="${sev === "error" ? t("Erro confirmado") : t("Possível erro ou sugestão")}"></span>
           <span class="rv-type ${sev}" title="${esc(info.description)}">${esc(info.label)}</span>
-          <span class="rv-source">${issue.source === "ai" ? '<i class="fa-solid fa-wand-magic-sparkles"></i> IA' : '<i class="fa-solid fa-gear"></i> Sistema'}</span>
+          <span class="rv-source">${issue.source === "ai" ? '<i class="fa-solid fa-wand-magic-sparkles"></i> ' + t("IA") : '<i class="fa-solid fa-gear"></i> ' + t("Sistema")}</span>
           <span class="rv-file" title="${esc(issue.file)}"><i class="fa-regular fa-file-lines"></i> ${where}</span>
         </header>
         <p class="rv-message">${esc(issue.message)}</p>
@@ -557,7 +558,7 @@ export class IssuesPanel {
         btn.disabled = true;
         try {
           await this.issues.fix(btn.dataset.id);
-          this.ctx.toast("Correção aplicada no rascunho. Sincronize para salvar.", "success");
+          this.ctx.toast(t("Correção aplicada no rascunho. Sincronize para salvar."), "success");
         } catch (error) {
           btn.disabled = false;
           this.ctx.toast(error.message, "error");
@@ -585,12 +586,12 @@ export class IssuesPanel {
     const info = typeInfo(issue.type);
     const n = this.issues.list({ type: issue.type }).length;
     confirmModal(this.ctx.uiBus, {
-      title: "Dispensar todos desse tipo?",
+      title: t("Dispensar todos desse tipo?"),
       danger: true,
-      confirmText: "Dispensar o tipo inteiro",
-      html: `<p>Você vai dispensar <strong>todos</strong> os issues do tipo <strong>${esc(info.label)}</strong> (${n} no momento).</p>
-             <p>Eles somem da central, o sistema deixa de procurá-los e a IA deixa de registrá-los. Isso vale para o livro todo, inclusive para o que ainda for escrito.</p>
-             <p>Você pode reverter a qualquer momento na <strong>página inicial</strong> da Central de Revisões, em "Tipos dispensados".</p>`,
+      confirmText: t("Dispensar o tipo inteiro"),
+      html: `<p>${t("Você vai dispensar <strong>todos</strong> os issues do tipo <strong>{type}</strong> ({count} no momento).", { type: esc(info.label), count: n })}</p>
+             <p>${t("Eles somem da central, o sistema deixa de procurá-los e a IA deixa de registrá-los. Isso vale para o livro todo, inclusive para o que ainda for escrito.")}</p>
+             <p>${t("Você pode reverter a qualquer momento na <strong>página inicial</strong> da Central de Revisões, em \"Tipos dispensados\".")}</p>`,
       onConfirm: () => this.issues.dismissType(issue.type),
     });
   }
@@ -636,10 +637,10 @@ export class IssuesPanel {
       try {
         const list = (await window.electronAPI.suggestSpelling?.(language, box.dataset.suggest)) || [];
         box.querySelector(".rv-suggest-text").innerHTML = list.length
-          ? `Sugestões: ${list.slice(0, 4).map((w) => `<strong>${esc(w)}</strong>`).join(", ")}`
-          : "Sem sugestões do dicionário.";
+          ? t("Sugestões: {words}", { words: list.slice(0, 4).map((w) => `<strong>${esc(w)}</strong>`).join(", ") })
+          : t("Sem sugestões do dicionário.");
       } catch {
-        box.querySelector(".rv-suggest-text").textContent = "Sem sugestões do dicionário.";
+        box.querySelector(".rv-suggest-text").textContent = t("Sem sugestões do dicionário.");
       }
     });
   }

@@ -19,6 +19,7 @@ import * as links from "./handlers/linkHandler.js";
 import * as del from "./handlers/deleteHandler.js";
 import * as folderHandler from "./handlers/folderHandler.js";
 import * as templateEditor from "./handlers/templateEditorHandler.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Controller responsável pelas reações visuais da interface.
@@ -254,10 +255,10 @@ export class UiController {
       try {
         const result = await window.electronAPI.importBook();
         if (result?.canceled) return;
-        if (!result?.success) throw new Error(result?.error || "Falha ao importar o livro.");
+        if (!result?.success) throw new Error(result?.error || t("Falha ao importar o livro."));
         await creation.onBookCreated(this.state, this.services.book);
         uiBus.emit("book:selected", result.bookPath);
-        uiBus.emit("toast:show", { message: `Livro "${result.title}" importado (${result.files} arquivos).`, type: "success" });
+        uiBus.emit("toast:show", { message: t("Livro \"{title}\" importado ({count} arquivos).", { title: result.title, count: result.files }), type: "success" });
       } catch (error) {
         uiBus.emit("toast:show", { message: error.message, type: "error" });
       }

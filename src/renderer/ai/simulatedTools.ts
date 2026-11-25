@@ -4,6 +4,8 @@
  * (`runToolLoop`) e as tools são exatamente os mesmos do tool calling nativo.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /**
  * Resumo de uma tool em uma linha (nome, parâmetros e descrição curta).
  * @param {{name: string, description: string, parameters: Object}} tool - Definição.
@@ -26,19 +28,14 @@ function describeTool(tool) {
  */
 export function buildSimulatedToolsPrompt(definitions) {
   if (!definitions.length) return "";
-  return `
-
-# Ferramentas (modo simulado)
-Você pode usar ferramentas. Para usar uma, responda APENAS com um bloco neste formato exato (um bloco por ferramenta, sem texto depois):
-
-<tool_call>
-{"name": "nome_da_ferramenta", "arguments": {"parametro": "valor"}}
-</tool_call>
-
-O sistema executa a ferramenta e responde com uma mensagem começando por "[Resultado de nome_da_ferramenta]". Só então continue. Quando não precisar de mais ferramentas, responda normalmente, em texto, sem nenhum bloco <tool_call>.
-
-Ferramentas disponíveis (nome(parâmetros) — descrição; "?" indica parâmetro opcional):
-${definitions.map(describeTool).join("\n")}`;
+  return (
+    "\n\n" +
+    t(
+      '# Ferramentas (modo simulado)\nVocê pode usar ferramentas. Para usar uma, responda APENAS com um bloco neste formato exato (um bloco por ferramenta, sem texto depois):\n\n<tool_call>\n{"name": "nome_da_ferramenta", "arguments": {"parametro": "valor"}}\n</tool_call>\n\nO sistema executa a ferramenta e responde com uma mensagem começando por "[Resultado de nome_da_ferramenta]". Só então continue. Quando não precisar de mais ferramentas, responda normalmente, em texto, sem nenhum bloco <tool_call>.\n\nFerramentas disponíveis (nome(parâmetros) — descrição; "?" indica parâmetro opcional):',
+    ) +
+    "\n" +
+    definitions.map(describeTool).join("\n")
+  );
 }
 
 /**
@@ -82,7 +79,7 @@ export function parseSimulatedCalls(text) {
  */
 export function formatSimulatedResults(results) {
   return results
-    .map((r) => `[Resultado de ${r.call.name}${r.isError ? " (erro)" : ""}]\n${r.output}`)
+    .map((r) => `${t("[Resultado de {name}]", { name: r.call.name + (r.isError ? t(" (erro)") : "") })}\n${r.output}`)
     .join("\n\n");
 }
 

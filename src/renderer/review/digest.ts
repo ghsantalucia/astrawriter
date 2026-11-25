@@ -7,6 +7,7 @@
 
 import { foldText } from "../utils/helpers.js";
 import { shortHash } from "./issueCheckers.js";
+import { t } from "../../shared/i18n.js";
 
 /** Tamanho máximo de texto de um arquivo enviado para o digest (caracteres). */
 export const MAX_DIGEST_CHARS = 24000;
@@ -61,7 +62,7 @@ export const DIGEST_SYSTEM = digestSystem();
 
 /** Instruções de sistema da verificação de contradições. */
 export const VERIFY_SYSTEM = `Você confere se afirmações extraídas de arquivos diferentes de um livro se contradizem.
-Responda SOMENTE com JSON válido: {"verdict": "conflict" | "compatible" | "unsure", "explanation": "uma ou duas frases em português"}.
+Responda SOMENTE com JSON válido: {"verdict": "conflict" | "compatible" | "unsure", "explanation": "uma ou duas frases em ${t("português")}"}.
 "conflict" = não podem ser verdade ao mesmo tempo no mesmo momento da história; "compatible" = podem coexistir (ex.: o fato mudou com o tempo, são aspectos diferentes ou apelidos); "unsure" = falta contexto.`;
 
 /**
@@ -211,7 +212,6 @@ export function findStyleShifts(digests) {
   const chapters = digests.filter((d) => /^content\/chapter_\d+\/2_draft\.md$/i.test(d.file) && d.style);
   if (chapters.length < 3) return [];
   const out = [];
-  const label = { pov: "o narrador (pessoa)", tense: "o tempo verbal" };
   for (const field of ["pov", "tense"]) {
     const valid = chapters.filter((d) => d.style[field] && !/^(n\/a|misto)$/.test(d.style[field]));
     const counts = new Map();
@@ -220,7 +220,12 @@ export function findStyleShifts(digests) {
     if (!top || topCount <= valid.length / 2) continue;
     for (const d of valid) {
       if (d.style[field] !== top) {
-        out.push({ file: d.file, message: `Neste capítulo ${label[field]} é "${d.style[field]}", mas a maioria dos capítulos usa "${top}". Se não foi proposital, vale uniformizar.` });
+        const params = { value: d.style[field], top };
+        const message =
+          field === "pov"
+            ? t('Neste capítulo o narrador (pessoa) é "{value}", mas a maioria dos capítulos usa "{top}". Se não foi proposital, vale uniformizar.', params)
+            : t('Neste capítulo o tempo verbal é "{value}", mas a maioria dos capítulos usa "{top}". Se não foi proposital, vale uniformizar.', params);
+        out.push({ file: d.file, message });
       }
     }
   }
@@ -229,7 +234,7 @@ export function findStyleShifts(digests) {
 
 /** Instruções de sistema da comparação dos capítulos com o objetivo do livro. */
 export const ALIGN_SYSTEM = `Você compara os resumos dos capítulos de um livro com o objetivo do livro (a sinopse) e aponta capítulos que parecem fugir dele.
-Responda SOMENTE com JSON válido: {"issues": [{"file": "caminho do capítulo exatamente como informado", "message": "uma ou duas frases em português explicando o desvio"}]}.
+Responda SOMENTE com JSON válido: {"issues": [{"file": "caminho do capítulo exatamente como informado", "message": "uma ou duas frases em ${t("português")} explicando o desvio"}]}.
 Aponte só desvios claros (tema, tom ou rumo que contradizem a sinopse); no máximo 5. Se tudo estiver coerente, devolva {"issues": []}.`;
 
 /**

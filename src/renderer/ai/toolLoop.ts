@@ -2,6 +2,7 @@
  * @file Utilitários compartilhados pelos provedores: laço de tool calling e normalização do histórico.
  */
 
+import { t } from "../../shared/i18n.js";
 import { toolRegistry } from "./aiTools.js";
 import { recordTool } from "./debugLog.js";
 import { abortError, raceAbort } from "./abort.js";
@@ -98,7 +99,7 @@ export async function runToolLoop({
     usage.contextTokens = turn.usage?.input || usage.contextTokens;
 
     if (turn.toolCalls.length === 0) {
-      return { text: turn.text || "(A IA não retornou texto.)", usage };
+      return { text: turn.text || t("(A IA não retornou texto.)"), usage };
     }
 
     const results = [];
@@ -115,5 +116,5 @@ export async function runToolLoop({
     appendToolResults(conversation, turn, results);
   }
 
-  throw new Error("A IA excedeu o limite de chamadas de ferramentas.");
+  throw new Error(t("A IA excedeu o limite de chamadas de ferramentas."));
 }

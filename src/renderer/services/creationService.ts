@@ -30,6 +30,7 @@ import {
   replaceFirstHeading,
   appendToBody,
 } from "../utils/template.js";
+import { t } from "../../shared/i18n.js";
 
 /** Tipos de criação suportados. */
 export const CREATION_KINDS = ["book", "chapter", "entity", "note"];
@@ -101,7 +102,7 @@ function sanitizeFolder(folder) {
     /^[a-z]:/i.test(clean) ||
     segments.some((s) => !s || s === "." || s === ".." || s.startsWith("."))
   ) {
-    throw new Error(`Pasta inválida: "${folder}".`);
+    throw new Error(t("Pasta inválida: \"{folder}\".", { folder }));
   }
   return clean;
 }
@@ -153,7 +154,7 @@ export class CreationService {
    */
   requireBookPath() {
     if (!this.state.currentBookPath)
-      throw new Error("Nenhum livro selecionado.");
+      throw new Error(t("Nenhum livro selecionado."));
     return normalizePath(this.state.currentBookPath).replace(/\/+$/, "");
   }
 
@@ -175,7 +176,7 @@ export class CreationService {
   async writeText(path, content) {
     const result = await window.electronAPI.saveFile(path, content);
     if (!result?.success) {
-      throw new Error(`Falha ao gravar "${path}": ${result?.error || "erro"}`);
+      throw new Error(t("Falha ao gravar \"{path}\": {error}", { path, error: result?.error || t("erro") }));
     }
   }
 
@@ -195,7 +196,7 @@ export class CreationService {
    */
   async loadTemplate(path) {
     const raw = await this.readText(path);
-    if (raw === null) throw new Error(`Modelo não encontrado: ${path}`);
+    if (raw === null) throw new Error(t("Modelo não encontrado: {path}", { path }));
     return parseTemplate(raw);
   }
 
@@ -220,7 +221,7 @@ export class CreationService {
         return this.getNoteSpec(folder);
       default:
         throw new Error(
-          `Tipo de criação desconhecido: "${kind}". Use: ${CREATION_KINDS.join(", ")}.`,
+          t("Tipo de criação desconhecido: \"{kind}\". Use: {kinds}.", { kind, kinds: CREATION_KINDS.join(", ") }),
         );
     }
   }
@@ -241,11 +242,11 @@ export class CreationService {
       const modeField = first.fields.find((f) => f.id === "ai_mode");
       first.fields.push({
         id: "template_profile",
-        label: "Perfil dos templates",
+        label: t("Perfil dos templates"),
         type: "select",
-        options: profiles.map((p) => ({ value: p.id, label: p.builtin ? p.label : `${p.label} (seu)` })),
+        options: profiles.map((p) => ({ value: p.id, label: p.builtin ? p.label : t("{label} (seu)", { label: p.label }) })),
         value: this.templates.profileForMode(modeField?.value),
-        hint: "Define o modelo de cada ficha e capítulo. Escolhido automaticamente pelo modo da IA; mude se quiser. Dá para editar os templates em Central do Sistema → Templates.",
+        hint: t("Define o modelo de cada ficha e capítulo. Escolhido automaticamente pelo modo da IA; mude se quiser. Dá para editar os templates em Central do Sistema → Templates."),
         required: false,
         follows: { field: "ai_mode", map: { assistant: "assistant", coauthor: "coauthor", autonomous: "autonomous" } },
       });
@@ -253,8 +254,8 @@ export class CreationService {
 
     return {
       kind: "book",
-      title: "Novo livro",
-      submitLabel: "Criar livro",
+      title: t("Novo livro"),
+      submitLabel: t("Criar livro"),
       allowSkip: false,
       context: {},
       steps,
@@ -270,20 +271,20 @@ export class CreationService {
 
     return {
       kind: "chapter",
-      title: "Novo capítulo",
-      submitLabel: "Criar capítulo",
+      title: t("Novo capítulo"),
+      submitLabel: t("Criar capítulo"),
       allowSkip: false,
       context: { number: info.number, folderName: info.folderName },
       steps: [
         {
           id: "chapter",
-          title: "Dados do capítulo",
+          title: t("Dados do capítulo"),
           description:
-            "Informe o título e, se quiser, deixe anotado o planejamento do capítulo.",
+            t("Informe o título e, se quiser, deixe anotado o planejamento do capítulo."),
           fields: [
             {
               id: "title",
-              label: "Título do capítulo",
+              label: t("Título do capítulo"),
               type: "text",
               placeholder: info.defaultTitle,
               required: true,
@@ -291,11 +292,11 @@ export class CreationService {
             },
             {
               id: "plan",
-              label: "Planejamento do capítulo (opcional)",
+              label: t("Planejamento do capítulo (opcional)"),
               type: "textarea",
               placeholder:
-                "Brainstorm, lista de desejos, cenas que precisam acontecer… pode ser em lista ou texto livre.",
-              hint: "Será salvo no esboço do capítulo e pode alimentar a IA como prompt.",
+                t("Brainstorm, lista de desejos, cenas que precisam acontecer… pode ser em lista ou texto livre."),
+              hint: t("Será salvo no esboço do capítulo e pode alimentar a IA como prompt."),
               required: false,
               value: "",
               rows: 12,
@@ -319,7 +320,7 @@ export class CreationService {
     } = await this.loadEntityTemplate(folder);
 
     const steps = buildTemplateSteps(template, {
-      variablesTitle: "Dados principais",
+      variablesTitle: t("Dados principais"),
     });
     // Eventos já citados em "antes"/"depois" de outras fichas, mas que ainda não têm ficha, viram sugestão de nome
     if (cleanFolder === "assets/events" && this.state.currentBookMap) {
@@ -327,14 +328,14 @@ export class CreationService {
       const titleField = steps[0]?.fields?.find((f) => f.id === "title");
       if (titleField && pending.length) {
         titleField.suggestions = pending;
-        titleField.hint = "Eventos já citados em outras fichas e ainda sem ficha aparecem como sugestão ao digitar.";
+        titleField.hint = t("Eventos já citados em outras fichas e ainda sem ficha aparecem como sugestão ao digitar.");
       }
     }
 
     return {
       kind: "entity",
-      title: folderTitle ? `Nova ficha — ${folderTitle}` : "Nova ficha",
-      submitLabel: "Criar",
+      title: folderTitle ? t("Nova ficha — {folder}", { folder: folderTitle }) : t("Nova ficha"),
+      submitLabel: t("Criar"),
       allowSkip: true,
       context: { folder: cleanFolder },
       steps,
@@ -349,20 +350,20 @@ export class CreationService {
   async getNoteSpec(folder) {
     return {
       kind: "note",
-      title: "Nova anotação",
-      submitLabel: "Criar anotação",
+      title: t("Nova anotação"),
+      submitLabel: t("Criar anotação"),
       allowSkip: false,
       context: folder ? { folder: sanitizeFolder(folder) } : {},
       steps: [
         {
           id: "note",
-          title: "Nome da anotação",
+          title: t("Nome da anotação"),
           fields: [
             {
               id: "title",
-              label: "Nome da anotação",
+              label: t("Nome da anotação"),
               type: "text",
-              placeholder: "Ex.: Ideias para o final",
+              placeholder: t("Ex.: Ideias para o final"),
               required: true,
               value: "",
             },
@@ -389,7 +390,7 @@ export class CreationService {
     return {
       number,
       folderName: `chapter_${pad(number)}`,
-      defaultTitle: `Capítulo ${pad(number, 2)}`,
+      defaultTitle: t("Capítulo {n}", { n: pad(number, 2) }),
     };
   }
 
@@ -414,7 +415,7 @@ export class CreationService {
       }
     }
     if (raw === null) {
-      throw new Error(`A pasta "${cleanFolder}" não possui um template.md.`);
+      throw new Error(t("A pasta \"{folder}\" não possui um template.md.", { folder: cleanFolder }));
     }
 
     const folderYml = await this.readText(`${book}/${cleanFolder}/folder.yml`);
@@ -580,7 +581,7 @@ export class CreationService {
           `${filePath}.temp`,
         );
         if (!moved?.success) {
-          throw new Error(`Falha ao preparar o rascunho: ${moved?.error}`);
+          throw new Error(t("Falha ao preparar o rascunho: {error}", { error: moved?.error }));
         }
         if (source === "ai") this.changelog?.markAiDraft(filePath);
       } else if (!/\.temp$/i.test(filePath)) {
@@ -630,7 +631,7 @@ export class CreationService {
     const missing = this.validate(spec, values);
     if (missing.length > 0) {
       throw new Error(
-        `Preencha os campos obrigatórios: ${missing.map((f) => f.label).join(", ")}.`,
+        t("Preencha os campos obrigatórios: {fields}.", { fields: missing.map((f) => f.label).join(", ") }),
       );
     }
 
@@ -646,7 +647,7 @@ export class CreationService {
       case "note":
         return this.createNote(resolved, source, spec.context.folder);
       default:
-        throw new Error(`Tipo de criação desconhecido: "${kind}".`);
+        throw new Error(t("Tipo de criação desconhecido: \"{kind}\".", { kind }));
     }
   }
 
@@ -670,7 +671,7 @@ export class CreationService {
 
     const copy = await window.electronAPI.copyFolder(templatesDir, bookPath);
     if (!copy?.success)
-      throw new Error(`Falha ao criar o livro: ${copy?.error}`);
+      throw new Error(t("Falha ao criar o livro: {error}", { error: copy?.error }));
 
     // Sinopse com as respostas (o template original permanece intacto)
     const plot = applyTemplateValues(template, values);
@@ -684,7 +685,7 @@ export class CreationService {
     await this.templates.applyToBook(bookPath, profileId).catch((e) => console.error("[CREATION] Falha ao aplicar o perfil de templates:", e));
 
     // config.json do novo livro
-    const title = resolveTitle(template, values) || "Novo livro";
+    const title = resolveTitle(template, values) || t("Novo livro");
     let config: any = {};
     try {
       config = JSON.parse(
@@ -739,7 +740,7 @@ export class CreationService {
       .sort()[0];
     if (!templateChapter) {
       throw new Error(
-        "O template não possui uma pasta de capítulo (chapter_*).",
+        t("O template não possui uma pasta de capítulo (chapter_*)."),
       );
     }
 
@@ -748,7 +749,7 @@ export class CreationService {
       folderPath,
     );
     if (!copy?.success)
-      throw new Error(`Falha ao criar o capítulo: ${copy?.error}`);
+      throw new Error(t("Falha ao criar o capítulo: {error}", { error: copy?.error }));
 
     // Perfil de templates do livro: esboço e análise do capítulo nascem com o corpo do perfil (as variáveis não mudam)
     const profileId = await this.templates.profileOfBook(book);
@@ -761,7 +762,7 @@ export class CreationService {
     }
 
     // folder.yml: título da pasta no explorer ("Capítulo 02")
-    const folderLabel = `Capítulo ${pad(number, 2)}`;
+    const folderLabel = t("Capítulo {n}", { n: pad(number, 2) });
     const folderYmlPath = `${folderPath}/folder.yml`;
     const folderMeta = parseYaml((await this.readText(folderYmlPath)) || "");
     folderMeta.title = folderLabel;
@@ -776,7 +777,7 @@ export class CreationService {
     const scriptName = files.find((e) => /outline\.md$/i.test(e.name))?.name;
     if (!draftName || !scriptName) {
       throw new Error(
-        "O template do capítulo precisa ter os arquivos *_draft.md e *_outline.md.",
+        t("O template do capítulo precisa ter os arquivos *_draft.md e *_outline.md."),
       );
     }
 
@@ -837,21 +838,21 @@ export class CreationService {
     const model = `${content}/chapter_001`;
     for (let i = 2; i <= chapters.length; i++) {
       const copy = await window.electronAPI.copyFolder(model, `${content}/chapter_${pad(i)}`);
-      if (!copy?.success) throw new Error(`Falha ao criar o capítulo ${i}: ${copy?.error}`);
+      if (!copy?.success) throw new Error(t("Falha ao criar o capítulo {number}: {error}", { number: i, error: copy?.error }));
     }
     for (let i = 1; i <= chapters.length; i++) {
       const chapter = chapters[i - 1];
       const folder = `${content}/chapter_${pad(i)}`;
-      const title = String(chapter.title || `Capítulo ${i}`).trim();
+      const title = String(chapter.title || t("Capítulo {n}", { n: i })).trim();
       // folder.yml: "Capítulo 02" no explorer
       const folderYml = `${folder}/folder.yml`;
       const meta = parseYaml((await this.readText(folderYml)) || "");
-      meta.title = `Capítulo ${pad(i, 2)}`;
+      meta.title = t("Capítulo {n}", { n: pad(i, 2) });
       meta.description = meta.title;
       await this.writeText(folderYml, stringifyYaml(meta));
       // Manuscrito: título no frontmatter (chapter_title) e no corpo, depois o texto
       const draftName = (await this.listDir(folder)).find((e) => !e.isDirectory && /draft\.md$/i.test(e.name))?.name;
-      if (!draftName) throw new Error("O template do capítulo precisa ter o arquivo *_draft.md.");
+      if (!draftName) throw new Error(t("O template do capítulo precisa ter o arquivo *_draft.md."));
       const draftPath = `${folder}/${draftName}`;
       const draft = parseMarkdown((await this.readText(draftPath)) || "");
       draft.metadata.chapter_title = title;
@@ -892,7 +893,7 @@ export class CreationService {
           aiWrite: false,
           advanced: true,
           userDelete: false,
-          title: "Índice de Capítulos",
+          title: t("Índice de Capítulos"),
         },
         "# INDEX.MD\n",
       );
@@ -930,7 +931,7 @@ export class CreationService {
     const fileName = `${prefix}_${pad(number)}.md`;
     const path = `${folderPath}/${fileName}`;
 
-    const title = resolveTitle(template, values) || "Nova ficha";
+    const title = resolveTitle(template, values) || t("Nova ficha");
     const { metadata, body } = applyTemplateValues(template, values);
     const finalMeta = { ...DEFAULT_FILE_FLAGS, ...metadata, title };
 
@@ -971,7 +972,7 @@ export class CreationService {
   async createNote(values, source, folder = "notes") {
     const book = this.requireBookPath();
     if (folder !== "notes" && !folder.startsWith("notes/")) {
-      throw new Error("Anotações só podem ser criadas dentro de `notes`.");
+      throw new Error(t("Anotações só podem ser criadas dentro de `notes`."));
     }
     const folderPath = `${book}/${folder}`;
     const title = values.title;

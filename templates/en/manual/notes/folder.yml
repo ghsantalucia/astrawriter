@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: true
+aiRead: true
+aiWrite: false
+advanced: false
+title: "Notes"
+description: "Folder for the human author's free-form notes."
+userDelete: false
+userRename: false

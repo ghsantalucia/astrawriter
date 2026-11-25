@@ -41,6 +41,7 @@ import { extractBookFromFile } from "./book-import-file.js";
 import { puterChat, puterModels } from "./puter.js";
 import { scanBook, bookDiskStats } from "./book-scan.js";
 import { withFileWatcherPaused } from "./file-watcher.js";
+import { t } from "../shared/i18n.js";
 
 /** Arquivo JSON (na pasta de dados do usuário) com o provider de IA ativo e suas chaves. */
 const AI_SETTINGS_FILE = "ai-settings.json";
@@ -75,7 +76,7 @@ export function setupIpcHandlers(mainWindow) {
     try {
       const parsed = new URL(String(url));
       if (!["http:", "https:", "mailto:"].includes(parsed.protocol)) {
-        return { success: false, error: "Protocolo não permitido." };
+        return { success: false, error: t("Protocolo não permitido.") };
       }
       await shell.openExternal(parsed.toString());
       return { success: true };
@@ -201,7 +202,7 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("delete-file", async (event, filePath) => {
     try {
       if (!filePath) {
-        return { success: false, error: "Caminho não fornecido." };
+        return { success: false, error: t("Caminho não fornecido.") };
       }
 
       // Normaliza o caminho para o sistema operacional (resolve \ e / no Windows)
@@ -214,7 +215,7 @@ export function setupIpcHandlers(mainWindow) {
         );
         return {
           success: false,
-          error: `Arquivo temporário não encontrado: ${normalizedPath}`,
+          error: t("Arquivo temporário não encontrado: {path}", { path: normalizedPath }),
         };
       }
 
@@ -231,10 +232,10 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("delete-folder", async (event, folderPath) => {
     try {
       if (!folderPath)
-        return { success: false, error: "Caminho não fornecido." };
+        return { success: false, error: t("Caminho não fornecido.") };
       const target = path.normalize(folderPath);
       if (!fs.existsSync(target)) {
-        return { success: false, error: `A pasta não existe: ${target}` };
+        return { success: false, error: t("A pasta não existe: {path}", { path: target }) };
       }
       await withFileWatcherPaused(() =>
         fs.promises.rm(target, { recursive: true, force: true }),
@@ -250,15 +251,15 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("rename-path", async (event, fromPath, toPath) => {
     try {
       if (!fromPath || !toPath) {
-        return { success: false, error: "Caminhos não fornecidos." };
+        return { success: false, error: t("Caminhos não fornecidos.") };
       }
       const from = path.normalize(fromPath);
       const to = path.normalize(toPath);
       if (!fs.existsSync(from)) {
-        return { success: false, error: `A origem não existe: ${from}` };
+        return { success: false, error: t("A origem não existe: {path}", { path: from }) };
       }
       if (fs.existsSync(to)) {
-        return { success: false, error: `O destino já existe: ${to}` };
+        return { success: false, error: t("O destino já existe: {path}", { path: to }) };
       }
       await withFileWatcherPaused(() => fs.promises.rename(from, to));
       return { success: true };
@@ -311,7 +312,7 @@ export function setupIpcHandlers(mainWindow) {
   ipcMain.handle("copy-folder", async (event, sourcePath, destPath) => {
     try {
       if (!sourcePath || !destPath) {
-        return { success: false, error: "Caminhos não fornecidos." };
+        return { success: false, error: t("Caminhos não fornecidos.") };
       }
       const source = path.normalize(sourcePath);
       const dest = path.normalize(destPath);
@@ -319,11 +320,11 @@ export function setupIpcHandlers(mainWindow) {
       if (!fs.existsSync(source)) {
         return {
           success: false,
-          error: `Pasta de origem não existe: ${source}`,
+          error: t("Pasta de origem não existe: {path}", { path: source }),
         };
       }
       if (fs.existsSync(dest)) {
-        return { success: false, error: `O destino já existe: ${dest}` };
+        return { success: false, error: t("O destino já existe: {path}", { path: dest }) };
       }
 
       await fs.promises.cp(source, dest, {

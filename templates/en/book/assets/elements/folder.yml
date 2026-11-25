@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: true
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Concepts"
+description: "Contains information about the elements of the book's universe."
+userDelete: false
+userRename: false

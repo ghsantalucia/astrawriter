@@ -16,6 +16,7 @@ import "./styles.css";
 import "./panelStyles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
+import { t } from "../../../shared/i18n.js";
 import { IssuesPanel } from "./panels/issuesPanel.js";
 import { BookPanel } from "./panels/bookPanel.js";
 import { AiPanel } from "./panels/aiPanel.js";
@@ -121,7 +122,7 @@ export class CentralComponent extends Component {
       e.stopPropagation();
       if (!switcher.classList.contains("hidden")) return setSwitcher(false);
       switcher.innerHTML = CENTRALS.map(
-        (c) => `<button type="button" role="menuitem" class="central-switch-item ${c.id === this.current?.id ? "current" : ""}" data-central="${c.id}"><i class="fa-solid ${c.icon}"></i>${c.label}</button>`,
+        (c) => `<button type="button" role="menuitem" class="central-switch-item ${c.id === this.current?.id ? "current" : ""}" data-central="${c.id}"><i class="fa-solid ${c.icon}"></i>${t(c.label)}</button>`,
       ).join("");
       setSwitcher(true);
     });
@@ -163,7 +164,7 @@ export class CentralComponent extends Component {
     // A gaveta de configurações (que também cobre a tela) fecha ao abrir uma central
     this.uiBus.emit("settings:close");
     this.current = { id, tab: null };
-    const first = this.panel().getTabs().find((t) => !t.separator);
+    const first = this.panel().getTabs().find((tab) => !tab.separator);
     this.element.querySelector("#central-title").textContent = this.panel().title;
     this.element.querySelector("#central-overlay").classList.remove("hidden");
     this.element.querySelector("#central-overlay").setAttribute("aria-hidden", "false");
@@ -204,7 +205,7 @@ export class CentralComponent extends Component {
     this.current.tab = tab;
     this.element.querySelector("#central-body").scrollTop = 0;
     // Mostra já a aba nova (o conteúdo da anterior sai e entra um aviso de carregamento até a página ficar pronta)
-    this.element.querySelector("#central-content").innerHTML = '<div class="cn-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando…</div>';
+    this.element.querySelector("#central-content").innerHTML = '<div class="cn-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> ' + t("Carregando…") + "</div>";
     this.draw();
   }
 
@@ -244,13 +245,13 @@ export class CentralComponent extends Component {
 
     const tabs = panel.getTabs();
     this.element.querySelector("#central-tabs").innerHTML = tabs
-      .map((t) => {
-        if (t.separator) return '<div class="central-tab-sep"></div>';
-        const badges = t.badges
-          ? `<span class="cn-badges">${t.badges.error ? `<span class="cn-badge error" title="Erros confirmados">${t.badges.error}</span>` : ""}${t.badges.warning ? `<span class="cn-badge warning" title="Possíveis erros e sugestões">${t.badges.warning}</span>` : ""}</span>`
+      .map((tab) => {
+        if (tab.separator) return '<div class="central-tab-sep"></div>';
+        const badges = tab.badges
+          ? `<span class="cn-badges">${tab.badges.error ? `<span class="cn-badge error" title="${t("Erros confirmados")}">${tab.badges.error}</span>` : ""}${tab.badges.warning ? `<span class="cn-badge warning" title="${t("Possíveis erros e sugestões")}">${tab.badges.warning}</span>` : ""}</span>`
           : "";
-        return `<button type="button" class="central-tab ${t.id === tabId ? "active" : ""}" data-tab="${t.id}">
-          <i class="fa-solid ${t.icon} tab-icon"></i><span class="tab-label">${t.label}</span>${badges}</button>`;
+        return `<button type="button" class="central-tab ${tab.id === tabId ? "active" : ""}" data-tab="${tab.id}">
+          <i class="fa-solid ${tab.icon} tab-icon"></i><span class="tab-label">${tab.label}</span>${badges}</button>`;
       })
       .join("");
 

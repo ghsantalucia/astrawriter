@@ -2,6 +2,7 @@
  * @file Módulo do Provedor Gemini (Google).
  */
 
+import { t } from "../../../../shared/i18n.js";
 import { fetchModels, generateContent } from "./client.js";
 import { normalizeHistory, runToolLoop } from "../../toolLoop.js";
 
@@ -26,7 +27,7 @@ export async function sendRequest({
 }) {
   if (!config.apiKey) {
     throw new Error(
-      "Chave de API do Gemini não configurada. Defina-a em Configurações.",
+      t("Chave de API do Gemini não configurada. Defina-a em Configurações."),
     );
   }
 
@@ -56,7 +57,7 @@ export async function sendRequest({
         // Alguns modelos não aceitam a busca junto com as tools do app: segue sem a busca e avisa
         if (toolContext?.web && error?.status === 400 && /function calling|tool/i.test(String(error?.message))) {
           toolContext.web = false;
-          toolContext.notice?.("Este modelo do Gemini não aceita a busca na internet junto com as tools do app: a skill seguiu só com o que o modelo já sabe.");
+          toolContext.notice?.(t("Este modelo do Gemini não aceita a busca na internet junto com as tools do app: a skill seguiu só com o que o modelo já sabe."));
           data = await request(false);
         } else throw error;
       }
@@ -66,8 +67,8 @@ export async function sendRequest({
         const reason =
           data.promptFeedback?.blockReason ||
           data.candidates?.[0]?.finishReason ||
-          "resposta vazia";
-        throw new Error(`O Gemini não retornou conteúdo (${reason}).`);
+          t("resposta vazia");
+        throw new Error(t("O Gemini não retornou conteúdo ({reason}).", { reason }));
       }
 
       // `parts` é reenviado intacto nas próximas rodadas (preserva assinaturas de raciocínio).

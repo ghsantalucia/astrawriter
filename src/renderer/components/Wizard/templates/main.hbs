@@ -7,7 +7,7 @@
     </li>
     {{/each}}
   </ol>
-  <p class="wizard-step-counter">Passo {{current}} de {{total}}</p>
+  <p class="wizard-step-counter">{{t "Passo {current} de {total}" current=current total=total}}</p>
   {{/if}}
 
   <h4 class="wizard-step-title">{{step.title}}</h4>
@@ -31,7 +31,7 @@
       {{#if suggestions.length}}<datalist id="{{id}}-suggestions">{{#each suggestions}}<option value="{{this}}"></option>{{/each}}</datalist>{{/if}}
       {{/if}}
       {{#if hint}}<small class="wizard-hint">{{hint}}</small>{{/if}}
-      <span class="wizard-field-error" hidden>Campo obrigatório</span>
+      <span class="wizard-field-error" hidden>{{t "Campo obrigatório"}}</span>
     </div>
     {{/each}}
   </div>
@@ -39,14 +39,14 @@
   <p class="wizard-error" hidden></p>
 
   <div class="wizard-footer">
-    <button type="button" class="btn-modal btn-secondary" data-action="cancel">Cancelar</button>
+    <button type="button" class="btn-modal btn-secondary" data-action="cancel">{{t "Cancelar"}}</button>
     <span class="wizard-footer-spacer"></span>
-    {{#if canSkip}}<button type="button" class="btn-modal btn-secondary" data-action="skip">Pular e criar</button>{{/if}}
-    {{#unless isFirst}}<button type="button" class="btn-modal btn-secondary" data-action="back">Voltar</button>{{/unless}}
+    {{#if canSkip}}<button type="button" class="btn-modal btn-secondary" data-action="skip">{{t "Pular e criar"}}</button>{{/if}}
+    {{#unless isFirst}}<button type="button" class="btn-modal btn-secondary" data-action="back">{{t "Voltar"}}</button>{{/unless}}
     {{#if isLast}}
     {{#unless readOnly}}<button type="button" class="btn-modal btn-primary" data-action="submit">{{submitLabel}}</button>{{/unless}}
     {{else}}
-    <button type="button" class="btn-modal btn-primary" data-action="next">Próximo</button>
+    <button type="button" class="btn-modal btn-primary" data-action="next">{{t "Próximo"}}</button>
     {{/if}}
   </div>
 </div>

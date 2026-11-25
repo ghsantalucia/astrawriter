@@ -2,6 +2,7 @@
  * @file Componente responsável pela renderização estrutural do chat do assistente de IA
  */
 
+import { t, intlLocale } from "../../../shared/i18n.js";
 import { appSettings } from "../../utils/appSettings.js";
 import { playPing } from "../../utils/sounds.js";
 import { isAppLink, openAppLink } from "../../utils/appLinks.js";
@@ -169,7 +170,7 @@ export class ChatComponent extends Component {
 
     // A IA começou a editar arquivos: ajusta o texto do indicador
     this.domainBus.on("ai:edit-started", () => {
-      this.setWorkingLabel("A IA está editando arquivos…");
+      this.setWorkingLabel(t("A IA está editando arquivos…"));
     });
 
     // Links no chat nunca navegam a janela do app (mesmo comportamento do editor: web no navegador padrão, arquivos do
@@ -446,7 +447,7 @@ export class ChatComponent extends Component {
       textarea.disabled = isLoading;
       if (isLoading) {
         this.defaultPlaceholder ??= textarea.placeholder;
-        textarea.placeholder = "A IA está trabalhando…";
+        textarea.placeholder = t("A IA está trabalhando…");
       } else if (this.defaultPlaceholder) {
         textarea.placeholder = this.defaultPlaceholder;
       }
@@ -462,7 +463,7 @@ export class ChatComponent extends Component {
       // Enquanto a IA trabalha, o botão de enviar vira o de parar (interrompe a resposta)
       this.aiBusy = Boolean(isLoading);
       btnSend.classList.toggle("stop", this.aiBusy);
-      btnSend.title = this.aiBusy ? "Parar a IA" : "Enviar mensagem";
+      btnSend.title = this.aiBusy ? t("Parar a IA") : t("Enviar mensagem");
       btnSend.setAttribute("aria-label", btnSend.title);
       this.sendIconHtml ??= btnSend.innerHTML;
       btnSend.innerHTML = this.aiBusy
@@ -501,7 +502,7 @@ export class ChatComponent extends Component {
     const indicator = this.createDOMElement(
       `<div class="ai-message assistant ai-working" id="ai-working-indicator">
         <span class="ai-working-dots"><i></i><i></i><i></i></span>
-        <span class="ai-working-label">A IA está trabalhando…</span>
+        <span class="ai-working-label">${t("A IA está trabalhando…")}</span>
       </div>`,
     );
     chatContainer.appendChild(indicator);
@@ -557,7 +558,7 @@ export class ChatComponent extends Component {
       (await window.electronAPI.readFile(`${path}.temp`)) !== null;
     if (!exists) {
       this.uiBus.emit("toast:show", {
-        message: "Este arquivo não existe mais.",
+        message: t("Este arquivo não existe mais."),
         type: "error",
       });
       return;
@@ -607,7 +608,7 @@ export class ChatComponent extends Component {
           ? `${(n / 1000).toFixed(1)}k`
           : String(n);
 
-    text.textContent = `Sessão: ${fmt(inputTokens + outputTokens)} tokens (↑${fmt(inputTokens)} ↓${fmt(outputTokens)})`;
+    text.textContent = t("Sessão: {total} tokens (↑{input} ↓{output})", { total: fmt(inputTokens + outputTokens), input: fmt(inputTokens), output: fmt(outputTokens) });
     this.updateLimitLine(usage, fmt);
 
     if (!contextWindow) {
@@ -621,7 +622,7 @@ export class ChatComponent extends Component {
     fill.style.width = `${percent}%`;
     fill.classList.toggle("warn", percent >= 70);
     fill.classList.toggle("danger", percent >= 90);
-    context.textContent = `Contexto: ${percent.toFixed(percent < 10 ? 1 : 0)}% de ${fmt(contextWindow)}`;
+    context.textContent = t("Contexto: {percent}% de {window}", { percent: percent.toFixed(percent < 10 ? 1 : 0), window: fmt(contextWindow) });
   }
 
   /**
@@ -643,42 +644,49 @@ export class ChatComponent extends Component {
     const active = limit && !(limit.until && limit.until < Date.now());
     let message = "";
     let level = "";
-    let tooltip =
-      "A barra mostra a ocupação da janela de contexto do modelo. A cota restante da conta só é informada por algumas APIs.";
+    let tooltip = t(
+      "A barra mostra a ocupação da janela de contexto do modelo. A cota restante da conta só é informada por algumas APIs.",
+    );
 
     if (active && limit.kind === "blocked") {
-      message = `⛔ Limite atingido${limit.period === "day" ? " (diário)" : limit.period === "minute" ? " (por minuto)" : ""} — volta em ~${formatDuration(limit.until - Date.now())}`;
+      const period = limit.period === "day" ? t(" (diário)") : limit.period === "minute" ? t(" (por minuto)") : "";
+      message = t("⛔ Limite atingido{period} — volta em ~{time}", { period, time: formatDuration(limit.until - Date.now()) });
       level = "blocked";
       tooltip = limit.message || tooltip;
     } else if (active && limit.kind === "remaining") {
       const parts = [];
       if (limit.tokensRemaining !== undefined) {
         parts.push(
-          `${fmt(limit.tokensRemaining)}${limit.tokensLimit ? ` de ${fmt(limit.tokensLimit)}` : ""} tokens restantes`,
+          limit.tokensLimit
+            ? t("{tokens} de {limit} tokens restantes", { tokens: fmt(limit.tokensRemaining), limit: fmt(limit.tokensLimit) })
+            : t("{tokens} tokens restantes", { tokens: fmt(limit.tokensRemaining) }),
         );
       }
       if (limit.requestsRemaining !== undefined) {
         parts.push(
-          `${limit.requestsRemaining}${limit.requestsLimit ? `/${limit.requestsLimit}` : ""} requisições`,
+          t("{count} requisições", { count: `${limit.requestsRemaining}${limit.requestsLimit ? `/${limit.requestsLimit}` : ""}` }),
         );
       }
-      message = `Limite da API: ${parts.join(" · ")}`;
+      message = t("Limite da API: {parts}", { parts: parts.join(" · ") });
       const ratio = limit.tokensLimit
         ? limit.tokensRemaining / limit.tokensLimit
         : 1;
       if (ratio < 0.2) level = "low";
-      tooltip = `Valores informados pela API do ${provider} na última resposta${limit.resetAt ? ` (renovam em ${formatDuration(limit.resetAt - Date.now())})` : ""}.`;
+      const reset = limit.resetAt ? t(" (renovam em {time})", { time: formatDuration(limit.resetAt - Date.now()) }) : "";
+      tooltip = t("Valores informados pela API do {provider} na última resposta{reset}.", { provider, reset });
     } else if (dailyQuota) {
       const used = daily?.requests || 0;
       const left = Math.max(0, dailyQuota - used);
-      message = `Hoje (${model}): ${used} de ${dailyQuota} requisições · restam ~${left}`;
+      message = t("Hoje ({model}): {used} de {quota} requisições · restam ~{left}", { model, used, quota: dailyQuota, left });
       if (left / dailyQuota <= 0.2) level = "low";
-      tooltip =
-        "O limite diário de requisições foi informado pela API na última vez que a cota estourou. O uso é contado pelo app neste computador; outros programas que usam a mesma chave também consomem a cota.";
+      tooltip = t(
+        "O limite diário de requisições foi informado pela API na última vez que a cota estourou. O uso é contado pelo app neste computador; outros programas que usam a mesma chave também consomem a cota.",
+      );
     } else if (daily?.requests > 0) {
-      message = `Hoje (${model}): ${daily.requests} requisições · ${fmt(daily.input + daily.output)} tokens · limite ainda desconhecido`;
-      tooltip =
-        "A API do Gemini não informa a cota restante. O app conta o que enviou hoje e passa a mostrar quanto falta assim que descobrir o limite real (a API o informa quando a cota estoura).";
+      message = t("Hoje ({model}): {requests} requisições · {tokens} tokens · limite ainda desconhecido", { model, requests: daily.requests, tokens: fmt(daily.input + daily.output) });
+      tooltip = t(
+        "A API do Gemini não informa a cota restante. O app conta o que enviou hoje e passa a mostrar quanto falta assim que descobrir o limite real (a API o informa quando a cota estoura).",
+      );
     }
 
     line.hidden = !message;
@@ -879,7 +887,7 @@ export class ChatComponent extends Component {
   createMessageElement({ role, content, buttons, timestamp }) {
     // Horário (só hora e minuto: a data já aparece no divisor do dia); aparece ao passar o mouse
     const date = timestamp ? new Date(timestamp) : null;
-    const time = date && !Number.isNaN(date.getTime()) ? date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+    const time = date && !Number.isNaN(date.getTime()) ? date.toLocaleTimeString(intlLocale(), { hour: "2-digit", minute: "2-digit" }) : "";
     // Respostas da IA vêm em Markdown; mensagens do usuário continuam texto puro
     const html = this.compile(messageTpl, {
       role,

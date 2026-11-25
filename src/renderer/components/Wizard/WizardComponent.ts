@@ -6,6 +6,7 @@
 
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 import { Component } from "../Component.js";
 import { TagInput } from "../Editor/tagInput.js";
 import { collectEventNames, normalizeEventName, parseEventNames } from "../../utils/eventNames.js";
@@ -107,7 +108,7 @@ export class WizardComponent extends Component {
       canSkip:
         Boolean(this.config.allowSkip) && this.index < this.steps.length - 1,
       readOnly: Boolean(this.config.readOnly),
-      submitLabel: this.config.submitLabel || "Concluir",
+      submitLabel: this.config.submitLabel || t("Concluir"),
     };
   }
 
@@ -138,8 +139,8 @@ export class WizardComponent extends Component {
         getKnownTags: () => [...titles, ...pending],
         normalize: normalizeEventName,
         parse: parseEventNames,
-        placeholder: host.dataset.placeholder || "Nome do evento (vírgula ou Enter)",
-        label: host.dataset.placeholder || "Eventos",
+        placeholder: host.dataset.placeholder || t("Nome do evento (vírgula ou Enter)"),
+        label: host.dataset.placeholder || t("Eventos"),
         stripHash: false,
         colored: false,
         stopEnter: true,

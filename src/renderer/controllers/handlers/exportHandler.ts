@@ -6,6 +6,7 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { uiBus } from "../../events/uiBus.js";
 import { splitFrontmatter } from "../../utils/markdown.js";
+import { t } from "../../../shared/i18n.js";
 
 /** Nomes dos formatos nas mensagens ao usuário. */
 const FORMAT_LABELS = { md: "Markdown", docx: "Word", pdf: "PDF" };
@@ -35,7 +36,7 @@ export async function onExportFile({ data }, state) {
   const format = data?.format;
   if (!state.currentFilePath || !state.editor) {
     uiBus.emit("toast:show", {
-      message: "Abra um arquivo para exportar.",
+      message: t("Abra um arquivo para exportar."),
       type: "info",
     });
     return;
@@ -53,9 +54,9 @@ export async function onExportFile({ data }, state) {
     });
     if (result?.canceled) return;
     if (!result?.success)
-      throw new Error(result?.error || "Falha ao exportar.");
+      throw new Error(result?.error || t("Falha ao exportar."));
     uiBus.emit("toast:show", {
-      message: `Arquivo exportado em ${FORMAT_LABELS[format]}.`,
+      message: t("Arquivo exportado em {format}.", { format: FORMAT_LABELS[format] }),
       type: "success",
     });
   } catch (error) {
@@ -97,6 +98,6 @@ export async function collectChapters(bookPath) {
 export async function exportBook({ kind, format }, bookPath, title) {
   const chapters = kind === "project" ? [] : await collectChapters(bookPath);
   const result = await window.electronAPI.exportBook({ kind, format, title, bookPath, chapters });
-  if (!result?.success && !result?.canceled) throw new Error(result?.error || "Falha ao exportar o livro.");
+  if (!result?.success && !result?.canceled) throw new Error(result?.error || t("Falha ao exportar o livro."));
   return result;
 }
