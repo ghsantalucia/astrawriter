@@ -8,6 +8,7 @@
  */
 
 import { uiBus } from "../events/uiBus.js";
+import { LANGUAGES, getLanguage, t } from "../../shared/i18n.js";
 
 const KEY = "astra.settings.v1";
 
@@ -48,6 +49,8 @@ export const EDITOR_FONTS = [
 
 /** Definições das configurações do app. @type {SettingDef[]} */
 export const SETTING_DEFS = [
+  // Idioma: a IA só orienta (classe c); trocar recarrega a tela, e a escolha fica gravada pelo processo principal
+  { id: "ui.language", label: t("Idioma do aplicativo"), help: t("O idioma da interface do Astra Writer. Ao trocar, o app recarrega a tela."), where: t("Central do Sistema → Aparência"), tab: "appearance", type: "select", options: LANGUAGES, default: "pt-BR", risk: "c", get: () => getLanguage(), set: (value) => { void (window as any).electronAPI?.setLanguage?.(value); } },
   { id: "ui.theme", label: "Tema claro ou escuro", help: "Alterna a aparência do app entre claro e escuro.", where: "Central do Sistema → Aparência", tab: "appearance", type: "select", options: [{ value: "light", label: "Claro" }, { value: "dark", label: "Escuro" }], default: "dark", risk: "a" },
   { id: "ui.themePreset", label: "Tema de cores", help: "Conjunto de cores do app (predefinido ou criado por você).", where: "Central do Sistema → Aparência", tab: "appearance", type: "text", default: "astra", risk: "a" },
   { id: "ui.zoom", label: "Tamanho da fonte do app", help: "Aumenta ou diminui todo o app (em porcentagem).", where: "Central do Sistema → Acessibilidade", tab: "accessibility", type: "number", min: 70, max: 200, default: 100, risk: "a" },

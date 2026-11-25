@@ -59,7 +59,7 @@ export async function launchApp(opts = {}) {
     cwd: ROOT,
     shell: true,
     stdio: "ignore",
-    env: { ...process.env, ASTRA_DATA_DIR: dataDir, ASTRA_HIDDEN: process.env.ASTRA_E2E_VISIBLE ? "0" : "1", NODE_ENV: "development" },
+    env: { ...process.env, ASTRA_DATA_DIR: dataDir, ASTRA_HIDDEN: process.env.ASTRA_E2E_VISIBLE ? "0" : "1", ASTRA_LANG: process.env.ASTRA_LANG || "pt-BR", NODE_ENV: "development" },
   });
 
   const kill = () => {

@@ -10,6 +10,7 @@ import { setupFileWatcher } from "./file-watcher.js";
 import { setupIpcHandlers } from "./ipc-handlers.js";
 import { ensureBooksDir, iconPath } from "./paths.js";
 import { installManualBook } from "./first-run.js";
+import { initLanguage, registerLanguageIpc } from "./language.js";
 
 // Em desenvolvimento, os dados do app ficam na pasta "Astra Writer Dev". A pasta "Astra Writer" é a do app instalado
 // (assim o instalado nunca enxerga as chaves e configurações de desenvolvimento).
@@ -38,6 +39,9 @@ const createWindow = () => {
 
   // Testes E2E em segundo plano: a janela nunca é exibida (não rouba o foco de quem está trabalhando)
   const hidden = process.env.ASTRA_HIDDEN === "1";
+
+  // Idioma do app (escolha do usuário, ou o do sistema): definido antes de qualquer texto ser criado
+  initLanguage();
 
   mainWindow = new BrowserWindow({
     width: hidden ? 1440 : 1200,
@@ -69,6 +73,7 @@ const createWindow = () => {
 
   // Inicializa os manipuladores IPC passando a janela
   setupIpcHandlers(mainWindow);
+  registerLanguageIpc(mainWindow);
 
   // Inicia o chokidar File Watcher
   setupFileWatcher(mainWindow);
