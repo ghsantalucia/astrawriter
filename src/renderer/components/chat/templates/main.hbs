@@ -8,13 +8,13 @@
     <span class="ai-sparkles-icon">✦</span>
     <span class="ai-working-dots ai-header-dots" aria-hidden="true"><i></i><i
       ></i><i></i></span>
-    <span class="ai-title">Assistente de Escrita</span>
-    <span class="ai-unread-dot" id="ai-unread-dot" hidden title="Nova resposta da IA"></span>
+    <span class="ai-title">{{t "Assistente de Escrita"}}</span>
+    <span class="ai-unread-dot" id="ai-unread-dot" hidden title="{{t 'Nova resposta da IA'}}"></span>
   </div>
   <button
     id="btn-toggle-ai"
     class="ai-toggle-btn"
-    title="Expandir/Recolher Chat"
+    title="{{t 'Expandir/Recolher Chat'}}"
   >▲</button>
 </div>
 
@@ -27,9 +27,9 @@
   </div>
 
   <div class="ai-usage-bar" id="ai-usage-bar">
-    <div class="ai-usage-model" id="ai-usage-model" title="Conta e modelo em uso" hidden></div>
+    <div class="ai-usage-model" id="ai-usage-model" title="{{t 'Conta e modelo em uso'}}" hidden></div>
     <div class="ai-usage-row">
-      <span class="ai-usage-text" id="ai-usage-text">Sessão: 0 tokens</span>
+      <span class="ai-usage-text" id="ai-usage-text">{{t "Sessão: 0 tokens"}}</span>
       <div class="ai-usage-meter" id="ai-usage-meter" hidden>
         <div class="ai-usage-meter-fill" id="ai-usage-meter-fill"></div>
       </div>
@@ -43,7 +43,7 @@
       <!-- Campo de Texto -->
       <textarea
         id="ai-chat-input"
-        placeholder="Digite uma instrução para a IA..."
+        placeholder="{{t 'Digite uma instrução para a IA...'}}"
         rows="2"
       ></textarea>
 
@@ -55,11 +55,11 @@
           class="btn-ai-central"
           event-click="central:open"
           data-central="ai"
-          title="Abrir a Central de IA (contas, modelo, uso, depuração e skills)"
+          title="{{t 'Abrir a Central de IA (contas, modelo, uso, depuração e skills)'}}"
         >
           <i class="fa-solid fa-sliders"></i>
         </button>
-        <button id="btn-send-ai" class="btn-send-round" title="Enviar mensagem">
+        <button id="btn-send-ai" class="btn-send-round" title="{{t 'Enviar mensagem'}}">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

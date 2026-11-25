@@ -6,7 +6,7 @@
     <span class="log-path" title="{{path}}">{{path}}</span>
     {{#if actorDetail}}<span class="log-actor-detail">{{actorDetail}}</span>{{/if}}
     {{#if summary}}<span class="log-summary">{{summary}}</span>{{/if}}
-    {{#if purged}}<span class="log-purged" title="O conteúdo guardado deste registro foi apagado por uma restauração: ele não permite mais rollback."><i class="fa-solid fa-ban"></i> conteúdo apagado · sem rollback</span>{{/if}}
-    {{#if hasContent}}<span class="log-content-ref" title="Este registro tem conteúdo guardado para rollback"><i class="fa-solid fa-database"></i></span>{{/if}}
+    {{#if purged}}<span class="log-purged" title="{{t 'O conteúdo guardado deste registro foi apagado por uma restauração: ele não permite mais rollback.'}}"><i class="fa-solid fa-ban"></i> {{t "conteúdo apagado · sem rollback"}}</span>{{/if}}
+    {{#if hasContent}}<span class="log-content-ref" title="{{t 'Este registro tem conteúdo guardado para rollback'}}"><i class="fa-solid fa-database"></i></span>{{/if}}
   </li>
 {{/each}}

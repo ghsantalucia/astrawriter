@@ -2,6 +2,8 @@
  * @file Funções puras de formatação dos registros do changelog e do log de erros para exibição nos modais.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /**
  * Formata uma data ISO como "DD/MM/AAAA HH:MM:SS" (horário local).
  * @param {string|null|undefined} iso - Data em formato ISO.
@@ -22,15 +24,15 @@ export function formatDateTime(iso) {
 export function describeActor(actor) {
   if (actor?.type === "ai") {
     return {
-      label: "Assistente",
+      label: t("Assistente"),
       detail: [actor.provider, actor.model].filter(Boolean).join(" · "),
       className: "actor-ai",
     };
   }
   if (actor?.type === "system") {
-    return { label: "Sistema", detail: "", className: "actor-system" };
+    return { label: t("Sistema"), detail: "", className: "actor-system" };
   }
-  return { label: "Usuário", detail: "", className: "actor-user" };
+  return { label: t("Usuário"), detail: "", className: "actor-user" };
 }
 
 /**
@@ -41,7 +43,7 @@ export function describeActor(actor) {
  */
 export function displayPath(path, action) {
   if (path !== ".") return path;
-  return action === "setting" ? "(configurações)" : "(livro inteiro)";
+  return action === "setting" ? t("(configurações)") : t("(livro inteiro)");
 }
 
 /**
@@ -56,29 +58,29 @@ function summarizeReview(meta) {
   const detail = kinds ? ` (${kinds})` : "";
   switch (meta.kind) {
     case "found":
-      return `${meta.count} issue(s) encontrado(s)${detail}`;
+      return t("{count} issue(s) encontrado(s){detail}", { count: meta.count, detail });
     case "scan":
-      return `varredura: ${meta.count} issue(s) em ${meta.files ?? "?"} arquivo(s)`;
+      return t("varredura: {count} issue(s) em {files} arquivo(s)", { count: meta.count, files: meta.files ?? "?" });
     case "fixed":
-      return `${meta.count} issue(s) corrigido(s)${detail}`;
+      return t("{count} issue(s) corrigido(s){detail}", { count: meta.count, detail });
     case "dismissed":
-      return `${meta.count} issue(s) dispensado(s)${detail}`;
+      return t("{count} issue(s) dispensado(s){detail}", { count: meta.count, detail });
     case "type-dismissed":
-      return `tipo dispensado: ${meta.type}`;
+      return t("tipo dispensado: {type}", { type: meta.type });
     case "type-restored":
-      return `tipo reativado: ${meta.type}`;
+      return t("tipo reativado: {type}", { type: meta.type });
     case "dictionary":
-      return `"${meta.word}" adicionada ao dicionário do livro (${meta.removed ?? 0} issue(s) removido(s))`;
+      return t("\"{word}\" adicionada ao dicionário do livro ({removed} issue(s) removido(s))", { word: meta.word, removed: meta.removed ?? 0 });
     case "ai-fix":
-      return `correção pela IA solicitada (${meta.count} issue(s))`;
+      return t("correção pela IA solicitada ({count} issue(s))", { count: meta.count });
     case "analysis":
-      return `análise da IA: ${meta.count} arquivo(s), ${meta.verified ?? 0} verificação(ões), ${meta.issues ?? 0} pendência(s) nova(s)`;
+      return t("análise da IA: {count} arquivo(s), {verified} verificação(ões), {issues} pendência(s) nova(s)", { count: meta.count, verified: meta.verified ?? 0, issues: meta.issues ?? 0 });
     case "registered":
-      return `${meta.count} issue(s) registrado(s)${detail}`;
+      return t("{count} issue(s) registrado(s){detail}", { count: meta.count, detail });
     case "resolved":
-      return `${meta.count} issue(s) resolvido(s)`;
+      return t("{count} issue(s) resolvido(s)", { count: meta.count });
     default:
-      return meta.kind || "revisão";
+      return meta.kind || t("revisão");
   }
 }
 
@@ -92,28 +94,29 @@ export function summarizeEntry(entry) {
 
   switch (entry.action) {
     case "update":
-      return `+${meta.added ?? 0} / −${meta.removed ?? 0} linhas`;
+      return t("+{added} / −{removed} linhas", { added: meta.added ?? 0, removed: meta.removed ?? 0 });
     case "delete":
-      return `arquivo excluído (${meta.removed ?? 0} linhas guardadas)`;
+      return t("arquivo excluído ({removed} linhas guardadas)", { removed: meta.removed ?? 0 });
     case "create":
-      return "arquivo criado";
+      return t("arquivo criado");
     case "read":
-      return meta.tool
-        ? `lido por ${meta.tool}${meta.count !== undefined ? ` (${meta.count} arquivos)` : ""}`
-        : "arquivo lido";
+      if (!meta.tool) return t("arquivo lido");
+      return meta.count !== undefined
+        ? t("lido por {tool} ({count} arquivos)", { tool: meta.tool, count: meta.count })
+        : t("lido por {tool}", { tool: meta.tool });
     case "restore":
-      return `voltou à versão #${meta.toEntryId} (${meta.removed ?? 0} registros ficaram sem conteúdo)`;
+      return t("voltou à versão #{id} ({removed} registros ficaram sem conteúdo)", { id: meta.toEntryId, removed: meta.removed ?? 0 });
     case "original":
-      return "estado do arquivo antes do primeiro registro do changelog";
+      return t("estado do arquivo antes do primeiro registro do changelog");
     case "autosave":
-      return `rascunho salvo ${meta.saves ?? 1}x nesta sessão · +${meta.added ?? 0} / −${meta.removed ?? 0} linhas`;
+      return t("rascunho salvo {saves}x nesta sessão · +{added} / −{removed} linhas", { saves: meta.saves ?? 1, added: meta.added ?? 0, removed: meta.removed ?? 0 });
     case "move":
-      return `movido de ${meta.from}`;
+      return t("movido de {from}", { from: meta.from });
     case "review":
       return summarizeReview(meta);
     case "setting":
       return meta.setting === "ai.model"
-        ? `modelo de IA: ${meta.from} → ${meta.to}`
+        ? t("modelo de IA: {from} → {to}", { from: meta.from, to: meta.to })
         : `${meta.setting}: ${meta.from} → ${meta.to}`;
     default:
       return "";

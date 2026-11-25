@@ -7,6 +7,7 @@
  * informou tudo (ex.: o título do capítulo), a criação acontece na mesma resposta, sem pedir confirmação.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { uiBus } from "../../events/uiBus.js";
 import { CREATION_KINDS } from "../../services/creationService.js";
 import { allFields } from "../../utils/template.js";
@@ -40,7 +41,7 @@ function assertValuesFromAuthor(spec, values, conversation: { prompt?: string; h
     if (!value || value === String(field.value ?? "").trim()) continue;
     if (!corpus.includes(foldText(value))) {
       throw new Error(
-        `O valor de "${field.label}" ("${value}") não aparece na conversa com o autor. Não invente: pergunte ao autor esse dado (uma única vez) e aguarde a resposta.`,
+        t('O valor de "{label}" ("{value}") não aparece na conversa com o autor. Não invente: pergunte ao autor esse dado (uma única vez) e aguarde a resposta.', { label: field.label, value }),
       );
     }
   }
@@ -57,24 +58,27 @@ const AI_CREATION_KINDS = CREATION_KINDS.filter((kind) => kind !== "book");
  */
 function assertAiKind(kind) {
   if (kind === "book") {
-    throw new Error("A IA não cria livros: ela trabalha só dentro do livro aberto. Quem cria livros é o autor, pelo seletor de livros (Novo livro).");
+    throw new Error(t("A IA não cria livros: ela trabalha só dentro do livro aberto. Quem cria livros é o autor, pelo seletor de livros (Novo livro)."));
   }
   if (!AI_CREATION_KINDS.includes(kind)) {
-    throw new Error(`Tipo de criação inválido: "${kind}". Use: ${AI_CREATION_KINDS.join(", ")}.`);
+    throw new Error(t('Tipo de criação inválido: "{kind}". Use: {kinds}.', { kind, kinds: AI_CREATION_KINDS.join(", ") }));
   }
 }
 
 const KIND_PARAM = {
   type: "string",
   enum: AI_CREATION_KINDS,
-  description:
-    "O que criar, dentro do livro aberto: 'chapter' (capítulo), 'entity' (ficha de personagem/ambiente/sistema, requer `folder`) ou 'note' (anotação).",
+  // getter: a constante é criada na importação do módulo, antes de o idioma ser definido
+  get description() {
+    return t("O que criar, dentro do livro aberto: 'chapter' (capítulo), 'entity' (ficha de personagem/ambiente/sistema, requer `folder`) ou 'note' (anotação).");
+  },
 };
 
 const FOLDER_PARAM = {
   type: "string",
-  description:
-    "Apenas para kind='entity': pasta da ficha relativa ao livro, ex.: assets/characters. Se omitida, o erro lista as pastas disponíveis.",
+  get description() {
+    return t("Apenas para kind='entity': pasta da ficha relativa ao livro, ex.: assets/characters. Se omitida, o erro lista as pastas disponíveis.");
+  },
 };
 
 /** Pasta (relativa ao livro) cujas permissões regem a criação de cada tipo. */
@@ -94,7 +98,7 @@ async function assertAiCanCreate(kind, folder, ctx) {
 
   if (metadata.aiWrite !== true) {
     throw new Error(
-      `Acesso negado: o autor não permitiu escrita da IA em "${metadata.title || target}" (aiWrite está desativado). Peça ao autor para criar pela interface.`,
+      t('Acesso negado: o autor não permitiu escrita da IA em "{target}" (aiWrite está desativado). Peça ao autor para criar pela interface.', { target: metadata.title || target }),
     );
   }
 }
@@ -114,7 +118,7 @@ async function resolveEntityFolder(folder, ctx) {
   if (!found) {
     const list = options.map((o) => `- ${o.folder} (${o.title})`).join("\n");
     throw new Error(
-      `Informe 'folder' com uma das pastas que aceitam fichas:\n${list || "(nenhuma encontrada)"}`,
+      `${t("Informe 'folder' com uma das pastas que aceitam fichas:")}\n${list || t("(nenhuma encontrada)")}`,
     );
   }
   return found.folder;
@@ -128,7 +132,7 @@ export function registerCreationTools(registry) {
   registry.register({
     name: "start_creation",
     description:
-      "Primeira etapa para criar, no livro aberto, um capítulo, ficha (personagem, ambiente, sistema) ou anotação (a IA não cria livros): retorna os campos a preencher. Se o autor JÁ informou os campos obrigatórios (ex.: o título) ou já respondeu a você, chame complete_creation logo em seguida, na mesma resposta, SEM pedir confirmação. Só pergunte se faltar algum campo obrigatório (uma única vez) e então aguarde a resposta. Nunca invente as respostas.",
+      t("Primeira etapa para criar, no livro aberto, um capítulo, ficha (personagem, ambiente, sistema) ou anotação (a IA não cria livros): retorna os campos a preencher. Se o autor JÁ informou os campos obrigatórios (ex.: o título) ou já respondeu a você, chame complete_creation logo em seguida, na mesma resposta, SEM pedir confirmação. Só pergunte se faltar algum campo obrigatório (uma única vez) e então aguarde a resposta. Nunca invente as respostas."),
     parameters: {
       type: "object",
       properties: { kind: KIND_PARAM, folder: FOLDER_PARAM },
@@ -137,7 +141,7 @@ export function registerCreationTools(registry) {
     async execute({ kind, folder }, ctx) {
       assertAiKind(kind);
       if (!ctx.state.currentBookPath) {
-        throw new Error("Nenhum livro selecionado.");
+        throw new Error(t("Nenhum livro selecionado."));
       }
 
       const cleanFolder =
@@ -169,8 +173,8 @@ export function registerCreationTools(registry) {
         title: spec.title,
         alreadyStarted,
         instructions: alreadyStarted
-          ? "Esta criação JÁ foi iniciada em uma mensagem anterior. NÃO pergunte novamente: chame complete_creation agora com as respostas que o autor deu (inclusive por botão ou 'confirmado'); campos opcionais não informados ficam em branco."
-          : "Se a conversa já traz os campos obrigatórios (ex.: o título que o autor pediu), chame complete_creation AGORA, na mesma resposta, sem pedir confirmação. Se faltar algum campo obrigatório, pergunte só o que falta (uma única vez, sugerindo valores) e aguarde a resposta; campos opcionais podem ficar em branco. Para fichas, o autor pode optar por criar só com os dados principais.",
+          ? t("Esta criação JÁ foi iniciada em uma mensagem anterior. NÃO pergunte novamente: chame complete_creation agora com as respostas que o autor deu (inclusive por botão ou 'confirmado'); campos opcionais não informados ficam em branco.")
+          : t("Se a conversa já traz os campos obrigatórios (ex.: o título que o autor pediu), chame complete_creation AGORA, na mesma resposta, sem pedir confirmação. Se faltar algum campo obrigatório, pergunte só o que falta (uma única vez, sugerindo valores) e aguarde a resposta; campos opcionais podem ficar em branco. Para fichas, o autor pode optar por criar só com os dados principais."),
         steps: spec.steps.map((step, index) => ({
           step: index + 1,
           title: step.title,
@@ -191,7 +195,7 @@ export function registerCreationTools(registry) {
   registry.register({
     name: "complete_creation",
     description:
-      "ÚLTIMA etapa da criação: cria o item com as respostas do autor. Pode ser chamada na mesma resposta de start_creation quando o autor já informou os campos obrigatórios (os valores precisam constar na conversa). Campos não informados usam o valor padrão.",
+      t("ÚLTIMA etapa da criação: cria o item com as respostas do autor. Pode ser chamada na mesma resposta de start_creation quando o autor já informou os campos obrigatórios (os valores precisam constar na conversa). Campos não informados usam o valor padrão."),
     parameters: {
       type: "object",
       properties: {
@@ -200,12 +204,12 @@ export function registerCreationTools(registry) {
         answers: {
           type: "array",
           description:
-            "Respostas do autor, uma por campo (use os ids retornados por start_creation).",
+            t("Respostas do autor, uma por campo (use os ids retornados por start_creation)."),
           items: {
             type: "object",
             properties: {
-              field: { type: "string", description: "Id do campo." },
-              value: { type: "string", description: "Resposta do autor." },
+              field: { type: "string", description: t("Id do campo.") },
+              value: { type: "string", description: t("Resposta do autor.") },
             },
             required: ["field", "value"],
           },
@@ -215,7 +219,7 @@ export function registerCreationTools(registry) {
     },
     async execute({ kind, folder, answers }, ctx) {
       assertAiKind(kind);
-      if (!ctx.state.currentBookPath) throw new Error("Nenhum livro selecionado.");
+      if (!ctx.state.currentBookPath) throw new Error(t("Nenhum livro selecionado."));
       const cleanFolder =
         kind === "entity"
           ? String(folder || "").replace(/^\/+|\/+$/g, "")
@@ -241,11 +245,11 @@ export function registerCreationTools(registry) {
       ctx.state.pendingCreation = null;
 
       uiBus.emit("toast:show", {
-        message: `A IA criou "${result.title}".`,
+        message: t('A IA criou "{title}".', { title: result.title }),
         type: "success",
       });
 
-      return `Criado com sucesso: "${result.title}" (${kind}). Já aparece para o autor no explorer. Avise o autor usando o título.`;
+      return t('Criado com sucesso: "{title}" ({kind}). Já aparece para o autor no explorer. Avise o autor usando o título.', { title: result.title, kind });
     },
   });
 }

@@ -12,15 +12,15 @@
     <span
       class="file-tab-dirty hidden"
       id="file-tab-dirty"
-      title="Rascunho não sincronizado"
+      title="{{t 'Rascunho não sincronizado'}}"
     >*</span>
     <button
       type="button"
       class="file-tab-edit"
       id="file-tab-edit"
       event-click="file-data:toggle"
-      title="Editar os dados do arquivo (nome e variáveis)"
-      aria-label="Editar os dados do arquivo"
+      title="{{t 'Editar os dados do arquivo (nome e variáveis)'}}"
+      aria-label="{{t 'Editar os dados do arquivo'}}"
     >
       <i class="fa-solid fa-pen"></i>
     </button>
@@ -34,21 +34,21 @@
       data-kind="draft"
       data-file="2_draft.md"
       data-name="Manuscrito"
-      title="Manuscrito — O texto do capítulo"
+      title="{{t 'Manuscrito — O texto do capítulo'}}"
       event-click="editor:open-file"
       data-path=""
       data-absolute-path=""
     >
       <i class="fa-solid fa-feather-pointed chapter-tab-icon"></i>
-      <span class="file-tab-name">Manuscrito</span>
+      <span class="file-tab-name">{{t "Manuscrito"}}</span>
       <span class="file-tab-dirty hidden">*</span>
-      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
+      <span class="ai-dot hidden" title="{{t 'Alterado pela IA (some 3 segundos depois de abrir o arquivo)'}}"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
         event-click="file-data:toggle"
-        title="Editar os dados do arquivo (nome e variáveis)"
-        aria-label="Editar os dados do arquivo"
+        title="{{t 'Editar os dados do arquivo (nome e variáveis)'}}"
+        aria-label="{{t 'Editar os dados do arquivo'}}"
       >
         <i class="fa-solid fa-pen"></i>
       </button>
@@ -60,21 +60,21 @@
       data-kind="outline"
       data-file="1_outline.md"
       data-name="Esboço"
-      title="Esboço — Plano do capítulo: o que escrever (serve de prompt para a IA)"
+      title="{{t 'Esboço — Plano do capítulo: o que escrever (serve de prompt para a IA)'}}"
       event-click="editor:open-file"
       data-path=""
       data-absolute-path=""
     >
       <i class="fa-solid fa-lightbulb chapter-tab-icon"></i>
-      <span class="file-tab-name">Esboço</span>
+      <span class="file-tab-name">{{t "Esboço"}}</span>
       <span class="file-tab-dirty hidden">*</span>
-      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
+      <span class="ai-dot hidden" title="{{t 'Alterado pela IA (some 3 segundos depois de abrir o arquivo)'}}"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
         event-click="file-data:toggle"
-        title="Editar os dados do arquivo (nome e variáveis)"
-        aria-label="Editar os dados do arquivo"
+        title="{{t 'Editar os dados do arquivo (nome e variáveis)'}}"
+        aria-label="{{t 'Editar os dados do arquivo'}}"
       >
         <i class="fa-solid fa-pen"></i>
       </button>
@@ -86,21 +86,21 @@
       data-kind="analysis"
       data-file="3_analysis.md"
       data-name="Análise"
-      title="Análise — Análise, planejamento e pistas, gerados depois da escrita"
+      title="{{t 'Análise — Análise, planejamento e pistas, gerados depois da escrita'}}"
       event-click="editor:open-file"
       data-path=""
       data-absolute-path=""
     >
       <i class="fa-solid fa-magnifying-glass-chart chapter-tab-icon"></i>
-      <span class="file-tab-name">Análise</span>
+      <span class="file-tab-name">{{t "Análise"}}</span>
       <span class="file-tab-dirty hidden">*</span>
-      <span class="ai-dot hidden" title="Alterado pela IA (some 3 segundos depois de abrir o arquivo)"></span>
+      <span class="ai-dot hidden" title="{{t 'Alterado pela IA (some 3 segundos depois de abrir o arquivo)'}}"></span>
       <button
         type="button"
         class="file-tab-edit chapter-tab-edit hidden"
         event-click="file-data:toggle"
-        title="Editar os dados do arquivo (nome e variáveis)"
-        aria-label="Editar os dados do arquivo"
+        title="{{t 'Editar os dados do arquivo (nome e variáveis)'}}"
+        aria-label="{{t 'Editar os dados do arquivo'}}"
       >
         <i class="fa-solid fa-pen"></i>
       </button>
@@ -112,8 +112,8 @@
     id="btn-narrator"
     class="btn-toolbar-icon"
     event-click="narrator:toggle"
-    title="Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)"
-    aria-label="Ouvir o arquivo em voz alta"
+    title="{{t 'Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)'}}"
+    aria-label="{{t 'Ouvir o arquivo em voz alta'}}"
     disabled
   >
     <i class="fa-solid fa-volume-high" id="narrator-icon"></i>
@@ -122,8 +122,8 @@
     id="btn-narrator-stop"
     class="btn-toolbar-icon hidden"
     event-click="narrator:stop"
-    title="Parar a leitura"
-    aria-label="Parar a leitura"
+    title="{{t 'Parar a leitura'}}"
+    aria-label="{{t 'Parar a leitura'}}"
   >
     <i class="fa-solid fa-stop"></i>
   </button>
@@ -133,8 +133,8 @@
     event-click="central:open"
     data-central="issues"
     data-tab="spelling"
-    title="Correção ortográfica: abre a aba Ortografia da Central de Revisões"
-    aria-label="Correção ortográfica"
+    title="{{t 'Correção ortográfica: abre a aba Ortografia da Central de Revisões'}}"
+    aria-label="{{t 'Correção ortográfica'}}"
   >
     <i class="fa-solid fa-spell-check"></i>
   </button>
@@ -142,7 +142,7 @@
     id="btn-autolink"
     class="btn-toolbar-icon"
     event-click="autolink:run"
-    title="Cria links automáticos para os nomes e apelidos de fichas do livro encontrados neste texto"
+    title="{{t 'Cria links automáticos para os nomes e apelidos de fichas do livro encontrados neste texto'}}"
     disabled
   >
     <span class="icon-link-stars" aria-hidden="true">
@@ -153,30 +153,30 @@
         />
       </svg>
     </span>
-    <span>Auto-link</span>
+    <span>{{t "Auto-link"}}</span>
   </button>
   <button
     id="btn-history"
     class="btn-toolbar-icon"
     event-click="history:open-modal"
-    title="Histórico de versões do arquivo"
+    title="{{t 'Histórico de versões do arquivo'}}"
     disabled
   >
     <i class="fa-solid fa-clock-rotate-left"></i>
-    <span>Histórico</span>
+    <span>{{t "Histórico"}}</span>
   </button>
   <div class="export-wrap">
     <button
       id="btn-export"
       class="btn-toolbar-icon"
       event-click="export:toggle-menu"
-      title="Exportar o arquivo aberto no editor"
+      title="{{t 'Exportar o arquivo aberto no editor'}}"
       aria-haspopup="menu"
       aria-expanded="false"
       disabled
     >
       <i class="fa-solid fa-download"></i>
-      <span>Exportar</span>
+      <span>{{t "Exportar"}}</span>
     </button>
     <div class="export-menu hidden" id="export-menu" role="menu">
       <button
@@ -223,6 +223,6 @@
         vector-effect="non-scaling-stroke"
       />
     </svg>
-    <span class="btn-text">Sincronizar</span>
+    <span class="btn-text">{{t "Sincronizar"}}</span>
   </button>
 </div>

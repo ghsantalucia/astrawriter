@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { app } from "electron";
+import { t } from "../shared/i18n.js";
 
 /** @returns {string} Pasta das skills do usuário. */
 function root() {
@@ -36,7 +37,7 @@ export function listSkillFiles() {
  * @returns {{success: boolean, error?: string}}
  */
 export function saveSkillFile(file, content) {
-  if (!SAFE_FILE.test(String(file))) return { success: false, error: "Nome de skill inválido." };
+  if (!SAFE_FILE.test(String(file))) return { success: false, error: t("Nome de skill inválido.") };
   fs.mkdirSync(root(), { recursive: true });
   fs.writeFileSync(path.join(root(), file), String(content ?? ""), "utf8");
   return { success: true };
@@ -48,7 +49,7 @@ export function saveSkillFile(file, content) {
  * @returns {{success: boolean, error?: string}}
  */
 export function deleteSkillFile(file) {
-  if (!SAFE_FILE.test(String(file))) return { success: false, error: "Nome de skill inválido." };
+  if (!SAFE_FILE.test(String(file))) return { success: false, error: t("Nome de skill inválido.") };
   fs.rmSync(path.join(root(), file), { force: true });
   return { success: true };
 }

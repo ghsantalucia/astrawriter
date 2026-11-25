@@ -4,6 +4,7 @@
  * suporte a tools usam o modo simulado.
  */
 
+import { t } from "../../../../shared/i18n.js";
 import { normalizeHistory, runToolLoop } from "../../toolLoop.js";
 import { requestJson, safeJson } from "../openaiCompat.js";
 import {
@@ -87,7 +88,7 @@ async function run({ simulated, prompt, history, config, systemPrompt, tools, to
  */
 export async function sendRequest(args) {
   const { config } = args;
-  if (!config.model) throw new Error("Escolha um modelo do Ollama na Central de IA (use “Atualizar modelos”).");
+  if (!config.model) throw new Error(t("Escolha um modelo do Ollama na Central de IA (use “Atualizar modelos”)."));
   const key = `${host(config)}|${config.model}`;
   const mode = config.toolMode || "auto";
   if (mode === "simulated" || (mode === "auto" && needsSimulation(key))) return run({ ...args, simulated: true });

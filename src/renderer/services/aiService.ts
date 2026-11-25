@@ -16,11 +16,12 @@ import {
   getDailyQuota,
   learnDailyQuota,
 } from "../ai/usageTracker.js";
+import { t } from "../../shared/i18n.js";
 
 const MAX_MESSAGES_PER_FILE = 50;
 
-const SYNC_DENIED_MESSAGE =
-  "Existem rascunhos (.temp) não sincronizados no projeto e o autor não os sincronizou. Nenhuma alteração foi feita. Avise o autor que é obrigatório sincronizar tudo antes de a IA editar arquivos.";
+const syncDeniedMessage = () =>
+  t("Existem rascunhos (.temp) não sincronizados no projeto e o autor não os sincronizou. Nenhuma alteração foi feita. Avise o autor que é obrigatório sincronizar tudo antes de a IA editar arquivos.");
 
 /**
  * Obtém a data atual formatada como YYYY-MM-DD para nomear a sessão do chat.
@@ -224,7 +225,7 @@ export class AiService {
    */
   async saveAccount({ id, provider, nickname, apiKey, model, activate = false, baseUrl, toolMode, numCtx }) {
     const info = getProviderInfo(provider);
-    if (!info) throw new Error("Provedor inválido.");
+    if (!info) throw new Error(t("Provedor inválido."));
     const label = String(nickname || "").trim() || info.label.replace(/ \(.*\)$/, "");
     const accountId = id || `acc-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
@@ -252,7 +253,7 @@ export class AiService {
       }
       if (activate || !this.state.aiSettings.activeAccount) this.state.aiSettings.activeAccount = accountId;
     });
-    if (!ok) throw new Error("Não foi possível salvar a conta.");
+    if (!ok) throw new Error(t("Não foi possível salvar a conta."));
     return accountId;
   }
 
@@ -546,11 +547,11 @@ export class AiService {
 
       beginEdit: async () => {
         if (session.locked) return;
-        if (session.syncDenied) throw new Error(SYNC_DENIED_MESSAGE);
+        if (session.syncDenied) throw new Error(syncDeniedMessage());
 
         if (!(await this.requireFullSync())) {
           session.syncDenied = true;
-          throw new Error(SYNC_DENIED_MESSAGE);
+          throw new Error(syncDeniedMessage());
         }
 
         session.locked = true;
@@ -568,7 +569,7 @@ export class AiService {
     };
 
     if (web && !toolContext.web) {
-      toolContext.notice?.("A busca na internet nativa não está disponível neste provedor (só Claude e Gemini): a skill vai usar apenas o que o modelo já sabe.");
+      toolContext.notice?.(t("A busca na internet nativa não está disponível neste provedor (só Claude e Gemini): a skill vai usar apenas o que o modelo já sabe."));
     }
     try {
       const { text, usage } = await ai.processPrompt(

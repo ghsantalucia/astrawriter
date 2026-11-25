@@ -6,6 +6,7 @@
  */
 
 import { findMatches, replaceMatches } from "./editorTools.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Painel de busca e substituição ligado a um editor Toast UI.
@@ -159,8 +160,8 @@ export class FindReplacePanel {
     if (this.current >= matches.length) this.current = 0;
 
     if (!this.term) this.count.textContent = "";
-    else if (matches.length === 0) this.count.textContent = "Sem resultados";
-    else this.count.textContent = `${this.current + 1} de ${matches.length}`;
+    else if (matches.length === 0) this.count.textContent = t("Sem resultados");
+    else this.count.textContent = t("{current} de {total}", { current: this.current + 1, total: matches.length });
     this.count.classList.toggle("empty", Boolean(this.term) && !matches.length);
 
     this.redraw();

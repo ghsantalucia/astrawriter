@@ -2,6 +2,7 @@
  * @file Roteador dinâmico de provedores de IA, com fallback automático de modelos e registro de depuração.
  */
 
+import { t } from "../../shared/i18n.js";
 import { CONCISE_NOTE, compactInstructions } from "./compact.js";
 import { getProviderInfo } from "./providers/index.js";
 import { buildBookMap, buildSystemPrompt } from "./prompts/index.js";
@@ -18,8 +19,8 @@ import {
   startExchange,
 } from "./debugLog.js";
 
-const CHAT_ONLY_NOTE =
-  "\n\n# Modo apenas conversa\nO autor desativou as ferramentas: você NÃO pode ler nem alterar arquivos do livro. Converse e oriente com base no que ele escrever na conversa; se precisar de um trecho do livro, peça que ele cole aqui.";
+const chatOnlyNote = () =>
+  "\n\n" + t("# Modo apenas conversa\nO autor desativou as ferramentas: você NÃO pode ler nem alterar arquivos do livro. Converse e oriente com base no que ele escrever na conversa; se precisar de um trecho do livro, peça que ele cole aqui.");
 
 /** Códigos HTTP em que vale tentar o próximo modelo da lista de fallback (limite de uso e instabilidade do serviço). */
 const FALLBACK_STATUS = new Set([429, 500, 502, 503, 504, 529]);
@@ -90,7 +91,7 @@ export function buildModelChain(state) {
 async function callProvider(target, args) {
   const providerModule = await import(`./providers/${target.provider}/index.ts`);
   if (typeof providerModule.sendRequest !== "function") {
-    throw new Error(`O provedor "${target.provider}" não exporta o método "sendRequest".`);
+    throw new Error(t('O provedor "{provider}" não exporta o método "sendRequest".', { provider: target.provider }));
   }
   return providerModule.sendRequest({ ...args, config: target.config });
 }
@@ -108,7 +109,7 @@ async function callProvider(target, args) {
 export async function processPrompt({ prompt, history = [] }, state, toolContext) {
   const info = getProviderInfo(state.aiProvider);
   if (!info) {
-    throw new Error(`Provedor de IA "${state.aiProvider}" inválido. Selecione um em Configurações.`);
+    throw new Error(t('Provedor de IA "{provider}" inválido. Selecione um em Configurações.', { provider: state.aiProvider }));
   }
 
   await ensureDebugLoaded(state.currentBookPath || null);
@@ -132,14 +133,14 @@ export async function processPrompt({ prompt, history = [] }, state, toolContext
   // Perfil de uso atual: a IA precisa saber o que ele permite para explicar o motivo quando o autor pedir algo que ele não cobre
   const profileInfo = PROFILES.find((p) => p.id === profile.profile);
   const PROFILE_NOTE =
-    "\n\n# Perfil de uso da IA\n" +
-    `Perfil atual: ${profileInfo?.label || "Personalizado"}${profile.chatOnly ? " (apenas conversa: sem nenhuma tool)" : ""}. ${profileInfo?.description || ""}\n` +
-    "Se o autor pedir algo que este perfil não permite (tool não liberada, sem edição, sem análise ou apenas conversa), diga o motivo, explique que ele pode trocar o perfil em Central de IA → Perfil e análises e ofereça um botão para isso (show_buttons, action open-central, central ai, tab analysis). Nunca finja ter feito o que o perfil não deixa.";
+    "\n\n" + t("# Perfil de uso da IA") + "\n" +
+    `${t("Perfil atual: {label}{chat}.", { label: profileInfo?.label || t("Personalizado"), chat: profile.chatOnly ? t(" (apenas conversa: sem nenhuma tool)") : "" })} ${profileInfo?.description || ""}\n` +
+    t("Se o autor pedir algo que este perfil não permite (tool não liberada, sem edição, sem análise ou apenas conversa), diga o motivo, explique que ele pode trocar o perfil em Central de IA → Perfil e análises e ofereça um botão para isso (show_buttons, action open-central, central ai, tab analysis). Nunca finja ter feito o que o perfil não deixa.");
   const baseSystem = buildSystemPrompt(state, profile.compact, bookMap);
   const systemPrompt =
     (profile.compact ? compactInstructions(baseSystem) + CONCISE_NOTE : baseSystem) +
     PROFILE_NOTE +
-    (profile.chatOnly ? CHAT_ONLY_NOTE : (tools as any).promptNote());
+    (profile.chatOnly ? chatOnlyNote() : (tools as any).promptNote());
   let lastError = null;
 
   for (let i = 0; i < chain.length; i++) {
@@ -188,7 +189,7 @@ export async function processPrompt({ prompt, history = [] }, state, toolContext
 async function announceFallback(from, to, toolContext) {
   const a = `${from.label || from.provider} · ${from.config.model}`;
   const b = `${to.label || to.provider} · ${to.config.model}`;
-  toolContext?.notice?.(`Fallback automático: o modelo ${a} estava indisponível; a resposta veio de ${b}.`);
+  toolContext?.notice?.(t("Fallback automático: o modelo {a} estava indisponível; a resposta veio de {b}.", { a, b }));
   try {
     await toolContext?.changelog?.recordSetting(
       { setting: "ai.fallback", from: a, to: b },
@@ -212,7 +213,7 @@ async function announceFallback(from, to, toolContext) {
 export async function askModel({ system, prompt, kind = "task" }, state) {
   await ensureDebugLoaded(state.currentBookPath || null);
   const chain = buildModelChain(state);
-  if (chain.length === 0) throw new Error("Nenhum provedor de IA configurado.");
+  if (chain.length === 0) throw new Error(t("Nenhum provedor de IA configurado."));
   const noTools = { getDefinitions: () => [], execute: async () => ({ output: "", isError: true }) };
   let lastError = null;
 

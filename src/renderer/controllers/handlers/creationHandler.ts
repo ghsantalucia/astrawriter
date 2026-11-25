@@ -8,6 +8,7 @@ import { normalizePath, uniqueId } from "../../utils/helpers.js";
 import * as bookHandler from "./bookHandler.js";
 import * as fileHandler from "./fileHandler.js";
 import * as variablesHandler from "./variablesHandler.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Abre o wizard de criação do tipo solicitado, montado a partir da especificação do serviço.
@@ -23,7 +24,7 @@ export async function onCreateRequested(
 ) {
   if (kind !== "book" && state.aiLockState) {
     uiBus.emit("toast:show", {
-      message: "Aguarde a IA terminar de trabalhar no projeto.",
+      message: t("Aguarde a IA terminar de trabalhar no projeto."),
       type: "info",
     });
     return;
@@ -78,8 +79,8 @@ export async function onWizardSubmit(payload, state, services) {
       uiBus.emit("toast:show", {
         message:
           result.changes.length > 0
-            ? "Variáveis atualizadas (rascunho salvo)."
-            : "Nenhuma variável foi alterada.",
+            ? t("Variáveis atualizadas (rascunho salvo).")
+            : t("Nenhuma variável foi alterada."),
         type: result.changes.length > 0 ? "success" : "info",
       });
     } else {
@@ -91,7 +92,7 @@ export async function onWizardSubmit(payload, state, services) {
       });
       await openCreated(result, state, services);
       uiBus.emit("toast:show", {
-        message: `"${result.title}" criado com sucesso.`,
+        message: t("\"{title}\" criado com sucesso.", { title: result.title }),
         type: "success",
       });
     }

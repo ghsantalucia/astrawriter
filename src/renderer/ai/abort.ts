@@ -3,6 +3,8 @@
  * `fetch` das chamadas do chat) e pelo laço de tools. O autor interrompe pelo botão de parar do chat.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /** Sinal da resposta em andamento (só uma por vez). */
 let active = null;
 
@@ -25,7 +27,7 @@ export function activeSignal() {
  * @returns {Error}
  */
 export function abortError() {
-  const error = new Error("Interrompido pelo autor.");
+  const error = new Error(t("Interrompido pelo autor."));
   error.name = "AbortError";
   return error;
 }

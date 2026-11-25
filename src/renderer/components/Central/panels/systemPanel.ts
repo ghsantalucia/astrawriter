@@ -5,6 +5,7 @@
  */
 
 import { appSettings } from "../../../utils/appSettings.js";
+import { t, getLanguage, LANGUAGES } from "../../../../shared/i18n.js";
 import { dayOf, formatClock } from "../../../services/productivityService.js";
 import { confirmModal, esc, formatBytes, mount, plural } from "./panelKit.js";
 import { customRow, settingHandlers, settingRow } from "./system/controls.js";
@@ -15,29 +16,29 @@ import { TemplatesTab } from "./system/templates.js";
 
 /** Abas da central (a ordem é a da lista lateral). */
 const TABS = [
-  { id: "general", label: "Geral", icon: "fa-sliders" },
-  { id: "update", label: "Atualização", icon: "fa-cloud-arrow-down" },
+  { id: "general", label: t("Geral"), icon: "fa-sliders" },
+  { id: "update", label: t("Atualização"), icon: "fa-cloud-arrow-down" },
   { separator: true },
-  { id: "appearance", label: "Aparência", icon: "fa-palette" },
-  { id: "accessibility", label: "Acessibilidade", icon: "fa-universal-access" },
-  { id: "editor", label: "Editor", icon: "fa-pen-nib" },
+  { id: "appearance", label: t("Aparência"), icon: "fa-palette" },
+  { id: "accessibility", label: t("Acessibilidade"), icon: "fa-universal-access" },
+  { id: "editor", label: t("Editor"), icon: "fa-pen-nib" },
   { separator: true },
-  { id: "productivity", label: "Produtividade", icon: "fa-stopwatch" },
-  { id: "shortcuts", label: "Atalhos", icon: "fa-keyboard" },
-  { id: "templates", label: "Templates", icon: "fa-clone" },
-  { id: "backup", label: "Backup", icon: "fa-box-archive" },
+  { id: "productivity", label: t("Produtividade"), icon: "fa-stopwatch" },
+  { id: "shortcuts", label: t("Atalhos"), icon: "fa-keyboard" },
+  { id: "templates", label: t("Templates"), icon: "fa-clone" },
+  { id: "backup", label: t("Backup"), icon: "fa-box-archive" },
 ];
 
 const HEADERS = {
-  general: ["Geral", "Informações do app e a pasta onde ficam os seus livros."],
-  update: ["Atualização", "Versão instalada, atualização automática, espaço ocupado e desinstalação."],
-  appearance: ["Aparência", "Claro ou escuro, temas de cores e o fundo do chat de IA."],
-  accessibility: ["Acessibilidade", "Tamanho da fonte do app, modo noturno e narrador de voz."],
-  editor: ["Editor", "Tamanho e tipo de letra do texto e dos títulos no editor."],
-  productivity: ["Produtividade", "O cronômetro de escrita, o gráfico por dia e os registros."],
-  shortcuts: ["Atalhos de teclado", "Todos os atalhos do app. Alguns podem ser personalizados."],
-  templates: ["Templates", "Os modelos de cada tipo de arquivo (personagem, evento, capítulo...), em três perfis de IA, que você pode editar."],
-  backup: ["Backup", "Cópias automáticas dos livros em uma pasta (que pode ser a de um serviço de nuvem)."],
+  general: [t("Geral"), t("Informações do app e a pasta onde ficam os seus livros.")],
+  update: [t("Atualização"), t("Versão instalada, atualização automática, espaço ocupado e desinstalação.")],
+  appearance: [t("Aparência"), t("Claro ou escuro, temas de cores e o fundo do chat de IA.")],
+  accessibility: [t("Acessibilidade"), t("Tamanho da fonte do app, modo noturno e narrador de voz.")],
+  editor: [t("Editor"), t("Tamanho e tipo de letra do texto e dos títulos no editor.")],
+  productivity: [t("Produtividade"), t("O cronômetro de escrita, o gráfico por dia e os registros.")],
+  shortcuts: [t("Atalhos de teclado"), t("Todos os atalhos do app. Alguns podem ser personalizados.")],
+  templates: [t("Templates"), t("Os modelos de cada tipo de arquivo (personagem, evento, capítulo...), em três perfis de IA, que você pode editar.")],
+  backup: [t("Backup"), t("Cópias automáticas dos livros em uma pasta (que pode ser a de um serviço de nuvem).")],
 };
 
 /**
@@ -59,7 +60,7 @@ export class SystemPanel {
    */
   constructor(ctx) {
     this.ctx = ctx;
-    this.title = "Central do Sistema";
+    this.title = t("Central do Sistema");
     this.appearance = new AppearanceTab(ctx);
     this.templates = new TemplatesTab(ctx);
     /** Resultado da última verificação de atualização e estado da atualização automática. */
@@ -139,23 +140,23 @@ export class SystemPanel {
     mount(
       el,
       `<section class="cn-section">
-         <h4>Idioma do app</h4>
+         <h4>${t("Idioma do app")}</h4>
          <div class="cn-setting-list">
-           ${customRow("Idioma da interface", "O app está disponível só em português por enquanto. Outros idiomas virão. (O idioma da correção ortográfica é outra opção: fica em Central de Revisões → Ortografia.)", `<select class="cn-select" disabled><option>Português (Brasil)</option></select>`)}
+           ${customRow(t("Idioma da interface"), t("Escolha o idioma do app. Ao trocar, a tela recarrega. (O idioma da correção ortográfica é outra opção: fica em Central de Revisões → Ortografia.)"), `<select class="cn-select" data-change="setting" data-id="ui.language">${LANGUAGES.map((l) => `<option value="${l.value}" ${l.value === getLanguage() ? "selected" : ""}>${l.label}</option>`).join("")}</select>`)}
          </div>
        </section>
        <section class="cn-section">
-         <h4>Avisos</h4>
+         <h4>${t("Avisos")}</h4>
          <div class="cn-setting-list">
            ${settingRow("chat.notify")}
          </div>
        </section>
        <section class="cn-section">
-         <h4>Sobre</h4>
+         <h4>${t("Sobre")}</h4>
          <div class="cn-stats">
-           <div class="cn-stat"><strong>${esc(version)}</strong><span>versão instalada</span></div>
+           <div class="cn-stat"><strong>${esc(version)}</strong><span>${t("versão instalada")}</span></div>
          </div>
-         <p class="cn-hint">Seus livros ficam em: <strong>${esc(paths?.booksDir || "")}</strong>. ${paths?.packaged ? "É a pasta <strong>Documentos/Astra Writer</strong>, separada da instalação do app: atualizar ou reinstalar o app não apaga os livros." : "Você está no modo de desenvolvimento: aqui os livros ficam dentro da pasta do projeto. No app instalado eles ficam em Documentos/Astra Writer, fora da instalação."}</p>
+         <p class="cn-hint">${t("Seus livros ficam em: <strong>{folder}</strong>.", { folder: esc(paths?.booksDir || "") })} ${paths?.packaged ? t("É a pasta <strong>Documentos/Astra Writer</strong>, separada da instalação do app: atualizar ou reinstalar o app não apaga os livros.") : t("Você está no modo de desenvolvimento: aqui os livros ficam dentro da pasta do projeto. No app instalado eles ficam em Documentos/Astra Writer, fora da instalação.")}</p>
        </section>`,
       settingHandlers(this.ctx, () => this.ctx.refresh()),
     );
@@ -178,46 +179,46 @@ export class SystemPanel {
     const check = this.lastCheck;
 
     const verdict = (() => {
-      if (state?.state === "ready") return { cls: "success", text: `Atualização ${esc(state.version || "")} baixada e pronta para instalar.`, action: `<button class="cn-btn primary" data-act="install"><i class="fa-solid fa-rotate"></i> Reiniciar e atualizar</button>` };
-      if (state?.state === "downloading") return { cls: "warning", text: "Baixando uma nova versão…" };
-      if (!check) return { cls: "", text: "Clique em “Verificar agora” para saber se há uma versão mais recente." };
-      if (check.status === "latest") return { cls: "success", text: `Você está na versão mais recente (${esc(check.current)}).` };
-      if (check.status === "available") return { cls: "warning", text: `Há uma versão mais nova: ${esc(check.latest)} (a sua é a ${esc(check.current)}).`, action: `<button class="cn-btn" data-act="open-release">Ver novidades e baixar</button>` };
-      if (check.status === "none") return { cls: "", text: "Ainda não há versões publicadas no repositório (esta é a versão de desenvolvimento)." };
-      return { cls: "error", text: esc(check.error || "Não foi possível verificar.") };
+      if (state?.state === "ready") return { cls: "success", text: t("Atualização {version} baixada e pronta para instalar.", { version: esc(state.version || "") }), action: `<button class="cn-btn primary" data-act="install"><i class="fa-solid fa-rotate"></i> ${t("Reiniciar e atualizar")}</button>` };
+      if (state?.state === "downloading") return { cls: "warning", text: t("Baixando uma nova versão…") };
+      if (!check) return { cls: "", text: t("Clique em “Verificar agora” para saber se há uma versão mais recente.") };
+      if (check.status === "latest") return { cls: "success", text: t("Você está na versão mais recente ({version}).", { version: esc(check.current) }) };
+      if (check.status === "available") return { cls: "warning", text: t("Há uma versão mais nova: {latest} (a sua é a {current}).", { latest: esc(check.latest), current: esc(check.current) }), action: `<button class="cn-btn" data-act="open-release">${t("Ver novidades e baixar")}</button>` };
+      if (check.status === "none") return { cls: "", text: t("Ainda não há versões publicadas no repositório (esta é a versão de desenvolvimento).") };
+      return { cls: "error", text: esc(check.error || t("Não foi possível verificar.")) };
     })();
 
     const sizesHtml = (u) => `<div class="cn-stats">
-      <div class="cn-stat"><strong>${u ? formatBytes(u.total) : "…"}</strong><span>total ocupado pelo app</span></div>
-      <div class="cn-stat"><strong>${u ? formatBytes(u.books) : "…"}</strong><span>livros</span></div>
-      <div class="cn-stat"><strong>${u ? formatBytes(u.history) : "…"}</strong><span>histórico e registros dos livros</span></div>
-      <div class="cn-stat"><strong>${u ? formatBytes(u.userData) : "…"}</strong><span>dados e configurações do app</span></div>
-      <div class="cn-stat"><strong>${u ? (u.install === null ? "—" : formatBytes(u.install)) : "…"}</strong><span>${u?.packaged === false ? "o app (só no instalado)" : "o app em si"}</span></div>
-    </div>${u ? "" : '<p class="cn-hint">Calculando o espaço ocupado…</p>'}`;
+      <div class="cn-stat"><strong>${u ? formatBytes(u.total) : "…"}</strong><span>${t("total ocupado pelo app")}</span></div>
+      <div class="cn-stat"><strong>${u ? formatBytes(u.books) : "…"}</strong><span>${t("livros")}</span></div>
+      <div class="cn-stat"><strong>${u ? formatBytes(u.history) : "…"}</strong><span>${t("histórico e registros dos livros")}</span></div>
+      <div class="cn-stat"><strong>${u ? formatBytes(u.userData) : "…"}</strong><span>${t("dados e configurações do app")}</span></div>
+      <div class="cn-stat"><strong>${u ? (u.install === null ? "—" : formatBytes(u.install)) : "…"}</strong><span>${u?.packaged === false ? t("o app (só no instalado)") : t("o app em si")}</span></div>
+    </div>${u ? "" : `<p class="cn-hint">${t("Calculando o espaço ocupado…")}</p>`}`;
 
     mount(
       el,
       `<section class="cn-section">
-         <h4>Versão</h4>
-         <div class="cn-stats"><div class="cn-stat ${verdict.cls}"><strong>${esc(version)}</strong><span>versão instalada</span></div></div>
+         <h4>${t("Versão")}</h4>
+         <div class="cn-stats"><div class="cn-stat ${verdict.cls}"><strong>${esc(version)}</strong><span>${t("versão instalada")}</span></div></div>
          <p class="cn-hint">${verdict.text}</p>
          <div class="cn-row">
-           <button class="cn-btn" data-act="check"><i class="fa-solid fa-magnifying-glass"></i> Verificar agora</button>
+           <button class="cn-btn" data-act="check"><i class="fa-solid fa-magnifying-glass"></i> ${t("Verificar agora")}</button>
            ${verdict.action || ""}
          </div>
          <div class="cn-setting-list" style="margin-top:10px">
-           ${settingRow("updates.auto", { hint: "Procura e baixa novas versões ao abrir o app e avisa quando uma estiver pronta. Só funciona no app instalado." })}
+           ${settingRow("updates.auto", { hint: t("Procura e baixa novas versões ao abrir o app e avisa quando uma estiver pronta. Só funciona no app instalado.") })}
          </div>
        </section>
        <section class="cn-section">
-         <h4>Espaço em disco</h4>
+         <h4>${t("Espaço em disco")}</h4>
          <div id="usage-box">${sizesHtml(usage)}</div>
        </section>
        <section class="cn-section">
-         <h4>Desinstalar</h4>
-         <p class="cn-hint">Remove o app deste computador. Seus livros ficam guardados na pasta de livros e continuam lá; ao reinstalar, o app os encontra. Antes de desinstalar você pode exportar uma cópia de todos os livros.</p>
-         <div class="cn-row"><button class="cn-btn danger" data-act="uninstall" id="uninstall-btn" ${usage?.packaged ? "" : "disabled"}><i class="fa-solid fa-trash-can"></i> Desinstalar o app…</button>
-           <span class="cn-hint" id="uninstall-hint">${usage?.packaged ? "" : "Disponível só no app instalado (Windows)."}</span></div>
+         <h4>${t("Desinstalar")}</h4>
+         <p class="cn-hint">${t("Remove o app deste computador. Seus livros ficam guardados na pasta de livros e continuam lá; ao reinstalar, o app os encontra. Antes de desinstalar você pode exportar uma cópia de todos os livros.")}</p>
+         <div class="cn-row"><button class="cn-btn danger" data-act="uninstall" id="uninstall-btn" ${usage?.packaged ? "" : "disabled"}><i class="fa-solid fa-trash-can"></i> ${t("Desinstalar o app…")}</button>
+           <span class="cn-hint" id="uninstall-hint">${usage?.packaged ? "" : t("Disponível só no app instalado (Windows).")}</span></div>
        </section>`,
       {
         ...settingHandlers(ctx, () => ctx.refresh()),
@@ -239,7 +240,7 @@ export class SystemPanel {
       const btn = el.querySelector("#uninstall-btn");
       if (btn) btn.disabled = !u.packaged;
       const hint = el.querySelector("#uninstall-hint");
-      if (hint) hint.textContent = u.packaged ? "" : "Disponível só no app instalado (Windows).";
+      if (hint) hint.textContent = u.packaged ? "" : t("Disponível só no app instalado (Windows).");
     });
     // A verificação automática liga/desliga junto com o switch
     el.querySelector('[data-id="updates.auto"]')?.addEventListener("change", (e) => window.electronAPI.configureAutoUpdate(e.target.checked));
@@ -253,29 +254,29 @@ export class SystemPanel {
   askUninstall() {
     this.ctx.uiBus.emit("modal:open", {
       id: "uninstall-modal",
-      title: "Desinstalar o Astra Writer?",
+      title: t("Desinstalar o Astra Writer?"),
       content: `<div class="cn-confirm">
-        <p>O app será removido deste computador e fechado agora.</p>
-        <p><strong>Seus livros não são apagados:</strong> eles ficam na pasta de livros e o app reinstalado os encontra. Se preferir ter uma cópia em outro lugar, exporte antes.</p>
+        <p>${t("O app será removido deste computador e fechado agora.")}</p>
+        <p>${t("<strong>Seus livros não são apagados:</strong> eles ficam na pasta de livros e o app reinstalado os encontra. Se preferir ter uma cópia em outro lugar, exporte antes.")}</p>
       </div>`,
       buttons: [
-        { text: "Cancelar", class: "btn-secondary" },
+        { text: t("Cancelar"), class: "btn-secondary" },
         {
-          text: "Exportar meus livros primeiro",
+          text: t("Exportar meus livros primeiro"),
           class: "btn-secondary",
           onClick: async () => {
             const result = await window.electronAPI.exportAllBooks();
             if (result?.canceled) return;
-            this.ctx.toast(result?.success ? `${plural(result.count, "livro exportado", "livros exportados")} em ${result.folder}.` : result?.error || "Falha ao exportar.", result?.success ? "success" : "error");
+            this.ctx.toast(result?.success ? t("{count} em {folder}.", { count: plural(result.count, "livro exportado", "livros exportados"), folder: result.folder }) : result?.error || t("Falha ao exportar."), result?.success ? "success" : "error");
           },
         },
         {
-          text: "Desinstalar",
+          text: t("Desinstalar"),
           class: "btn-danger",
           onClick: async (modal) => {
             modal.close();
             const result = await window.electronAPI.uninstallApp();
-            if (!result?.success) this.ctx.toast(result?.error || "Não foi possível desinstalar.", "error");
+            if (!result?.success) this.ctx.toast(result?.error || t("Não foi possível desinstalar."), "error");
           },
         },
       ],
@@ -318,8 +319,8 @@ export class SystemPanel {
     const dots = shown.map((d, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.ms).toFixed(1)}" r="4" class="cn-line-dot" data-i="${i}"></circle>`).join("");
     const area = shown.length > 1 ? `<polygon points="${x(0).toFixed(1)},${H - B} ${pts.join(" ")} ${x(shown.length - 1).toFixed(1)},${H - B}" class="cn-line-area" />` : "";
     const chart = shown.length
-      ? `<div class="cn-chart-wrap"><svg class="cn-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tempo de escrita por dia">${grid}${area}<polyline points="${pts.join(" ")}" class="cn-line-path" />${dots}${labels}</svg><div class="cn-chart-tip" hidden></div></div>`
-      : '<div class="cn-empty">Ainda não há tempo registrado. Ative o cronômetro acima e use-o: os dias de uso aparecem aqui.</div>';
+      ? `<div class="cn-chart-wrap"><svg class="cn-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("Tempo de escrita por dia")}">${grid}${area}<polyline points="${pts.join(" ")}" class="cn-line-path" />${dots}${labels}</svg><div class="cn-chart-tip" hidden></div></div>`
+      : `<div class="cn-empty">${t("Ainda não há tempo registrado. Ative o cronômetro acima e use-o: os dias de uso aparecem aqui.")}</div>`;
 
     // Registros agrupados por dia (vários no mesmo dia: média e seta para expandir)
     const byDay = new Map();
@@ -329,45 +330,45 @@ export class SystemPanel {
     }
     const recRow = (r, sub = false) => {
       const start = new Date(r.start);
-      return `<tr class="${sub ? "cn-sub" : ""}"><td>${sub ? "" : start.toLocaleDateString("pt-BR")}</td><td>${start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td><td>${formatClock(r.activeMs)}${service.current?.id === r.id ? ' <span class="cn-pill success">em andamento</span>' : ""}</td><td style="text-align:right"><button class="cn-btn small ghost" data-act="del" data-id="${esc(r.id)}" title="Apagar este registro"><i class="fa-regular fa-trash-can"></i></button></td></tr>`;
+      return `<tr class="${sub ? "cn-sub" : ""}"><td>${sub ? "" : start.toLocaleDateString(getLanguage())}</td><td>${start.toLocaleTimeString(getLanguage(), { hour: "2-digit", minute: "2-digit" })}</td><td>${formatClock(r.activeMs)}${service.current?.id === r.id ? ` <span class="cn-pill success">${t("em andamento")}</span>` : ""}</td><td style="text-align:right"><button class="cn-btn small ghost" data-act="del" data-id="${esc(r.id)}" title="${t("Apagar este registro")}"><i class="fa-regular fa-trash-can"></i></button></td></tr>`;
     };
     const groups = [...byDay.entries()].slice(0, 60).map(([day, list]) => {
       if (list.length === 1) return recRow(list[0]);
       const total = list.reduce((s, r) => s + r.activeMs, 0);
       const open = this.openDays?.has(day);
       const [yy, mm, dd] = day.split("-");
-      return `<tr class="cn-day-row"><td><button class="cn-btn small ghost cn-day-toggle" data-act="toggle-day" data-day="${day}" aria-expanded="${open ? "true" : "false"}" title="${open ? "Recolher" : "Ver os registros do dia"}"><i class="fa-solid fa-chevron-${open ? "down" : "right"}"></i> ${dd}/${mm}/${yy}</button></td><td>${list.length} registros</td><td>média ${formatClock(total / list.length)} · total ${formatClock(total)}</td><td></td></tr>${open ? list.map((r) => recRow(r, true)).join("") : ""}`;
+      return `<tr class="cn-day-row"><td><button class="cn-btn small ghost cn-day-toggle" data-act="toggle-day" data-day="${day}" aria-expanded="${open ? "true" : "false"}" title="${open ? t("Recolher") : t("Ver os registros do dia")}"><i class="fa-solid fa-chevron-${open ? "down" : "right"}"></i> ${dd}/${mm}/${yy}</button></td><td>${t("{count} registros", { count: list.length })}</td><td>${t("média {avg} · total {total}", { avg: formatClock(total / list.length), total: formatClock(total) })}</td><td></td></tr>${open ? list.map((r) => recRow(r, true)).join("") : ""}`;
     });
     const list = groups.length
-      ? `<table class="cn-table"><thead><tr><th>Dia</th><th>Início</th><th>Duração</th><th></th></tr></thead><tbody>${groups.join("")}</tbody></table>`
-      : '<p class="cn-hint">Nenhum registro.</p>';
+      ? `<table class="cn-table"><thead><tr><th>${t("Dia")}</th><th>${t("Início")}</th><th>${t("Duração")}</th><th></th></tr></thead><tbody>${groups.join("")}</tbody></table>`
+      : `<p class="cn-hint">${t("Nenhum registro.")}</p>`;
     const records = byDay.size ? [1] : [];
 
     const root = mount(
       el,
       `<section class="cn-section">
-         <h4>Cronômetro</h4>
+         <h4>${t("Cronômetro")}</h4>
          <div class="cn-setting-list">
            ${settingRow("productivity.enabled")}
            ${settingRow("productivity.auto")}
            ${settingRow("productivity.goalMinutes")}
            ${settingRow("productivity.idleMinutes")}
          </div>
-         <p class="cn-hint">O cronômetro fica desligado até você ativá-lo: então ele aparece entre as abas e a busca do explorer. Manual: você inicia e pausa. Automático: conta sozinho enquanto você está no app e para quando a janela perde o foco ou você fica parado. Cada registro dura até fechar o app ou apertar “zerar” (que para o relógio e espera você dar play de novo). Com uma **meta de tempo**, o relógio conta de forma regressiva e, ao zerar, toca um som suave e mostra um aviso positivo; o modo Auto continua pausando quando você se ausenta.</p>
+         <p class="cn-hint">${t("O cronômetro fica desligado até você ativá-lo: então ele aparece entre as abas e a busca do explorer. Manual: você inicia e pausa. Automático: conta sozinho enquanto você está no app e para quando a janela perde o foco ou você fica parado. Cada registro dura até fechar o app ou apertar “zerar” (que para o relógio e espera você dar play de novo). Com uma **meta de tempo**, o relógio conta de forma regressiva e, ao zerar, toca um som suave e mostra um aviso positivo; o modo Auto continua pausando quando você se ausenta.")}</p>
        </section>
        <section class="cn-section">
-         <h4>Tempo de escrita</h4>
+         <h4>${t("Tempo de escrita")}</h4>
          <div class="cn-stats">
-           <div class="cn-stat"><strong>${hours(today)}</strong><span>hoje</span></div>
-           <div class="cn-stat"><strong>${hours(week)}</strong><span>últimos 7 dias</span></div>
-           <div class="cn-stat"><strong>${hours(total)}</strong><span>no total (${plural(days.length, "dia", "dias")} de uso)</span></div>
+           <div class="cn-stat"><strong>${hours(today)}</strong><span>${t("hoje")}</span></div>
+           <div class="cn-stat"><strong>${hours(week)}</strong><span>${t("últimos 7 dias")}</span></div>
+           <div class="cn-stat"><strong>${hours(total)}</strong><span>${t("no total ({days} de uso)", { days: plural(days.length, "dia", "dias") })}</span></div>
          </div>
          ${chart}
        </section>
        <section class="cn-section">
-         <h4>Registros</h4>
+         <h4>${t("Registros")}</h4>
          ${list}
-         <div class="cn-row"><button class="cn-btn small danger" data-act="del-all" ${records.length ? "" : "disabled"}>Apagar todos os registros</button></div>
+         <div class="cn-row"><button class="cn-btn small danger" data-act="del-all" ${records.length ? "" : "disabled"}>${t("Apagar todos os registros")}</button></div>
        </section>`,
       {
         ...settingHandlers(ctx, () => ctx.refresh()),
@@ -383,10 +384,10 @@ export class SystemPanel {
         },
         "del-all": () =>
           confirmModal(ctx.uiBus, {
-            title: "Apagar todos os registros?",
+            title: t("Apagar todos os registros?"),
             danger: true,
-            confirmText: "Apagar",
-            html: "<p>Todo o histórico de tempo de escrita será apagado. Isso não pode ser desfeito.</p>",
+            confirmText: t("Apagar"),
+            html: `<p>${t("Todo o histórico de tempo de escrita será apagado. Isso não pode ser desfeito.")}</p>`,
             onConfirm: () => {
               service.clearRecords();
               ctx.refresh();
@@ -455,24 +456,24 @@ export class SystemPanel {
     mount(
       el,
       `<section class="cn-section">
-         <h4>Pasta de backup</h4>
-         <p class="cn-hint">Escolha uma pasta. Dentro dela o app guarda um zip de cada livro (com os rascunhos ainda não sincronizados). Se a pasta estiver dentro do <strong>Google Drive</strong>, do <strong>OneDrive</strong> ou do <strong>Dropbox</strong> instalados no computador, as cópias também sobem para a nuvem, sem nenhum login no app.</p>
+         <h4>${t("Pasta de backup")}</h4>
+         <p class="cn-hint">${t("Escolha uma pasta. Dentro dela o app guarda um zip de cada livro (com os rascunhos ainda não sincronizados). Se a pasta estiver dentro do <strong>Google Drive</strong>, do <strong>OneDrive</strong> ou do <strong>Dropbox</strong> instalados no computador, as cópias também sobem para a nuvem, sem nenhum login no app.")}</p>
          <div class="cn-row">
-           <input class="cn-input" readonly value="${esc(folder)}" placeholder="Nenhuma pasta escolhida" style="flex:1;min-width:280px" />
-           <button class="cn-btn" data-act="choose"><i class="fa-regular fa-folder-open"></i> Escolher pasta…</button>
-           <button class="cn-btn ghost" data-act="default-folder" title="Voltar para Documentos/Astra Writer/backups">Usar a pasta padrão</button>
+           <input class="cn-input" readonly value="${esc(folder)}" placeholder="${t("Nenhuma pasta escolhida")}" style="flex:1;min-width:280px" />
+           <button class="cn-btn" data-act="choose"><i class="fa-regular fa-folder-open"></i> ${t("Escolher pasta…")}</button>
+           <button class="cn-btn ghost" data-act="default-folder" title="${t("Voltar para Documentos/Astra Writer/backups")}">${t("Usar a pasta padrão")}</button>
          </div>
-         <p class="cn-hint">A pasta padrão é <strong>Documentos/Astra Writer/backups</strong>, ao lado dos seus livros (no app instalado). Você pode trocá-la por qualquer outra.</p>
+         <p class="cn-hint">${t("A pasta padrão é <strong>Documentos/Astra Writer/backups</strong>, ao lado dos seus livros (no app instalado). Você pode trocá-la por qualquer outra.")}</p>
        </section>
        <section class="cn-section">
-         <h4>Backup automático</h4>
+         <h4>${t("Backup automático")}</h4>
          <div class="cn-setting-list">
-           ${settingRow("backup.auto", { disabled: !folder, hint: folder ? undefined : "Escolha uma pasta de backup primeiro." })}
+           ${settingRow("backup.auto", { disabled: !folder, hint: folder ? undefined : t("Escolha uma pasta de backup primeiro.") })}
            ${settingRow("backup.everyHours")}
            ${settingRow("backup.keep")}
          </div>
-         <p class="cn-hint">${last ? `Último backup: ${new Date(last).toLocaleString("pt-BR")}.` : "Nenhum backup feito ainda."}</p>
-         <div class="cn-row"><button class="cn-btn primary" data-act="run" ${folder ? "" : "disabled"}><i class="fa-solid fa-box-archive"></i> Fazer backup agora</button></div>
+         <p class="cn-hint">${last ? t("Último backup: {date}.", { date: new Date(last).toLocaleString(getLanguage()) }) : t("Nenhum backup feito ainda.")}</p>
+         <div class="cn-row"><button class="cn-btn primary" data-act="run" ${folder ? "" : "disabled"}><i class="fa-solid fa-box-archive"></i> ${t("Fazer backup agora")}</button></div>
        </section>`,
       {
         ...settingHandlers(ctx, () => ctx.refresh()),
@@ -490,7 +491,7 @@ export class SystemPanel {
         run: async (btn) => {
           btn.disabled = true;
           const result = await ctx.services.backup.runNow();
-          ctx.toast(result.success ? `Backup concluído: ${plural(result.count, "livro", "livros")}.` : result.error || "Falha no backup.", result.success ? "success" : "error");
+          ctx.toast(result.success ? t("Backup concluído: {count}.", { count: plural(result.count, "livro", "livros") }) : result.error || t("Falha no backup."), result.success ? "success" : "error");
           ctx.refresh();
         },
       },

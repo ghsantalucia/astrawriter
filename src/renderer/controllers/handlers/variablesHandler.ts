@@ -19,6 +19,7 @@ import {
   TITLE_FIELD_ID,
   TAGS_FIELD_ID,
 } from "../../utils/template.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Indica se o caminho é o arquivo aberto no editor.
@@ -66,7 +67,7 @@ export async function onVariablesOpen(state, fileService, payload) {
   const path = payload?.data?.path || state.currentFilePath;
   if (!path) {
     uiBus.emit("toast:show", {
-      message: "Abra um arquivo para ver os dados.",
+      message: t("Abra um arquivo para ver os dados."),
       type: "info",
     });
     return;
@@ -83,36 +84,36 @@ export async function onVariablesOpen(state, fileService, payload) {
   });
   if (fields.length === 0) {
     uiBus.emit("toast:show", {
-      message: "Este arquivo não possui dados para editar.",
+      message: t("Este arquivo não possui dados para editar."),
       type: "info",
     });
     return;
   }
 
   const editable = doc.metadata.humanWrite === true && !state.aiLockState;
-  const fileTitle = doc.metadata.title || "arquivo";
+  const fileTitle = doc.metadata.title || t("arquivo");
 
   uiBus.emit("wizard:open", {
     wizardId: uniqueId("variables"),
     kind: "variables",
-    title: `Dados — ${fileTitle}`,
-    submitLabel: "Salvar",
+    title: t("Dados — {title}", { title: fileTitle }),
+    submitLabel: t("Salvar"),
     allowSkip: false,
     readOnly: !editable,
     context: { path },
     steps: [
       {
         id: "variables",
-        title: "Dados do arquivo",
+        title: t("Dados do arquivo"),
         description: editable
-          ? "Altere os valores e salve. As mudanças vão para o rascunho do arquivo."
-          : "Este arquivo é somente leitura no momento.",
+          ? t("Altere os valores e salve. As mudanças vão para o rascunho do arquivo.")
+          : t("Este arquivo é somente leitura no momento."),
         fields: fields.map((field) => ({
           id: field.id,
           label: field.label,
           type: "text",
           placeholder: field.placeholder,
-          hint: field.id === TITLE_FIELD_ID ? "título" : field.id,
+          hint: field.id === TITLE_FIELD_ID ? t("título") : field.id,
           required: field.required,
           value: field.value,
         })),
@@ -132,12 +133,12 @@ export async function onVariablesOpen(state, fileService, payload) {
  */
 export async function onVariablesSave({ values, context }, state, fileService) {
   const path = context?.path;
-  if (!path) throw new Error("Arquivo não informado.");
+  if (!path) throw new Error(t("Arquivo não informado."));
 
   const doc = await loadDocument(state, fileService, path);
-  if (!doc) throw new Error("Não foi possível ler o arquivo.");
+  if (!doc) throw new Error(t("Não foi possível ler o arquivo."));
   if (doc.metadata.humanWrite !== true || state.aiLockState) {
-    throw new Error("O arquivo está somente leitura no momento.");
+    throw new Error(t("O arquivo está somente leitura no momento."));
   }
 
   const { metadata } = doc;
@@ -194,7 +195,7 @@ export async function onVariablesSave({ values, context }, state, fileService) {
     stringifyFrontmatter(metadata, body),
   );
   if (!result?.success) {
-    throw new Error(result?.error || "Não foi possível gravar o rascunho.");
+    throw new Error(result?.error || t("Não foi possível gravar o rascunho."));
   }
 
   const payload = { path: normalizePath(path), changes, metadata };
@@ -223,8 +224,8 @@ export async function onVariablesInlineSave({ values }, state, fileService) {
     );
     uiBus.emit("toast:show", {
       message: changes.length
-        ? "Dados do arquivo salvos no rascunho."
-        : "Nada foi alterado.",
+        ? t("Dados do arquivo salvos no rascunho.")
+        : t("Nada foi alterado."),
       type: changes.length ? "success" : "info",
     });
   } catch (error) {

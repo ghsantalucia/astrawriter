@@ -4,6 +4,8 @@
  * e, opcionalmente, `listModels`.
  */
 
+import { t } from "../../../shared/i18n.js";
+
 import { CLAUDE_MODELS, CLAUDE_DEFAULT_MODEL } from "./claude/models.js";
 import { MOCK_MODELS, MOCK_DEFAULT_MODEL } from "./mock/models.js";
 import { GEMINI_MODELS, GEMINI_DEFAULT_MODEL } from "./gemini/models.js";
@@ -54,14 +56,14 @@ export const AI_PROVIDERS = [
     requiresKey: true,
     defaultUrl: OPENAI_URL,
     toolModes: true,
-    hint: "Chave em platform.openai.com (a API é paga, separada da assinatura do ChatGPT).",
+    hint: t("Chave em platform.openai.com (a API é paga, separada da assinatura do ChatGPT)."),
   },
   {
     id: "groq",
     label: "Groq",
     models: [
       { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-      { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B (rápido)" },
+      { id: "llama-3.1-8b-instant", label: t("Llama 3.1 8B (rápido)") },
       { id: "openai/gpt-oss-120b", label: "GPT-OSS 120B" },
       { id: "openai/gpt-oss-20b", label: "GPT-OSS 20B" },
       { id: "qwen/qwen3-32b", label: "Qwen3 32B" },
@@ -70,13 +72,13 @@ export const AI_PROVIDERS = [
     requiresKey: true,
     defaultUrl: GROQ_URL,
     toolModes: true,
-    hint: "Chave gratuita em console.groq.com. O plano grátis tem limites por minuto e por dia.",
+    hint: t("Chave gratuita em console.groq.com. O plano grátis tem limites por minuto e por dia."),
   },
   {
     id: "puter",
     label: "Puter",
     models: [
-      { id: "auto", label: "Automático (o Puter escolhe o modelo)" },
+      { id: "auto", label: t("Automático (o Puter escolhe o modelo)") },
       { id: "gpt-5-nano", label: "GPT-5 nano" },
       { id: "claude-sonnet-5", label: "Claude Sonnet 5" },
       { id: "grok-4-1-fast", label: "Grok 4.1 fast" },
@@ -85,7 +87,7 @@ export const AI_PROVIDERS = [
     requiresKey: true,
     defaultUrl: PUTER_URL,
     toolModes: true,
-    hint: "Usa a biblioteca oficial do Puter. Cole o token de puter.com/dashboard (“Create token”) e use “Atualizar modelos” para ver os modelos da sua conta. O uso é cobrado da sua conta Puter; sem assinatura, alguns modelos respondem com erro 402.",
+    hint: t("Usa a biblioteca oficial do Puter. Cole o token de puter.com/dashboard (“Create token”) e use “Atualizar modelos” para ver os modelos da sua conta. O uso é cobrado da sua conta Puter; sem assinatura, alguns modelos respondem com erro 402."),
   },
   {
     id: "ollama",
@@ -98,11 +100,11 @@ export const AI_PROVIDERS = [
     editableUrl: true,
     toolModes: true,
     defaultContext: OLLAMA_DEFAULT_CONTEXT,
-    hint: "Roda no seu computador, sem chave. Instale o Ollama e baixe um modelo (ex.: ollama pull qwen3:4b-instruct); depois use “Atualizar modelos”.",
+    hint: t("Roda no seu computador, sem chave. Instale o Ollama e baixe um modelo (ex.: ollama pull qwen3:4b-instruct); depois use “Atualizar modelos”."),
   },
   {
     id: "compat",
-    label: "Servidor compatível com OpenAI",
+    label: t("Servidor compatível com OpenAI"),
     models: [],
     defaultModel: "",
     requiresKey: false,
@@ -110,11 +112,11 @@ export const AI_PROVIDERS = [
     defaultUrl: "http://localhost:1234/v1",
     editableUrl: true,
     toolModes: true,
-    hint: "Qualquer servidor com a API da OpenAI: LM Studio, llama.cpp, vLLM, Jan, OpenRouter... Informe o endereço (termina em /v1) e, se houver, a chave.",
+    hint: t("Qualquer servidor com a API da OpenAI: LM Studio, llama.cpp, vLLM, Jan, OpenRouter... Informe o endereço (termina em /v1) e, se houver, a chave."),
   },
   {
     id: "mock",
-    label: "Assistente Astra (embutido, sem IA)",
+    label: t("Assistente Astra (embutido, sem IA)"),
     models: MOCK_MODELS,
     defaultModel: MOCK_DEFAULT_MODEL,
     requiresKey: false,

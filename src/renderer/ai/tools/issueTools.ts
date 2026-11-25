@@ -4,6 +4,7 @@
  * Registrar um issue não altera nenhum arquivo do livro (só `.system/review/`), por isso exige apenas `aiRead`.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { ISSUE_TYPES } from "../../review/issueTypes.js";
 import { assertPermission, locateFile } from "./permissions.js";
 
@@ -19,16 +20,13 @@ export function registerIssueTools(registry) {
   registry.register({
     name: "register_issues",
     description:
-      "Registra na Central de Revisões os problemas que você encontrou no livro (contradições entre arquivos, erros de linha do tempo, " +
-      "problemas gramaticais, sugestões de sinônimo e dicas de melhoria). Cada item é um issue separado, com o trecho EXATO do arquivo. " +
-      "Use depois de analisar; o autor vê, corrige ou dispensa na Central. Não repita issues que já estão em list_issues e respeite os " +
-      "tipos dispensados pelo autor. Não altera nenhum arquivo do livro.",
+      t("Registra na Central de Revisões os problemas que você encontrou no livro (contradições entre arquivos, erros de linha do tempo, problemas gramaticais, sugestões de sinônimo e dicas de melhoria). Cada item é um issue separado, com o trecho EXATO do arquivo. Use depois de analisar; o autor vê, corrige ou dispensa na Central. Não repita issues que já estão em list_issues e respeite os tipos dispensados pelo autor. Não altera nenhum arquivo do livro."),
     parameters: {
       type: "object",
       properties: {
         issues: {
           type: "array",
-          description: "Issues a registrar (até 30 por chamada).",
+          description: t("Issues a registrar (até 30 por chamada)."),
           items: {
             type: "object",
             properties: {
@@ -36,27 +34,27 @@ export function registerIssueTools(registry) {
                 type: "string",
                 enum: AI_TYPES,
                 description:
-                  "Tipo: grammar, synonym, timeline-conflict, fact-conflict (contradição certa), possible-conflict (talvez), e as dicas (sempre amarelas): style-tip, clarity-tip, verbose-tip (trecho prolixo), pacing-tip (ritmo), missing-entity-tip (ficha ausente), grounding-tip (época/mundo real).",
+                  t("Tipo: grammar, synonym, timeline-conflict, fact-conflict (contradição certa), possible-conflict (talvez), e as dicas (sempre amarelas): style-tip, clarity-tip, verbose-tip (trecho prolixo), pacing-tip (ritmo), missing-entity-tip (ficha ausente), grounding-tip (época/mundo real)."),
               },
-              file: { type: "string", description: "Arquivo (relativo à raiz do livro) onde está o problema principal." },
+              file: { type: "string", description: t("Arquivo (relativo à raiz do livro) onde está o problema principal.") },
               excerpt: {
                 type: "string",
-                description: "Trecho exato do arquivo (copiado sem alterações, curto: uma frase ou menos). Obrigatório para o autor chegar ao ponto.",
+                description: t("Trecho exato do arquivo (copiado sem alterações, curto: uma frase ou menos). Obrigatório para o autor chegar ao ponto."),
               },
-              occurrence: { type: "integer", description: "Se o trecho aparece mais de uma vez no arquivo, qual ocorrência (1 = primeira)." },
-              message: { type: "string", description: "Explicação objetiva do problema, em português." },
+              occurrence: { type: "integer", description: t("Se o trecho aparece mais de uma vez no arquivo, qual ocorrência (1 = primeira).") },
+              message: { type: "string", description: t("Explicação objetiva do problema, em português.") },
               severity: {
                 type: "string",
                 enum: ["error", "warning"],
-                description: "error = confirmado; warning = possível erro ou sugestão. Dicas de melhoria são sempre warning.",
+                description: t("error = confirmado; warning = possível erro ou sugestão. Dicas de melhoria são sempre warning."),
               },
               replacement: {
                 type: "string",
-                description: "Texto que deve substituir o trecho (habilita o botão Corrigir). Use \"\" para remover. Omita se não há correção segura.",
+                description: t('Texto que deve substituir o trecho (habilita o botão Corrigir). Use "" para remover. Omita se não há correção segura.'),
               },
               related: {
                 type: "array",
-                description: "Outros trechos envolvidos (ex.: o outro lado de uma contradição).",
+                description: t("Outros trechos envolvidos (ex.: o outro lado de uma contradição)."),
                 items: {
                   type: "object",
                   properties: { file: { type: "string" }, excerpt: { type: "string" } },
@@ -71,7 +69,7 @@ export function registerIssueTools(registry) {
       required: ["issues"],
     },
     async execute({ issues }, ctx) {
-      if (!Array.isArray(issues) || issues.length === 0) throw new Error("Informe ao menos um issue.");
+      if (!Array.isArray(issues) || issues.length === 0) throw new Error(t("Informe ao menos um issue."));
       const items = issues.slice(0, 30);
       const denied = [];
       const allowed = [];
@@ -94,8 +92,8 @@ export function registerIssueTools(registry) {
         skipped: [...denied, ...result.skipped],
         note:
           result.registered > 0
-            ? "Registrado na Central de Revisões. O botão do rodapé do editor já mostra as pendências."
-            : "Nada foi registrado.",
+            ? t("Registrado na Central de Revisões. O botão do rodapé do editor já mostra as pendências.")
+            : t("Nada foi registrado."),
       };
     },
   });
@@ -103,17 +101,15 @@ export function registerIssueTools(registry) {
   registry.register({
     name: "list_issues",
     description:
-      "Lista as pendências da Central de Revisões (links quebrados, ortografia, linha do tempo, contradições e dicas), incluindo as que o " +
-      "sistema encontrou sozinho. Use para saber o que já foi reportado antes de registrar algo novo ou para corrigir pendências. " +
-      "Devolve versões compactas (id, tipo, arquivo, linha, trecho, mensagem e a correção sugerida, se houver).",
+      t("Lista as pendências da Central de Revisões (links quebrados, ortografia, linha do tempo, contradições e dicas), incluindo as que o sistema encontrou sozinho. Use para saber o que já foi reportado antes de registrar algo novo ou para corrigir pendências. Devolve versões compactas (id, tipo, arquivo, linha, trecho, mensagem e a correção sugerida, se houver)."),
     parameters: {
       type: "object",
       properties: {
-        category: { type: "string", enum: ["links", "spelling", "timeline", "contradictions", "tips"], description: "Filtra por categoria." },
-        type: { type: "string", description: "Filtra por tipo (ex.: typo, broken-link, fact-conflict)." },
-        file: { type: "string", description: "Filtra por arquivo (relativo à raiz do livro)." },
-        severity: { type: "string", enum: ["error", "warning"], description: "Filtra por severidade." },
-        limit: { type: "integer", description: "Máximo de itens (padrão 40, máximo 100)." },
+        category: { type: "string", enum: ["links", "spelling", "timeline", "contradictions", "tips"], description: t("Filtra por categoria.") },
+        type: { type: "string", description: t("Filtra por tipo (ex.: typo, broken-link, fact-conflict).") },
+        file: { type: "string", description: t("Filtra por arquivo (relativo à raiz do livro).") },
+        severity: { type: "string", enum: ["error", "warning"], description: t("Filtra por severidade.") },
+        limit: { type: "integer", description: t("Máximo de itens (padrão 40, máximo 100).") },
       },
     },
     async execute(args, ctx) {
@@ -138,18 +134,17 @@ export function registerIssueTools(registry) {
   registry.register({
     name: "resolve_issues",
     description:
-      "Marca como resolvidas (remove da Central) pendências registradas por você que já foram corrigidas. As pendências do sistema (links, " +
-      "ortografia) somem sozinhas quando o texto é corrigido. Informe os ids de list_issues.",
+      t("Marca como resolvidas (remove da Central) pendências registradas por você que já foram corrigidas. As pendências do sistema (links, ortografia) somem sozinhas quando o texto é corrigido. Informe os ids de list_issues."),
     parameters: {
       type: "object",
       properties: {
-        ids: { type: "array", items: { type: "string" }, description: "Ids dos issues resolvidos." },
+        ids: { type: "array", items: { type: "string" }, description: t("Ids dos issues resolvidos.") },
       },
       required: ["ids"],
     },
     async execute({ ids }, ctx) {
       const removed = await ctx.issues.resolve(ids || [], ctx.changelog.aiActor());
-      return { resolved: removed, note: "Pendências do sistema somem sozinhas depois que o texto é corrigido e sincronizado." };
+      return { resolved: removed, note: t("Pendências do sistema somem sozinhas depois que o texto é corrigido e sincronizado.") };
     },
   });
 }

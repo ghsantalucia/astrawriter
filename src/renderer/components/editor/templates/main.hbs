@@ -8,28 +8,28 @@
       type="button"
       class="review-pill hidden"
       id="btn-review"
-      title="Abrir a Central de Revisões"
+      title="{{t 'Abrir a Central de Revisões'}}"
       event-click="central:open"
       data-central="issues"
     >
       <span class="review-dot"></span>
-      <span class="review-text">Tudo certo</span>
+      <span class="review-text">{{t "Tudo certo"}}</span>
     </button>
-    <span id="stat-words">0 palavras</span>
+    <span id="stat-words">{{t "0 palavras"}}</span>
     <span class="stat-sep">·</span>
-    <span id="stat-read">~0 min de leitura</span>
+    <span id="stat-read">{{t "~0 min de leitura"}}</span>
     <span class="stat-sep">·</span>
-    <span id="stat-links">0 conexões wiki</span>
+    <span id="stat-links">{{t "0 conexões wiki"}}</span>
     <span class="stat-item hidden" id="stat-invalid-item">
       <span class="stat-sep">·</span>
       <button
         type="button"
         class="stat-warn"
         id="stat-invalid-btn"
-        title="Links internos que apontam para arquivos que não existem mais. Clique para ir ao primeiro; clique de novo para o próximo."
+        title="{{t 'Links internos que apontam para arquivos que não existem mais. Clique para ir ao primeiro; clique de novo para o próximo.'}}"
       >
         <i class="fa-solid fa-circle-exclamation"></i>
-        <span id="stat-invalid">0 links internos inválidos</span>
+        <span id="stat-invalid">{{t "0 links internos inválidos"}}</span>
       </button>
     </span>
     <span class="stat-item hidden" id="stat-spell-item">
@@ -38,17 +38,17 @@
         type="button"
         class="stat-warn"
         id="stat-spell-btn"
-        title="Palavras que o corretor não reconhece e palavras repetidas em sequência"
+        title="{{t 'Palavras que o corretor não reconhece e palavras repetidas em sequência'}}"
       >
         <i class="fa-solid fa-circle-exclamation"></i>
-        <span id="stat-spell">0 problemas ortográficos</span>
+        <span id="stat-spell">{{t "0 problemas ortográficos"}}</span>
       </button>
     </span>
   </div>
   <div
     id="save-status-indicator"
     class="save-status hidden"
-    title="Status de salvamento automático"
+    title="{{t 'Status de salvamento automático'}}"
   >
     <i class="fas fa-circle"></i>
     <span class="status-text"></span>

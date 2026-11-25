@@ -5,6 +5,7 @@
 import Handlebars from "handlebars";
 import { toViewEntry } from "../../utils/changelogFormat.js";
 import rowsTpl from "../../components/Modal/templates/changelogRows.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 
 /** Distância (px) do fim da lista a partir da qual o próximo arquivo de log é carregado. */
 const LOAD_THRESHOLD = 120;
@@ -30,14 +31,14 @@ export function mountChangelogList(root, changelog) {
   const loadMore = async () => {
     if (loading || done) return;
     loading = true;
-    status.textContent = "Carregando…";
+    status.textContent = t("Carregando…");
 
     const page = await changelog.getPage(started ? nextFile : null);
     started = true;
 
     if (page.file === null) {
       done = true;
-      status.textContent = "Nenhum registro ainda.";
+      status.textContent = t("Nenhum registro ainda.");
     } else {
       list.insertAdjacentHTML(
         "beforeend",
@@ -46,7 +47,7 @@ export function mountChangelogList(root, changelog) {
       nextFile = page.older;
       if (!nextFile) {
         done = true;
-        status.textContent = "Fim do histórico.";
+        status.textContent = t("Fim do histórico.");
       } else {
         status.textContent = "";
       }

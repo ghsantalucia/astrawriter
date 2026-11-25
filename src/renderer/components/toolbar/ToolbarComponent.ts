@@ -4,6 +4,7 @@
 
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 import { Component } from "../Component.js";
 import { initSaveButtonAnimation } from "./animations.js";
 import { editableFields } from "../../utils/template.js";
@@ -197,7 +198,7 @@ export class ToolbarComponent extends Component {
     if (!icon || !btn) return;
     icon.className = `fa-solid ${status === "playing" ? "fa-pause" : status === "paused" ? "fa-play" : "fa-volume-high"}`;
     // Só o ícone na barra; o que ele faz aparece na dica
-    const text = status === "playing" ? "Pausar a leitura" : status === "paused" ? "Continuar a leitura" : "Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)";
+    const text = status === "playing" ? t("Pausar a leitura") : status === "paused" ? t("Continuar a leitura") : t("Ouvir o arquivo aberto em voz alta (Ctrl+Shift+O)");
     btn.title = text;
     btn.setAttribute("aria-label", text);
     this.element.querySelector("#btn-narrator-stop")?.classList.toggle("hidden", status === "stopped");
@@ -394,10 +395,10 @@ export class ToolbarComponent extends Component {
     if (!statusEl) return;
 
     const texts = {
-      unsaved: "Alterações pendentes…",
-      saving: "Salvando rascunho…",
-      saved: "Rascunho salvo",
-      synced: "Sincronizado",
+      unsaved: t("Alterações pendentes…"),
+      saving: t("Salvando rascunho…"),
+      saved: t("Rascunho salvo"),
+      synced: t("Sincronizado"),
       hidden: "",
     };
 

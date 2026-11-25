@@ -8,6 +8,7 @@ import syncFormTpl from "../../components/Modal/templates/syncForm.hbs?raw";
 import { stringifyFrontmatter } from "../../utils/markdown.js";
 import { normalizePath } from "../../utils/helpers.js";
 import { removeFromIndexes } from "../../services/indexService.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Persiste as alterações de um único arquivo (socreve original com .temp e limpa estado)
@@ -16,7 +17,7 @@ import { removeFromIndexes } from "../../services/indexService.js";
  * @param {Object} state - Estado global da aplicação
  */
 export async function syncFile(filePath, fileService, state) {
-  if (!filePath) return { success: false, error: "Caminho inválido" };
+  if (!filePath) return { success: false, error: t("Caminho inválido") };
 
   let contentToSave = null;
 
@@ -38,7 +39,7 @@ export async function syncFile(filePath, fileService, state) {
     if (content === null) {
       return {
         success: false,
-        error: "Não foi possível ler o arquivo temporário.",
+        error: t("Não foi possível ler o arquivo temporário."),
       };
     }
     contentToSave = content;
@@ -79,7 +80,7 @@ export async function syncMultipleFiles(
 
   if (errorCount === 0) {
     uiBus.emit("toast:show", {
-      message: `✓ ${successCount} arquivo(s) sincronizado(s) com sucesso!`,
+      message: t("✓ {count} arquivo(s) sincronizado(s) com sucesso!", { count: successCount }),
       type: "success",
     });
     // Sincronizar é o momento de a IA conferir os arquivos atualizados (a sincronização exigida antes de uma edição
@@ -87,7 +88,7 @@ export async function syncMultipleFiles(
     if (offerAnalysis) uiBus.emit("sync:completed", { count: successCount });
   } else {
     uiBus.emit("toast:show", {
-      message: `⚠ ${successCount} salvos, e ${errorCount} falharam.`,
+      message: t("⚠ {saved} salvos, e {failed} falharam.", { saved: successCount, failed: errorCount }),
       type: "error",
     });
   }
@@ -107,7 +108,7 @@ export async function onSyncOpenModal(fileService, state, onDone = null) {
   if (tempFiles.length === 0) {
     onDone?.();
     uiBus.emit("toast:show", {
-      message: "Nenhum arquivo pendente de sincronização.",
+      message: t("Nenhum arquivo pendente de sincronização."),
       type: "info",
     });
     return;
@@ -121,15 +122,15 @@ export async function onSyncOpenModal(fileService, state, onDone = null) {
 
   uiBus.emit("modal:open", {
     id: "sync-files-modal",
-    title: "Sincronizar Alterações Pendentes",
+    title: t("Sincronizar Alterações Pendentes"),
     content: modalContentHtml,
     onClose: () => {
       if (!syncing) onDone?.();
     },
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Sincronizar Selecionados",
+        text: t("Sincronizar Selecionados"),
         class: "btn-primary",
         onClick: async (modalInstance) => {
           const checkedBoxes = modalInstance.element.querySelectorAll(
@@ -141,7 +142,7 @@ export async function onSyncOpenModal(fileService, state, onDone = null) {
 
           if (pathsToSync.length === 0) {
             uiBus.emit("toast:show", {
-              message: "Selecione pelo menos um arquivo para sincronizar.",
+              message: t("Selecione pelo menos um arquivo para sincronizar."),
               type: "info",
             });
             return;
@@ -196,7 +197,7 @@ function attachSyncModalEvents(syncModal, fileService, state) {
 
     // Atualiza o contador do "Selecionar Todos"
     if (countLabel) {
-      countLabel.textContent = `Selecionar Todos (${remainingItems.length})`;
+      countLabel.textContent = t("Selecionar Todos ({count})", { count: remainingItems.length });
     }
 
     if (selectAllCb) {
@@ -275,12 +276,12 @@ async function handleDiscardTemp(
 ) {
   uiBus.emit("modal:open", {
     id: "confirm-discard-modal",
-    title: "Descartar Alterações?",
-    content: `<p>Tem certeza que deseja descartar as alterações não salvas de <strong>${name}</strong>?</p>`,
+    title: t("Descartar Alterações?"),
+    content: t("<p>Tem certeza que deseja descartar as alterações não salvas de <strong>{name}</strong>?</p>", { name }),
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Descartar",
+        text: t("Descartar"),
         class: "btn-danger",
         onClick: async (confirmInstance) => {
           confirmInstance.close();
@@ -298,7 +299,7 @@ async function handleDiscardTemp(
               book,
               relPaths: [normalizePath(officialPath).slice(book.length + 1)],
               changelog: fileService.changelog,
-              reason: "Arquivo novo descartado: link removido do índice",
+              reason: t("Arquivo novo descartado: link removido do índice"),
             }).catch(() => null);
           }
 
@@ -310,7 +311,7 @@ async function handleDiscardTemp(
 
             uiBus.emit("temp-file:deleted", normalizePath(path));
             uiBus.emit("toast:show", {
-              message: `Alterações de "${name}" descartadas.`,
+              message: t("Alterações de \"{name}\" descartadas.", { name }),
               type: "success",
             });
 
@@ -318,7 +319,7 @@ async function handleDiscardTemp(
             updateListState();
           } else {
             uiBus.emit("toast:show", {
-              message: `Erro ao descartar: ${res.error}`,
+              message: t("Erro ao descartar: {error}", { error: res.error }),
               type: "error",
             });
           }
@@ -471,7 +472,7 @@ export async function handlePendingTempFiles(fileService) {
  */
 export async function onSyncRequireAll({ onDone }, fileService, state) {
   uiBus.emit("toast:show", {
-    message: "Sincronize os rascunhos pendentes para a IA poder editar.",
+    message: t("Sincronize os rascunhos pendentes para a IA poder editar."),
     type: "info",
   });
   // Ao terminar ou desistir, recalcula o que ainda está pendente (o botão Sincronizar acompanha o disco)

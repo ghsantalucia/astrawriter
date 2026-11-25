@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: false
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Writing"
+description: "Contains the chapter manuscripts of the book."
+userDelete: false
+userRename: false

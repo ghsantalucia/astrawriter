@@ -10,6 +10,7 @@ import path from "node:path";
 import { app } from "electron";
 import { templatesDir } from "./paths.js";
 import { BUILTIN_PROFILES, TEMPLATE_KINDS } from "../shared/templateKinds.js";
+import { t } from "../shared/i18n.js";
 
 /** @returns {string} Pasta dos perfis que vêm com o app. */
 function builtinRoot() {
@@ -111,8 +112,8 @@ export function readOriginal(profileId, kind) {
  * @returns {{success: boolean, error?: string}}
  */
 export function saveTemplate(profileId, kind, body) {
-  if (!safeId(profileId) || !isKind(kind)) return { success: false, error: "Template inválido." };
-  if (!listProfiles().some((p) => p.id === profileId)) return { success: false, error: "Perfil não encontrado." };
+  if (!safeId(profileId) || !isKind(kind)) return { success: false, error: t("Template inválido.") };
+  if (!listProfiles().some((p) => p.id === profileId)) return { success: false, error: t("Perfil não encontrado.") };
   fs.mkdirSync(path.join(userRoot(), profileId), { recursive: true });
   fs.writeFileSync(path.join(userRoot(), profileId, `${kind}.md`), String(body ?? ""), "utf8");
   return { success: true };
@@ -125,7 +126,7 @@ export function saveTemplate(profileId, kind, body) {
  * @returns {{success: boolean, error?: string}}
  */
 export function restoreTemplate(profileId, kind) {
-  if (!safeId(profileId) || !isKind(kind)) return { success: false, error: "Template inválido." };
+  if (!safeId(profileId) || !isKind(kind)) return { success: false, error: t("Template inválido.") };
   fs.rmSync(path.join(userRoot(), profileId, `${kind}.md`), { force: true });
   return { success: true };
 }
@@ -137,8 +138,8 @@ export function restoreTemplate(profileId, kind) {
  */
 export function createProfile({ name, from }) {
   const label = String(name || "").trim().slice(0, 40);
-  if (!label) return { success: false, error: "Dê um nome ao perfil." };
-  if (!listProfiles().some((p) => p.id === from)) return { success: false, error: "Perfil de origem não encontrado." };
+  if (!label) return { success: false, error: t("Dê um nome ao perfil.") };
+  if (!listProfiles().some((p) => p.id === from)) return { success: false, error: t("Perfil de origem não encontrado.") };
   const id = `custom-${Date.now().toString(36)}`;
   for (const kind of TEMPLATE_KINDS) {
     const source = readTemplate(from, kind.id);
@@ -160,7 +161,7 @@ export function createProfile({ name, from }) {
 export function renameProfile(id, name) {
   const label = String(name || "").trim().slice(0, 40);
   const list = customProfiles();
-  if (!label || !list.some((p) => p.id === id)) return { success: false, error: "Perfil não encontrado." };
+  if (!label || !list.some((p) => p.id === id)) return { success: false, error: t("Perfil não encontrado.") };
   saveCustomProfiles(list.map((p) => (p.id === id ? { ...p, label } : p)));
   return { success: true };
 }
@@ -172,7 +173,7 @@ export function renameProfile(id, name) {
  */
 export function deleteProfile(id) {
   const list = customProfiles();
-  if (!list.some((p) => p.id === id)) return { success: false, error: "Só perfis criados por você podem ser excluídos." };
+  if (!list.some((p) => p.id === id)) return { success: false, error: t("Só perfis criados por você podem ser excluídos.") };
   fs.rmSync(path.join(userRoot(), id), { recursive: true, force: true });
   saveCustomProfiles(list.filter((p) => p.id !== id));
   return { success: true };

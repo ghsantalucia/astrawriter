@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { dialog } from "electron";
 import { booksDir } from "./paths.js";
+import { t } from "../shared/i18n.js";
 const JSZip = require("jszip");
 
 /** Limites de segurança do zip (descompactado). */
@@ -46,9 +47,9 @@ function safeRelative(rel) {
  */
 export async function importBook(parent) {
   const { canceled, filePaths } = await dialog.showOpenDialog(parent, {
-    title: "Importar livro",
+    title: t("Importar livro"),
     properties: ["openFile"],
-    filters: [{ name: "Livro exportado (zip)", extensions: ["zip"] }],
+    filters: [{ name: t("Livro exportado (zip)"), extensions: ["zip"] }],
   });
   if (canceled || !filePaths?.[0]) return { success: false, canceled: true };
 
@@ -56,7 +57,7 @@ export async function importBook(parent) {
   try {
     zip = await JSZip.loadAsync(await fs.promises.readFile(filePaths[0]));
   } catch {
-    return { success: false, error: "Não foi possível ler o arquivo: ele não parece ser um zip válido." };
+    return { success: false, error: t("Não foi possível ler o arquivo: ele não parece ser um zip válido.") };
   }
 
   const files = (Object.values(zip.files) as any[]).filter((f) => !f.dir);
@@ -64,26 +65,26 @@ export async function importBook(parent) {
   const configEntry = files
     .filter((f) => /(^|\/)config\.json$/.test(f.name) && f.name.split("/").length <= 2)
     .sort((a, b) => a.name.split("/").length - b.name.split("/").length)[0];
-  if (!configEntry) return { success: false, error: "Este zip não contém um livro (config.json não encontrado)." };
+  if (!configEntry) return { success: false, error: t("Este zip não contém um livro (config.json não encontrado).") };
 
   let config;
   try {
     config = JSON.parse(await configEntry.async("string"));
   } catch {
-    return { success: false, error: "O config.json do livro está inválido." };
+    return { success: false, error: t("O config.json do livro está inválido.") };
   }
   if (!config || typeof config !== "object" || Array.isArray(config)) {
-    return { success: false, error: "O config.json do livro está inválido." };
+    return { success: false, error: t("O config.json do livro está inválido.") };
   }
 
   const root = configEntry.name.includes("/") ? configEntry.name.slice(0, configEntry.name.lastIndexOf("/") + 1) : "";
   const entries = files.filter((f) => f.name.startsWith(root));
   if (!entries.some((f) => /^(content|assets|notes)\//.test(f.name.slice(root.length)))) {
-    return { success: false, error: "Este zip não tem a estrutura de um livro (content, assets ou notes)." };
+    return { success: false, error: t("Este zip não tem a estrutura de um livro (content, assets ou notes).") };
   }
-  if (entries.length > MAX_FILES) return { success: false, error: "O zip tem arquivos demais para ser um livro." };
+  if (entries.length > MAX_FILES) return { success: false, error: t("O zip tem arquivos demais para ser um livro.") };
   const total = entries.reduce((sum, f) => sum + (f._data?.uncompressedSize || 0), 0);
-  if (total > MAX_BYTES) return { success: false, error: "O livro descompactado é grande demais para importar." };
+  if (total > MAX_BYTES) return { success: false, error: t("O livro descompactado é grande demais para importar.") };
 
   const dir = booksDir();
   fs.mkdirSync(dir, { recursive: true });
@@ -94,11 +95,11 @@ export async function importBook(parent) {
     let written = 0;
     for (const entry of entries) {
       const rel = safeRelative(entry.name.slice(root.length));
-      if (!rel) throw new Error(`Caminho inválido no zip: "${entry.name}".`);
+      if (!rel) throw new Error(t("Caminho inválido no zip: \"{name}\".", { name: entry.name }));
       if (rel.startsWith(".system/") || rel.endsWith(".temp")) continue;
       const target = path.join(bookPath, ...rel.split("/"));
       // Defesa extra contra "zip slip": o destino tem de continuar dentro da pasta do livro
-      if (path.relative(bookPath, target).startsWith("..")) throw new Error(`Caminho inválido no zip: "${entry.name}".`);
+      if (path.relative(bookPath, target).startsWith("..")) throw new Error(t("Caminho inválido no zip: \"{name}\".", { name: entry.name }));
       fs.mkdirSync(path.dirname(target), { recursive: true });
       await fs.promises.writeFile(target, await entry.async("nodebuffer"));
       written += 1;
@@ -114,8 +115,8 @@ export async function importBook(parent) {
         // pasta sem config.json válido
       }
     }
-    let title = String(config.book_title || "Livro importado").trim() || "Livro importado";
-    if (existing.has(title.toLowerCase())) title = `${title} (importado)`;
+    let title = String(config.book_title || t("Livro importado")).trim() || t("Livro importado");
+    if (existing.has(title.toLowerCase())) title = `${title} ${t("(importado)")}`;
     config.book_title = title;
     // O arquivo aberto guardado no zip aponta para o computador de origem
     if (config.explorer_state) config.explorer_state = { ...config.explorer_state, open_file: null, open_folders: [] };

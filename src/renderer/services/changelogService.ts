@@ -8,6 +8,7 @@
 
 import { normalizePath, uniqueId } from "../utils/helpers.js";
 import { getProviderInfo } from "../ai/providers/index.js";
+import { t } from "../../shared/i18n.js";
 
 /** Nomes de arquivo que nunca entram no changelog (são estado de interface, não conteúdo do livro). */
 const IGNORED_FILES = new Set(["config.json"]);
@@ -248,7 +249,7 @@ export class ChangelogService {
    */
   async preview(filePath, entryId) {
     const book = this.resolveBook(filePath);
-    if (!book) return { success: false, error: "Arquivo fora do livro atual." };
+    if (!book) return { success: false, error: t("Arquivo fora do livro atual.") };
     return window.electronAPI.changelogPreview(book, filePath, entryId);
   }
 
@@ -275,7 +276,7 @@ export class ChangelogService {
    */
   async restore(filePath, entryId, actor = this.userActor()) {
     const book = this.resolveBook(filePath);
-    if (!book) return { success: false, error: "Arquivo fora do livro atual." };
+    if (!book) return { success: false, error: t("Arquivo fora do livro atual.") };
     this.clearDraft(filePath);
     this.endSession(filePath);
     return window.electronAPI.changelogRestore(book, filePath, entryId, actor);

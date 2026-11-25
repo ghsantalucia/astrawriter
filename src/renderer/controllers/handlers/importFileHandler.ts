@@ -7,6 +7,10 @@
 import { uiBus } from "../../events/uiBus.js";
 import { escapeHtml as esc } from "../../utils/helpers.js";
 import * as creationHandler from "./creationHandler.js";
+import { getLanguage, t } from "../../../shared/i18n.js";
+
+/** Número formatado conforme o idioma do app. */
+const num = (n) => n.toLocaleString(getLanguage() === "en" ? "en-US" : "pt-BR");
 
 /** Palavras de um texto. */
 const words = (text) => String(text || "").split(/\s+/).filter(Boolean).length;
@@ -22,7 +26,7 @@ export async function startImportFromFile(state, creationHandlerApi, creationSer
   const result = await window.electronAPI.extractBookFile();
   if (result?.canceled) return;
   if (!result?.success) {
-    uiBus.emit("toast:show", { message: result?.error || "Não foi possível ler o arquivo.", type: "error" });
+    uiBus.emit("toast:show", { message: result?.error || t("Não foi possível ler o arquivo."), type: "error" });
     return;
   }
   openReview(state, creationService, result);
@@ -43,16 +47,18 @@ export function openReview(state, creationService, result) {
       .map(
         (c, i) => `<div class="imp-row" data-i="${i}">
           <span class="imp-n">${i + 1}</span>
-          <input class="cn-input imp-ctitle" data-i="${i}" value="${esc(c.title)}" aria-label="Título do capítulo ${i + 1}" />
-          <span class="imp-words">${words(c.text).toLocaleString("pt-BR")} palavras</span>
-          <button type="button" class="cn-btn small ghost" data-imp="merge" data-i="${i}" ${i === 0 ? "disabled" : ""} title="Juntar ao capítulo anterior (o texto é mantido)"><i class="fa-solid fa-turn-up"></i></button>
-          <button type="button" class="cn-btn small ghost" data-imp="del" data-i="${i}" title="Remover este capítulo (o texto dele é descartado)"><i class="fa-regular fa-trash-can"></i></button>
+          <input class="cn-input imp-ctitle" data-i="${i}" value="${esc(c.title)}" aria-label="${esc(t("Título do capítulo {n}", { n: i + 1 }))}" />
+          <span class="imp-words">${t("{count} palavras", { count: num(words(c.text)) })}</span>
+          <button type="button" class="cn-btn small ghost" data-imp="merge" data-i="${i}" ${i === 0 ? "disabled" : ""} title="${esc(t("Juntar ao capítulo anterior (o texto é mantido)"))}"><i class="fa-solid fa-turn-up"></i></button>
+          <button type="button" class="cn-btn small ghost" data-imp="del" data-i="${i}" title="${esc(t("Remover este capítulo (o texto dele é descartado)"))}"><i class="fa-regular fa-trash-can"></i></button>
         </div>`,
       )
       .join("");
   const summary = () => {
     const total = chapters.reduce((n, c) => n + words(c.text), 0);
-    return `${chapters.length} ${chapters.length === 1 ? "capítulo" : "capítulos"} · ${total.toLocaleString("pt-BR")} palavras`;
+    return chapters.length === 1
+      ? t("{count} capítulo · {words} palavras", { count: chapters.length, words: num(total) })
+      : t("{count} capítulos · {words} palavras", { count: chapters.length, words: num(total) });
   };
   const paint = () => {
     const list = document.getElementById("imp-list");
@@ -85,26 +91,26 @@ export function openReview(state, creationService, result) {
 
   uiBus.emit("modal:open", {
     id: "import-file-modal",
-    title: "Importar livro de um arquivo",
+    title: t("Importar livro de um arquivo"),
     windowClass: "modal-wide",
     content: `<div class="imp-box">
-      <label class="cn-field"><span>Título do livro</span><input id="imp-title" class="cn-input" value="${esc(result.title)}" /></label>
-      <p class="cit-hint">Extraí os capítulos do arquivo (.${esc(result.format)}) pelos títulos. <strong>Confira</strong>: renomeie, junte com o anterior ou remova o que foi identificado errado. Depois você segue o assistente de criação de livro normalmente.</p>
+      <label class="cn-field"><span>${t("Título do livro")}</span><input id="imp-title" class="cn-input" value="${esc(result.title)}" /></label>
+      <p class="cit-hint">${t("Extraí os capítulos do arquivo (.{format}) pelos títulos. <strong>Confira</strong>: renomeie, junte com o anterior ou remova o que foi identificado errado. Depois você segue o assistente de criação de livro normalmente.", { format: esc(result.format) })}</p>
       ${result.warnings?.length ? `<p class="imp-warn"><i class="fa-solid fa-triangle-exclamation"></i> ${result.warnings.map(esc).join(" ")}</p>` : ""}
       <p id="imp-summary" class="imp-summary">${esc(summary())}</p>
       <div id="imp-list" class="imp-list">${rows()}</div>
     </div>`,
     onClose: cleanup,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary", onClick: (modal) => (cleanup(), modal.close()) },
+      { text: t("Cancelar"), class: "btn-secondary", onClick: (modal) => (cleanup(), modal.close()) },
       {
-        text: "Continuar para a criação do livro",
+        text: t("Continuar para a criação do livro"),
         class: "btn-primary",
         onClick: (modal) => {
           const title = ((document.getElementById("imp-title") as HTMLInputElement | null)?.value || "").trim();
-          const kept = chapters.map((c) => ({ title: c.title.trim() || "Sem título", text: c.text })).filter((c) => c.text || c.title);
-          if (!title) return uiBus.emit("toast:show", { message: "Dê um título ao livro.", type: "error" });
-          if (kept.length === 0) return uiBus.emit("toast:show", { message: "O livro precisa de pelo menos um capítulo.", type: "error" });
+          const kept = chapters.map((c) => ({ title: c.title.trim() || t("Sem título"), text: c.text })).filter((c) => c.text || c.title);
+          if (!title) return uiBus.emit("toast:show", { message: t("Dê um título ao livro."), type: "error" });
+          if (kept.length === 0) return uiBus.emit("toast:show", { message: t("O livro precisa de pelo menos um capítulo."), type: "error" });
           state.pendingImport = { title, chapters: kept };
           cleanup();
           modal.close();
@@ -129,8 +135,8 @@ export async function finishPendingImport(payload, state, creationService) {
   try {
     const count = await creationService.importChapters(payload.bookPath, pending.chapters);
     uiBus.emit("book:selected", payload.bookPath);
-    uiBus.emit("toast:show", { message: `Livro importado: ${count} ${count === 1 ? "capítulo gravado" : "capítulos gravados"}.`, type: "success" });
+    uiBus.emit("toast:show", { message: count === 1 ? t("Livro importado: {count} capítulo gravado.", { count }) : t("Livro importado: {count} capítulos gravados.", { count }), type: "success" });
   } catch (error) {
-    uiBus.emit("toast:show", { message: `O livro foi criado, mas a importação dos capítulos falhou: ${error.message}`, type: "error" });
+    uiBus.emit("toast:show", { message: t("O livro foi criado, mas a importação dos capítulos falhou: {message}", { message: error.message }), type: "error" });
   }
 }

@@ -4,7 +4,7 @@
     <input
       data-role="find-input"
       type="text"
-      placeholder="Procurar"
+      placeholder="{{t 'Procurar'}}"
       autocomplete="off"
       spellcheck="false"
     />
@@ -13,26 +13,26 @@
       type="button"
       data-role="find-prev"
       class="find-btn"
-      title="Anterior (Shift+Enter)"
+      title="{{t 'Anterior (Shift+Enter)'}}"
     ><i class="fa-solid fa-chevron-up"></i></button>
     <button
       type="button"
       data-role="find-next"
       class="find-btn"
-      title="Próximo (Enter)"
+      title="{{t 'Próximo (Enter)'}}"
     ><i class="fa-solid fa-chevron-down"></i></button>
     <button
       type="button"
       data-role="find-close"
       class="find-btn"
-      title="Fechar (Esc)"
+      title="{{t 'Fechar (Esc)'}}"
     ><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="find-row">
     <input
       data-role="replace-input"
       type="text"
-      placeholder="Substituir por"
+      placeholder="{{t 'Substituir por'}}"
       autocomplete="off"
       spellcheck="false"
     />
@@ -40,12 +40,12 @@
       type="button"
       data-role="replace-one"
       class="find-text-btn"
-    >Substituir</button>
+    >{{t "Substituir"}}</button>
     <button
       type="button"
       data-role="replace-all"
       class="find-text-btn"
-    >Substituir tudo</button>
+    >{{t "Substituir tudo"}}</button>
   </div>
 </div>
 
@@ -54,17 +54,17 @@
     <button type="button" class="link-tab active" data-tab="internal"><i
         class="fa-solid fa-book-open"
       ></i>
-      Arquivo do livro</button>
+      {{t "Arquivo do livro"}}</button>
     <button type="button" class="link-tab" data-tab="external"><i
         class="fa-solid fa-globe"
       ></i>
-      Link externo</button>
+      {{t "Link externo"}}</button>
   </div>
   <div class="link-pane" data-pane="internal">
     <input
       data-role="link-search"
       type="text"
-      placeholder="Buscar arquivo pelo nome..."
+      placeholder="{{t 'Buscar arquivo pelo nome...'}}"
       autocomplete="off"
       spellcheck="false"
     />
@@ -79,7 +79,7 @@
       autocomplete="off"
       spellcheck="false"
     />
-    <label>Texto do link</label>
+    <label>{{t "Texto do link"}}</label>
     <input
       data-role="link-text"
       type="text"
@@ -91,12 +91,12 @@
         type="button"
         data-role="link-cancel"
         class="link-btn"
-      >Cancelar</button>
+      >{{t "Cancelar"}}</button>
       <button
         type="button"
         data-role="link-external-ok"
         class="link-btn primary"
-      >Inserir</button>
+      >{{t "Inserir"}}</button>
     </div>
   </div>
 </div>
@@ -105,5 +105,5 @@
   <button type="button" data-role="link-remove"><i
       class="fa-solid fa-link-slash"
     ></i>
-    Remover link</button>
+    {{t "Remover link"}}</button>
 </div>

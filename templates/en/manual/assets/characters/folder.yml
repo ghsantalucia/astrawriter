@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: true
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Characters"
+description: "Contains information about the characters in the book."
+userDelete: false
+userRename: false

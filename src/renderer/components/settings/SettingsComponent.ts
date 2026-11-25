@@ -2,6 +2,7 @@
  * @file Componente responsável pela renderização estrutural da drawer de configurações
  */
 
+import { defaultSpellLanguage } from "../../../shared/i18n.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
 import { Component } from "../Component.js";
@@ -181,7 +182,7 @@ export class SettingsComponent extends Component {
     const toggle = this.element?.querySelector("#spellcheck-toggle");
     if (toggle) toggle.checked = localStorage.getItem("app_spellcheck_enabled") !== "false";
     const select = this.element?.querySelector("#spell-language-select");
-    if (select) select.value = localStorage.getItem("app_spell_language") || "pt-BR";
+    if (select) select.value = localStorage.getItem("app_spell_language") || defaultSpellLanguage();
   }
 
   /**

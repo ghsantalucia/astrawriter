@@ -17,6 +17,7 @@ import { parseMarkdown, splitFrontmatter } from "../../utils/markdown.js";
 import { flattenVariables } from "../../utils/template.js";
 import { EditorKit } from "../../components/Editor/EditorKit.js";
 import reviewTpl from "../../components/Modal/templates/aiReview.hbs?raw";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Abre, em sequência, a janela de comparação de cada arquivo alterado pela IA.
@@ -58,7 +59,7 @@ export async function autoApplyAiEdits({ files }, fileService, state) {
     if (unchanged) {
       await fileService.deleteFile(tempPath);
       uiBus.emit("temp-file:deleted", normPath);
-      uiBus.emit("chat:system-notice", { text: `A IA não alterou o arquivo "${title}".` });
+      uiBus.emit("chat:system-notice", { text: t("A IA não alterou o arquivo \"{title}\".", { title }) });
       continue;
     }
 
@@ -68,7 +69,7 @@ export async function autoApplyAiEdits({ files }, fileService, state) {
       continue;
     }
     uiBus.emit("temp-file:synced", normPath);
-    uiBus.emit("chat:system-notice", { text: `A IA gravou o arquivo "${title}" (modo autônomo).` });
+    uiBus.emit("chat:system-notice", { text: t("A IA gravou o arquivo \"{title}\" (modo autônomo).", { title }) });
     // O arquivo aberto no editor é recarregado com a versão nova
     if (normalizePath(state.currentFilePath || "").replace(/\.temp$/, "") === normPath) {
       uiBus.emit("editor:open-file", { path: normPath });
@@ -196,7 +197,7 @@ async function reviewFile(originalPath, fileService, state) {
     await fileService.deleteFile(tempPath);
     uiBus.emit("temp-file:deleted", normPath);
     uiBus.emit("chat:system-notice", {
-      text: `A IA não alterou o arquivo "${title}".`,
+      text: t("A IA não alterou o arquivo \"{title}\".", { title }),
     });
     return;
   }
@@ -213,20 +214,20 @@ async function reviewFile(originalPath, fileService, state) {
 
     uiBus.emit("modal:open", {
       id: "ai-review-modal",
-      title: `Revisar alterações da IA: ${title}`,
+      title: t("Revisar alterações da IA: {title}", { title }),
       content: Handlebars.compile(reviewTpl)({ dataChanges }),
       windowClass: "modal-wide",
       closable: false,
       buttons: [
         {
-          text: "Manter versão antiga (descartar IA)",
+          text: t("Manter versão antiga (descartar IA)"),
           class: "btn-danger",
           onClick: async (modal) => {
             const res = await fileService.deleteFile(tempPath);
             if (!res.success) return toastError(res.error);
             uiBus.emit("temp-file:deleted", normPath);
             uiBus.emit("chat:system-notice", {
-              text: `A edição da IA para o arquivo "${title}" foi descartada, nada foi alterado.`,
+              text: t("A edição da IA para o arquivo \"{title}\" foi descartada, nada foi alterado.", { title }),
             });
             kit?.destroy();
             modal.close();
@@ -234,7 +235,7 @@ async function reviewFile(originalPath, fileService, state) {
           },
         },
         {
-          text: "Manter versão nova",
+          text: t("Manter versão nova"),
           class: "btn-primary",
           onClick: async (modal) => {
             // O usuário pode ter editado a versão da IA: persiste exatamente o que está no editor
@@ -243,7 +244,7 @@ async function reviewFile(originalPath, fileService, state) {
             if (!res.success) return toastError(res.error);
             uiBus.emit("temp-file:synced", normPath);
             uiBus.emit("chat:system-notice", {
-              text: `O arquivo "${title}" foi editado com a versão da IA.`,
+              text: t("O arquivo \"{title}\" foi editado com a versão da IA.", { title }),
             });
             kit.destroy();
             modal.close();
@@ -300,7 +301,7 @@ async function reviewFile(originalPath, fileService, state) {
  */
 function toastError(error) {
   uiBus.emit("toast:show", {
-    message: `Erro ao salvar a escolha: ${error}`,
+    message: t("Erro ao salvar a escolha: {error}", { error }),
     type: "error",
   });
 }

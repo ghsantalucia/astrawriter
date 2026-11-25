@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { BrowserWindow, dialog } from "electron";
+import { t, getLanguage } from "../shared/i18n.js";
 const htmlToDocx = require("html-to-docx");
 const JSZip = require("jszip");
 
@@ -15,6 +16,11 @@ const FORMATS = {
   docx: { ext: "docx", label: "Documento do Word" },
   pdf: { ext: "pdf", label: "PDF" },
 };
+
+/** Rótulo do formato no diálogo de salvar (só o Word tem texto traduzível). */
+function formatLabel(spec) {
+  return spec.ext === "docx" ? t("Documento do Word") : spec.label;
+}
 
 /**
  * Nome de arquivo seguro a partir do título.
@@ -49,7 +55,7 @@ function escapeHtml(text) {
  */
 function buildHtml(title, body) {
   return `<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<html lang="${getLanguage() === "en" ? "en" : "pt-BR"}"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
 <style>
   body { font-family: Georgia, "Times New Roman", serif; font-size: 12pt; line-height: 1.6; color: #1b1b1f; }
   h1 { font-size: 22pt; margin: 0 0 14pt; }
@@ -102,12 +108,12 @@ export async function exportDocument(
 ) {
   const spec = FORMATS[format];
   if (!spec)
-    return { success: false, error: "Formato de exportação inválido." };
+    return { success: false, error: t("Formato de exportação inválido.") };
 
   const { canceled, filePath } = await dialog.showSaveDialog(parent, {
-    title: "Exportar arquivo",
+    title: t("Exportar arquivo"),
     defaultPath: `${safeName(title)}.${spec.ext}`,
-    filters: [{ name: spec.label, extensions: [spec.ext] }],
+    filters: [{ name: formatLabel(spec), extensions: [spec.ext] }],
   });
   if (canceled || !filePath) return { success: false, canceled: true };
 
@@ -173,22 +179,22 @@ export async function addDirToZip(zip, dir, prefix, options: any = {}) {
 export async function exportBook(parent, { kind, format = "md", title, bookPath, chapters = [] }) {
   const spec = FORMATS[format];
   if (!["project", "chapters", "single"].includes(kind) || !spec) {
-    return { success: false, error: "Opção de exportação inválida." };
+    return { success: false, error: t("Opção de exportação inválida.") };
   }
   if (kind === "project" && (!bookPath || !fs.existsSync(bookPath))) {
-    return { success: false, error: "Pasta do livro não encontrada." };
+    return { success: false, error: t("Pasta do livro não encontrada.") };
   }
   if (kind !== "project" && chapters.length === 0) {
-    return { success: false, error: "O livro ainda não tem capítulos para exportar." };
+    return { success: false, error: t("O livro ainda não tem capítulos para exportar.") };
   }
 
   const isZip = kind !== "single";
   const ext = isZip ? "zip" : spec.ext;
-  const suffix = kind === "project" ? " (projeto)" : kind === "chapters" ? " (capítulos)" : "";
+  const suffix = kind === "project" ? t(" (projeto)") : kind === "chapters" ? t(" (capítulos)") : "";
   const { canceled, filePath } = await dialog.showSaveDialog(parent, {
-    title: "Exportar livro",
+    title: t("Exportar livro"),
     defaultPath: `${safeName(title)}${suffix}.${ext}`,
-    filters: [{ name: isZip ? "Arquivo ZIP" : spec.label, extensions: [ext] }],
+    filters: [{ name: isZip ? t("Arquivo ZIP") : formatLabel(spec), extensions: [ext] }],
   });
   if (canceled || !filePath) return { success: false, canceled: true };
   const target = path.extname(filePath) ? filePath : `${filePath}.${ext}`;

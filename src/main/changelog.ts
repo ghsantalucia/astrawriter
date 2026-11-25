@@ -25,6 +25,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { t } from "../shared/i18n.js";
 
 /** Pasta do changelog, relativa à raiz do livro. */
 export const CHANGELOG_DIR = ".system/changelog";
@@ -192,7 +193,7 @@ export function revertHunks(newText, hunks) {
     const { newStart, ins, del } = hunks[k];
     const found = lines.slice(newStart, newStart + ins.length);
     if (found.length !== ins.length || found.some((l, x) => l !== ins[x])) {
-      throw new Error("O conteúdo do arquivo não confere com o registro.");
+      throw new Error(t("O conteúdo do arquivo não confere com o registro."));
     }
     lines.splice(newStart, ins.length, ...del);
   }
@@ -597,7 +598,7 @@ export async function readLogPage(bookPath, file = null) {
  */
 async function reconstruct(bookPath, filePath, entryId) {
   const relPath = toRelative(bookPath, filePath);
-  if (!relPath) throw new Error("Arquivo fora do livro.");
+  if (!relPath) throw new Error(t("Arquivo fora do livro."));
 
   const logs = await readAllLogs(bookPath);
   const mine = fileChain(
@@ -610,19 +611,19 @@ async function reconstruct(bookPath, filePath, entryId) {
   if (entryId < 0) {
     const origin = originalVersion(mine, relPath);
     if (!origin || origin.id !== entryId) {
-      throw new Error("Versão não encontrada no histórico.");
+      throw new Error(t("Versão não encontrada no histórico."));
     }
     // Se o original é representado por um registro de restauração, só o que veio depois dele é desfeito
     later = mine[0].action === "restore" ? mine.slice(1) : mine;
   } else {
     const targetIndex = mine.findIndex((e) => e.id === entryId);
     if (targetIndex === -1)
-      throw new Error("Versão não encontrada no histórico.");
+      throw new Error(t("Versão não encontrada no histórico."));
     if (!VERSION_ACTIONS.has(mine[targetIndex].action)) {
-      throw new Error("Este registro não é uma versão do arquivo.");
+      throw new Error(t("Este registro não é uma versão do arquivo."));
     }
     if (mine[targetIndex].action === "delete") {
-      throw new Error("Esta versão representa a exclusão do arquivo.");
+      throw new Error(t("Esta versão representa a exclusão do arquivo."));
     }
     later = mine.slice(targetIndex + 1);
   }
@@ -631,7 +632,7 @@ async function reconstruct(bookPath, filePath, entryId) {
   const latest = mine[mine.length - 1];
   if (hashText(current) !== latest.hashAfter) {
     throw new Error(
-      "O arquivo foi modificado fora do Astra Writer desde o último registro. Por segurança, a restauração foi cancelada.",
+      t("O arquivo foi modificado fora do Astra Writer desde o último registro. Por segurança, a restauração foi cancelada."),
     );
   }
 
@@ -640,7 +641,7 @@ async function reconstruct(bookPath, filePath, entryId) {
     // "move" só muda o caminho: o hash dele pode ser de um estado já apagado por uma restauração anterior
     if (entry.action !== "move" && hashText(current) !== entry.hashAfter) {
       throw new Error(
-        "A sequência de registros está inconsistente; restauração cancelada.",
+        t("A sequência de registros está inconsistente; restauração cancelada."),
       );
     }
 
@@ -648,14 +649,14 @@ async function reconstruct(bookPath, filePath, entryId) {
       const payload =
         entry.content && (await readContent(bookPath, entry.content));
       if (!payload?.hunks)
-        throw new Error("Conteúdo de uma alteração não foi encontrado.");
+        throw new Error(t("Conteúdo de uma alteração não foi encontrado."));
       current = revertHunks(current ?? "", payload.hunks);
     } else if (entry.action === "delete") {
       const payload =
         entry.content && (await readContent(bookPath, entry.content));
       if (typeof payload?.text !== "string") {
         throw new Error(
-          "O conteúdo de um arquivo excluído não foi encontrado.",
+          t("O conteúdo de um arquivo excluído não foi encontrado."),
         );
       }
       current = payload.text;
@@ -669,7 +670,7 @@ async function reconstruct(bookPath, filePath, entryId) {
       hashText(current) !== entry.hashBefore
     ) {
       throw new Error(
-        "Não foi possível reconstruir a versão anterior; restauração cancelada.",
+        t("Não foi possível reconstruir a versão anterior; restauração cancelada."),
       );
     }
   }

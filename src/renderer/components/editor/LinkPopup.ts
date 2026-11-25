@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from "../../utils/helpers.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Popup de inserção de links.
@@ -187,7 +188,7 @@ export class LinkPopup {
         </li>`,
           )
           .join("")
-      : `<li class="link-empty">Nenhum arquivo encontrado</li>`;
+      : `<li class="link-empty">${t("Nenhum arquivo encontrado")}</li>`;
     this.highlight();
   }
 

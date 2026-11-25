@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: false
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Chapter 01"
+description: "Chapter 01"
+userDelete: false
+userRename: false

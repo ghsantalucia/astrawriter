@@ -6,6 +6,7 @@
  */
 
 import { uiBus } from "../../events/uiBus.js";
+import { t } from "../../../shared/i18n.js";
 import Editor from "@toast-ui/editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "@toast-ui/editor/dist/theme/toastui-editor-dark.css";
@@ -175,7 +176,7 @@ export class EditorKit {
     this.linkButton = button(
       "dwLink",
       "fa-solid fa-link",
-      "Inserir link (arquivo do livro ou externo)",
+      t("Inserir link (arquivo do livro ou externo)"),
       (el) => {
         if (this.locked) return;
         if (this.linkPopup.isOpen()) this.linkPopup.close();
@@ -185,10 +186,10 @@ export class EditorKit {
     this.findButton = button(
       "dwFind",
       "fa-solid fa-magnifying-glass",
-      "Procurar e substituir (Ctrl+F)",
+      t("Procurar e substituir (Ctrl+F)"),
       () => this.findPanel?.toggle(),
     );
-    this.viewButton = button("dwView", "fa-solid fa-code", "Ver Markdown", () =>
+    this.viewButton = button("dwView", "fa-solid fa-code", t("Ver Markdown"), () =>
       this.toggleViewMode(),
     );
 
@@ -196,7 +197,7 @@ export class EditorKit {
     this.settingsButton = button(
       "dwSettings",
       "fa-solid fa-gear",
-      "Configurações do editor (fonte e tamanho)",
+      t("Configurações do editor (fonte e tamanho)"),
       () => uiBus.emit("central:open", { central: "system", tab: "editor" }),
     );
     this.settingsButton.el.classList.add("dw-tb-right");
@@ -310,7 +311,7 @@ export class EditorKit {
     this.viewButton.el.classList.toggle("active", toMarkdown);
     this.viewButton.el.setAttribute(
       "title",
-      toMarkdown ? "Ver texto formatado" : "Ver Markdown",
+      toMarkdown ? t("Ver texto formatado") : t("Ver Markdown"),
     );
     this.findPanel?.refresh();
     this.refresh();

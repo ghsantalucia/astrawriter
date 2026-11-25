@@ -4,6 +4,8 @@
  * mensagens do chat). É determinístico: tira enfeites de Markdown, linhas em branco, preâmbulos e palavras de enchimento.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /** Trocas seguras de expressões longas por curtas (a IA entende igual). */
 const SHORTEN: Array<[RegExp, string]> = [
   [/\b(?:é importante|importante) (?:que você|lembrar|notar) (?:de )?(?:que )?/gi, ""],
@@ -58,4 +60,4 @@ export function compactDescription(description) {
 
 /** Pedido de respostas curtas (acrescentado ao prompt de sistema quando as instruções são otimizadas). */
 export const CONCISE_NOTE =
-  "\n\n# Estilo\nResponda curto e direto: sem preâmbulo, sem repetir o pedido e sem resumir o que acabou de fazer. Isto não vale para textos do livro que o autor pedir (escreva-os por completo, no estilo dele).";
+  "\n\n" + t("# Estilo\nResponda curto e direto: sem preâmbulo, sem repetir o pedido e sem resumir o que acabou de fazer. Isto não vale para textos do livro que o autor pedir (escreva-os por completo, no estilo dele).");

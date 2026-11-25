@@ -1,3 +1,4 @@
+import { t } from "../shared/i18n.js";
 /**
  * @file Puter pela biblioteca oficial (`@heyputer/puter.js`, versão Node). O token fica só aqui, no processo principal; a
  * interface pede o chat e a lista de modelos por IPC. A resposta é devolvida no formato da OpenAI (`choices[0].message`),
@@ -32,7 +33,7 @@ function serializeError(error) {
   let status = Number(inner?.status || inner?.statusCode || error?.status) || undefined;
   if (!status && code === "subscription_required") status = 402;
   if (!status && (code === "token_auth_failed" || code === "auth_required")) status = 401;
-  const message = String(inner?.message || error?.message || (typeof error === "string" ? error : "Erro desconhecido do Puter."));
+  const message = String(inner?.message || error?.message || (typeof error === "string" ? error : t("Erro desconhecido do Puter.")));
   return { status, code, message };
 }
 
@@ -54,7 +55,7 @@ function contentText(content) {
  */
 export async function puterChat({ token, model, messages, tools }) {
   try {
-    if (!token) return { ok: false, error: { status: 401, message: "Informe o token do Puter na conta." } };
+    if (!token) return { ok: false, error: { status: 401, message: t("Informe o token do Puter na conta.") } };
     const options: any = { normalize: true };
     if (model) options.model = model;
     if (Array.isArray(tools) && tools.length) options.tools = tools;
@@ -85,7 +86,7 @@ export async function puterChat({ token, model, messages, tools }) {
  */
 export async function puterModels({ token }) {
   try {
-    if (!token) return { ok: false, error: { status: 401, message: "Informe o token do Puter na conta." } };
+    if (!token) return { ok: false, error: { status: 401, message: t("Informe o token do Puter na conta.") } };
     const list = await client(token).ai.listModels();
     const models = (Array.isArray(list) ? list : [])
       .map((m) => (typeof m === "string" ? { id: m, label: m } : { id: m.id || m.name, label: m.name && m.name !== m.id ? `${m.name} (${m.id})` : m.id }))

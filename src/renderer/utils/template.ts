@@ -14,6 +14,7 @@ import {
   stringifyFrontmatter,
   splitFrontmatter,
 } from "./markdown.js";
+import { t } from "../../shared/i18n.js";
 
 /** Prefixo dos ids dos campos que representam seções do corpo. */
 export const SECTION_FIELD_PREFIX = "section-";
@@ -184,8 +185,8 @@ export function editableFields(metadata, { title = false } = {}) {
   if (title && !variables.some((v) => v.id === "title") && metadata?.title) {
     fields.unshift({
       id: TITLE_FIELD_ID,
-      label: "Título",
-      placeholder: "Título do arquivo",
+      label: t("Título"),
+      placeholder: t("Título do arquivo"),
       required: true,
       value: String(metadata.title),
     });
@@ -282,7 +283,7 @@ export function parseTemplate(rawContent) {
  */
 export function buildTemplateSteps(
   template,
-  { variablesTitle = "Informações básicas" } = {},
+  { variablesTitle = t("Informações básicas") } = {},
 ) {
   const steps = [];
 
@@ -290,7 +291,7 @@ export function buildTemplateSteps(
     steps.push({
       id: "variables",
       title: variablesTitle,
-      description: "Preencha as informações. Os campos com * são obrigatórios.",
+      description: t("Preencha as informações. Os campos com * são obrigatórios."),
       fields: template.variables.map((variable) => ({
         id: variable.id,
         label: variable.placeholder || variable.id,

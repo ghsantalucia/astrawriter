@@ -3,6 +3,8 @@
  * transformar respostas de erro em mensagens legíveis, identificando limites de cota (HTTP 429).
  */
 
+import { t } from "../../shared/i18n.js";
+
 /**
  * Erro retornado por uma API de IA.
  * @class
@@ -112,14 +114,21 @@ export function buildGeminiError(status, data, statusText, model) {
     const retryAfterMs = isDaily
       ? nextPacificMidnight() - Date.now()
       : retrySeconds * 1000 || undefined;
-    const period = isDaily ? "diário" : isMinute ? "por minuto" : "";
+    const period = isDaily ? t("diário") : isMinute ? t("por minuto") : "";
+    const head = period
+      ? t("Limite de uso do Gemini atingido para o modelo {model} (limite {period}).", { model, period })
+      : t("Limite de uso do Gemini atingido para o modelo {model}.", { model });
+    const wait = retryAfterMs ? formatDuration(retryAfterMs) : "";
+    const tail = isDaily
+      ? retryAfterMs
+        ? t("Tente novamente em cerca de {time} (a cota diária renova à meia-noite do horário do Pacífico).", { time: wait })
+        : t("(a cota diária renova à meia-noite do horário do Pacífico).")
+      : retryAfterMs
+        ? t("Tente novamente em cerca de {time}.", { time: wait })
+        : t("Aguarde um pouco ou troque de modelo/chave.");
 
     return new AiApiError(
-      `Limite de uso do Gemini atingido para o modelo ${model}${period ? ` (limite ${period})` : ""}.${
-        retryAfterMs
-          ? ` Tente novamente em cerca de ${formatDuration(retryAfterMs)}`
-          : ""
-      }${isDaily ? " (a cota diária renova à meia-noite do horário do Pacífico)." : retryAfterMs ? "." : " Aguarde um pouco ou troque de modelo/chave."}`,
+      `${head} ${tail}`,
       {
         ...info,
         retryAfterMs,
@@ -154,9 +163,9 @@ export function buildClaudeError(response, data, model) {
     const retrySeconds = parseFloat(response.headers.get("retry-after")) || 0;
     const retryAfterMs = retrySeconds * 1000 || undefined;
     return new AiApiError(
-      `Limite de uso do Claude atingido para o modelo ${model}.${
+      `${t("Limite de uso do Claude atingido para o modelo {model}.", { model })}${
         retryAfterMs
-          ? ` Tente novamente em cerca de ${formatDuration(retryAfterMs)}.`
+          ? ` ${t("Tente novamente em cerca de {time}.", { time: formatDuration(retryAfterMs) })}`
           : ""
       } ${detail}`,
       { ...info, retryAfterMs, quotaPeriod: "other" },
@@ -176,19 +185,19 @@ export function buildClaudeError(response, data, model) {
 function describeStatus(name, status, detail) {
   switch (status) {
     case 400:
-      return `${name}: requisição inválida (400). ${detail}`;
+      return t("{name}: requisição inválida (400). {detail}", { name, detail });
     case 401:
     case 403:
-      return `${name}: chave de API inválida ou sem permissão (${status}). Confira-a em Configurações.`;
+      return t("{name}: chave de API inválida ou sem permissão ({status}). Confira-a em Configurações.", { name, status });
     case 404:
-      return `${name}: modelo não encontrado (404). Escolha outro em Configurações. ${detail}`;
+      return t("{name}: modelo não encontrado (404). Escolha outro em Configurações. {detail}", { name, detail });
     case 429:
-      return `${name}: limite de uso atingido (429). ${detail}`;
+      return t("{name}: limite de uso atingido (429). {detail}", { name, detail });
     case 500:
     case 502:
     case 503:
     case 529:
-      return `${name} está indisponível ou sobrecarregado (${status}). Tente novamente em instantes.`;
+      return t("{name} está indisponível ou sobrecarregado ({status}). Tente novamente em instantes.", { name, status });
     default:
       return `${name} API (${status}): ${detail}`;
   }

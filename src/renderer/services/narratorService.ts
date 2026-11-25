@@ -5,6 +5,7 @@
 
 import { uiBus } from "../events/uiBus.js";
 import { appSettings } from "../utils/appSettings.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Texto puro de um trecho de Markdown (sem frontmatter, links, imagens, títulos com # e marcas de ênfase).
@@ -126,7 +127,7 @@ export class NarratorService {
    */
   async play() {
     if (!this.supported) {
-      uiBus.emit("toast:show", { message: "Este computador não tem síntese de voz disponível.", type: "error" });
+      uiBus.emit("toast:show", { message: t("Este computador não tem síntese de voz disponível."), type: "error" });
       return false;
     }
     if (this.status === "paused") {
@@ -136,7 +137,7 @@ export class NarratorService {
     }
     const text = this.currentText();
     if (!text) {
-      uiBus.emit("toast:show", { message: "Abra um arquivo com texto para ouvir.", type: "info" });
+      uiBus.emit("toast:show", { message: t("Abra um arquivo com texto para ouvir."), type: "info" });
       return false;
     }
     window.speechSynthesis.cancel();

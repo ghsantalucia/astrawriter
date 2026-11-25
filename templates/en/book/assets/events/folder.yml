@@ -1,0 +1,9 @@
+humanRead: true
+humanWrite: true
+aiRead: true
+aiWrite: true
+advanced: false
+title: "Events"
+description: "Facts of the story, one per file, with the moment they occurred. They feed the timeline."
+userDelete: false
+userRename: false

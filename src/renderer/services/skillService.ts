@@ -14,6 +14,7 @@ import { normalizePath } from "../utils/helpers.js";
 import { appSettings } from "../utils/appSettings.js";
 import { stringifyFrontmatter } from "../utils/markdown.js";
 import { autoSkillColor, builtinSkills, marketSkills, parseSkill, setCustomSkills } from "../ai/skills/index.js";
+import { t, intlLocale } from "../../shared/i18n.js";
 
 const NAME_RE = /^[a-z0-9][a-z0-9-]{2,39}$/;
 
@@ -22,40 +23,40 @@ const NAME_RE = /^[a-z0-9][a-z0-9-]{2,39}$/;
  * Os de ficha existem em três momentos (criada, atualizada, excluída) para cada tipo de arquivo.
  */
 export const FILE_TYPES = [
-  { id: "chapter", label: "capítulo" },
-  { id: "character", label: "personagem" },
-  { id: "place", label: "ambiente" },
-  { id: "element", label: "conceito/sistema" },
-  { id: "event", label: "evento" },
-  { id: "note", label: "anotação" },
-  { id: "file", label: "qualquer arquivo" },
+  { id: "chapter", label: t("capítulo") },
+  { id: "character", label: t("personagem") },
+  { id: "place", label: t("ambiente") },
+  { id: "element", label: t("conceito/sistema") },
+  { id: "event", label: t("evento") },
+  { id: "note", label: t("anotação") },
+  { id: "file", label: t("qualquer arquivo") },
 ];
 export const TRIGGER_GROUPS = [
   {
-    group: "App e livro",
+    group: t("App e livro"),
     triggers: [
-      { id: "app-start", label: "Ao abrir o app" },
-      { id: "book-open", label: "Ao abrir um livro" },
+      { id: "app-start", label: t("Ao abrir o app") },
+      { id: "book-open", label: t("Ao abrir um livro") },
     ],
   },
   {
-    group: "Escrita",
+    group: t("Escrita"),
     triggers: [
-      { id: "sync", label: "Ao sincronizar" },
-      { id: "chapter-sync", label: "Ao sincronizar o manuscrito de um capítulo" },
-      { id: "file-open", label: "Ao abrir um arquivo no editor" },
-      { id: "file-save", label: "Ao salvar um arquivo (rascunho automático)" },
-      { id: "export", label: "Ao exportar" },
-      { id: "analysis-done", label: "Depois da análise do livro" },
+      { id: "sync", label: t("Ao sincronizar") },
+      { id: "chapter-sync", label: t("Ao sincronizar o manuscrito de um capítulo") },
+      { id: "file-open", label: t("Ao abrir um arquivo no editor") },
+      { id: "file-save", label: t("Ao salvar um arquivo (rascunho automático)") },
+      { id: "export", label: t("Ao exportar") },
+      { id: "analysis-done", label: t("Depois da análise do livro") },
     ],
   },
   ...[
-    ["created", "Quando criado"],
-    ["updated", "Quando atualizado (sincronizado)"],
-    ["deleted", "Quando excluído"],
-  ].map(([when, label]) => ({
-    group: label.replace("Quando ", "Arquivos ").replace("criado", "criados").replace("atualizado (sincronizado)", "atualizados").replace("excluído", "excluídos"),
-    triggers: FILE_TYPES.map((t) => ({ id: `${when}:${t.id}`, label: `${label}: ${t.label}` })),
+    ["created", t("Quando criado"), t("Arquivos criados")],
+    ["updated", t("Quando atualizado (sincronizado)"), t("Arquivos atualizados")],
+    ["deleted", t("Quando excluído"), t("Arquivos excluídos")],
+  ].map(([when, label, group]) => ({
+    group,
+    triggers: FILE_TYPES.map((ft) => ({ id: `${when}:${ft.id}`, label: `${label}: ${ft.label}` })),
   })),
 ];
 /** Todos os gatilhos, por id. */
@@ -166,7 +167,7 @@ export class SkillService {
         removable: !base,
       });
     }
-    return out.sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+    return out.sort((a, b) => a.title.localeCompare(b.title, intlLocale()));
   }
 
   /**
@@ -326,7 +327,7 @@ export class SkillService {
     const content = stringifyFrontmatter(front, `${String(skill.body).trim()}\n`);
     const file = `${skill.id}.md`;
     const result = await window.electronAPI.skills.save(file, content);
-    if (!result?.success) throw new Error(result?.error || "Falha ao salvar a skill.");
+    if (!result?.success) throw new Error(result?.error || t("Falha ao salvar a skill."));
   }
 
   /**
@@ -336,7 +337,7 @@ export class SkillService {
    */
   async install(slug) {
     const entry = marketSkills().find((s) => s.slug === slug);
-    if (!entry) throw new Error("Skill não encontrada no catálogo.");
+    if (!entry) throw new Error(t("Skill não encontrada no catálogo."));
     await this.writeFile({ ...entry, id: `m-${slug}`, origin: "market" });
     await this.load();
   }
@@ -359,9 +360,9 @@ export class SkillService {
    */
   async save(input, { slug }: any = {}) {
     const name = String(input.slug || slug || "").trim().toLowerCase();
-    if (!NAME_RE.test(name)) throw new Error("O nome da skill deve ter de 3 a 40 caracteres: letras minúsculas, números e hífens (ex.: revisar-dialogos).");
-    if (!String(input.description || "").trim()) throw new Error("Descreva quando a IA deve usar esta skill.");
-    if (!String(input.body || "").trim()) throw new Error("Escreva as instruções da skill.");
+    if (!NAME_RE.test(name)) throw new Error(t("O nome da skill deve ter de 3 a 40 caracteres: letras minúsculas, números e hífens (ex.: revisar-dialogos)."));
+    if (!String(input.description || "").trim()) throw new Error(t("Descreva quando a IA deve usar esta skill."));
+    if (!String(input.body || "").trim()) throw new Error(t("Escreva as instruções da skill."));
     const base = {
       slug: name,
       title: String(input.title || name).trim(),
@@ -378,7 +379,7 @@ export class SkillService {
 
     if (slug) {
       const current = this.get(slug);
-      if (!current) throw new Error("Skill não encontrada.");
+      if (!current) throw new Error(t("Skill não encontrada."));
       // Skill do app ou do catálogo: o texto editado vira uma cópia com ID novo
       if (current.origin === "builtin" || current.origin === "market" || current.hasEditedCopy) {
         const existing = this.files.find((f) => f.slug === slug && f.edited);
@@ -388,7 +389,7 @@ export class SkillService {
         await this.writeFile({ ...current, ...base, id: current.id, origin: "user" });
       }
     } else {
-      if (this.get(name)) throw new Error("Já existe uma skill com esse nome.");
+      if (this.get(name)) throw new Error(t("Já existe uma skill com esse nome."));
       await this.writeFile({ ...base, id: `u-${name}`, origin: "user", author: "Você", version: "1.0.0", edited: false, sourceSlug: null });
     }
     await this.load();

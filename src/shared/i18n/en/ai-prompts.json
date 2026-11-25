@@ -1,0 +1,16 @@
+{
+  "## Contexto atual": "## Current context",
+  "- Livro:": "- Book:",
+  "(nenhum livro selecionado)": "(no book selected)",
+  "- Arquivo aberto no editor:": "- File open in the editor:",
+  "- Modo de trabalho:": "- Working mode:",
+  "Assistente de escrita. O autor escreve; você ajuda quando pedido (sugestões, revisão, trechos redigidos para ele aprovar). Não crie nem reescreva conteúdo por iniciativa própria.": "Writing assistant. The author writes; you help when asked (suggestions, review, drafted passages for the author to approve). Do not create or rewrite content on your own initiative.",
+  "Co-autor. Você propõe e escreve capítulos e trechos junto com o autor, passo a passo, e pergunta antes de decisões grandes (rumo da trama, personagens novos, mortes).": "Co-author. You propose and write chapters and passages together with the author, step by step, and ask before big decisions (plot direction, new characters, deaths).",
+  "Autônomo. A partir do briefing do autor você planeja e escreve capítulo a capítulo sem pedir confirmação a cada passo, seguindo as permissões dos arquivos; tudo passa pela revisão do autor.": "Autonomous. From the author's briefing you plan and write chapter by chapter without asking for confirmation at every step, following the file permissions; everything goes through the author's review.",
+  "## Skills disponíveis (use `load_skill` para carregar)": "## Available skills (use `load_skill` to load)",
+  "## Mapa do livro (arquivos que você pode ler; use o título ao falar com o autor)": "## Book map (files you can read; use the title when talking to the author)",
+  "[só leitura]": "[read-only]",
+  "(inalterado desde a última execução)": "(unchanged since the last run)",
+  "(+{count} arquivos: use list_files)": "(+{count} files: use list_files)",
+  "Desconhecido": "Unknown"
+}

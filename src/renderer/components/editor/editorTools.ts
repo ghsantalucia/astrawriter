@@ -4,6 +4,7 @@
  */
 
 import { foldText } from "../../utils/helpers.js";
+import { t } from "../../../shared/i18n.js";
 
 /** Fragmento que marca um link criado pelo botão de link automático (ainda não revisado/sincronizado). */
 export const AUTO_LINK_FRAGMENT = "#auto";
@@ -294,7 +295,7 @@ export function createEditorPlugin(api) {
                   decorations.push(
                     Decoration.inline(pos, pos + node.nodeSize, {
                       class: "wiki-broken",
-                      "data-tooltip": "Este arquivo não existe mais",
+                      "data-tooltip": t("Este arquivo não existe mais"),
                     }),
                   );
                 }

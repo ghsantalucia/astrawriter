@@ -3,6 +3,7 @@
  */
 
 import { citationsOf } from "../../utils/backlinks.js";
+import { t, defaultSpellLanguage } from "../../../shared/i18n.js";
 import { isAppLink, openAppLink } from "../../utils/appLinks.js";
 import "./styles.css";
 import templateHtml from "./templates/main.hbs?raw";
@@ -197,7 +198,7 @@ export class EditorComponent extends Component {
     this.kit = new EditorKit({
       el: editorElement,
       host: this.element,
-      placeholder: "Selecione um arquivo...",
+      placeholder: t("Selecione um arquivo..."),
       getFiles: () => this.getBookFiles(),
       getCurrentRel: () => this.getCurrentRel(),
       getProblemRanges: (doc?) => this.computeProblemRanges(doc),
@@ -268,8 +269,10 @@ export class EditorComponent extends Component {
     this.uiBus.emit("toast:show", {
       message:
         count > 0
-          ? `${count} ${count === 1 ? "link criado" : "links criados"} — revise os destacados em rosa.`
-          : "Nenhum termo novo para linkar neste texto.",
+          ? count === 1
+            ? t("{count} link criado — revise os destacados em rosa.", { count })
+            : t("{count} links criados — revise os destacados em rosa.", { count })
+          : t("Nenhum termo novo para linkar neste texto."),
       type: count > 0 ? "success" : "info",
     });
   }
@@ -323,7 +326,7 @@ export class EditorComponent extends Component {
       if (isAppLink(href)) {
         e.preventDefault();
         e.stopPropagation();
-        if (!openAppLink(href, this.uiBus)) this.uiBus.emit("toast:show", { message: "Este link do app não é válido.", type: "error" });
+        if (!openAppLink(href, this.uiBus)) this.uiBus.emit("toast:show", { message: t("Este link do app não é válido."), type: "error" });
         return;
       }
 
@@ -356,7 +359,7 @@ export class EditorComponent extends Component {
       );
       if (!exists) {
         this.uiBus.emit("toast:show", {
-          message: "Este arquivo não existe mais.",
+          message: t("Este arquivo não existe mais."),
           type: "error",
         });
         return;
@@ -491,12 +494,16 @@ export class EditorComponent extends Component {
     const spellOn = localStorage.getItem("app_spellcheck_enabled") !== "false";
 
     q("#stat-words").textContent =
-      `${count} ${count === 1 ? "palavra" : "palavras"}`;
-    q("#stat-read").textContent = `~${minutes} min de leitura`;
+      count === 1 ? t("{count} palavra", { count }) : t("{count} palavras", { count });
+    q("#stat-read").textContent = t("~{minutes} min de leitura", { minutes });
     q("#stat-links").textContent =
-      `${hrefs.length} ${hrefs.length === 1 ? "conexão wiki" : "conexões wiki"}`;
+      hrefs.length === 1
+        ? t("{count} conexão wiki", { count: hrefs.length })
+        : t("{count} conexões wiki", { count: hrefs.length });
     q("#stat-invalid").textContent =
-      `${invalid} ${invalid === 1 ? "link interno inválido" : "links internos inválidos"}`;
+      invalid === 1
+        ? t("{count} link interno inválido", { count: invalid })
+        : t("{count} links internos inválidos", { count: invalid });
     // Sem problemas, o aviso some do rodapé
     q("#stat-invalid-item").classList.toggle("hidden", invalid === 0);
 
@@ -513,7 +520,9 @@ export class EditorComponent extends Component {
       this.kit?.refresh();
       const total = spellOn ? this.getWritingProblems().length : 0;
       q("#stat-spell").textContent =
-        `${total} ${total === 1 ? "problema de escrita" : "problemas de escrita"}`;
+        total === 1
+          ? t("{count} problema de escrita", { count: total })
+          : t("{count} problemas de escrita", { count: total });
       q("#stat-spell-item").classList.toggle("hidden", total === 0);
     };
     this.misspelledWords = new Set();
@@ -541,12 +550,17 @@ export class EditorComponent extends Component {
     if (summary.color !== "none") pill.classList.add(summary.color);
     pill.querySelector(".review-text").textContent =
       summary.total === 0
-        ? "Tudo certo"
-        : `${summary.total} ${summary.total === 1 ? "pendência" : "pendências"}`;
+        ? t("Tudo certo")
+        : summary.total === 1
+          ? t("{count} pendência", { count: summary.total })
+          : t("{count} pendências", { count: summary.total });
     pill.title =
       summary.total === 0
-        ? "Nenhuma pendência. Abrir a Central de Revisões"
-        : `${summary.errors} erro(s) confirmado(s) e ${summary.total - summary.errors} possível(is) erro(s) ou sugestão(ões). Abrir a Central de Revisões`;
+        ? t("Nenhuma pendência. Abrir a Central de Revisões")
+        : t("{errors} erro(s) confirmado(s) e {others} possível(is) erro(s) ou sugestão(ões). Abrir a Central de Revisões", {
+            errors: summary.errors,
+            others: summary.total - summary.errors,
+          });
   }
 
   /**
@@ -624,17 +638,17 @@ export class EditorComponent extends Component {
           this.writingMenu.open({
             x,
             y,
-            title: `"${range.word}" aparece repetida`,
+            title: t("\"{word}\" aparece repetida", { word: range.word }),
             items: [
               {
-                label: "Remover a repetição",
+                label: t("Remover a repetição"),
                 icon: "fa-solid fa-eraser",
                 onClick: locked
                   ? null
                   : () => apply("", range.removeFrom, range.to),
               },
               {
-                label: "Manter assim (ignorar)",
+                label: t("Manter assim (ignorar)"),
                 icon: "fa-regular fa-eye-slash",
                 onClick: () => {
                   this.ignoredRepeats.add(range.word.toLowerCase());
@@ -647,7 +661,7 @@ export class EditorComponent extends Component {
           return;
         }
 
-        const language = localStorage.getItem("app_spell_language") || "pt-BR";
+        const language = localStorage.getItem("app_spell_language") || defaultSpellLanguage();
         const suggestions =
           (await window.electronAPI.suggestSpelling(language, range.word)) ||
           [];
@@ -659,17 +673,17 @@ export class EditorComponent extends Component {
         this.writingMenu.open({
           x,
           y,
-          title: `"${range.word}" não consta no dicionário`,
+          title: t("\"{word}\" não consta no dicionário", { word: range.word }),
           items: [
             ...(suggestions.length
               ? suggestions.map((text) => ({
                   label: text,
                   onClick: locked ? null : () => apply(text),
                 }))
-              : [{ label: "Sem sugestões", muted: true }]),
+              : [{ label: t("Sem sugestões"), muted: true }]),
             { separator: true },
             {
-              label: "Ignorar",
+              label: t("Ignorar"),
               icon: "fa-regular fa-eye-slash",
               onClick: () => {
                 this.ignoredWords.add(range.word);
@@ -677,7 +691,7 @@ export class EditorComponent extends Component {
               },
             },
             {
-              label: "Adicionar ao dicionário",
+              label: t("Adicionar ao dicionário"),
               icon: "fa-solid fa-book-medical",
               onClick: async () => {
                 await window.electronAPI.addSpellWord(range.word);
@@ -733,19 +747,19 @@ export class EditorComponent extends Component {
     box.innerHTML = `
       <button type="button" class="file-data-head" aria-expanded="false">
         <i class="fa-solid fa-chevron-right file-data-arrow"></i>
-        <span class="file-data-title">Dados do arquivo</span>
+        <span class="file-data-title">${t("Dados do arquivo")}</span>
         <span class="file-data-count"></span>
-        <span class="file-data-cited" role="button" tabindex="0" hidden title="Ver onde este arquivo é citado"></span>
+        <span class="file-data-cited" role="button" tabindex="0" hidden title="${t("Ver onde este arquivo é citado")}"></span>
         <span class="file-data-tags"></span>
       </button>
       <form class="file-data-body" hidden>
         <div class="file-data-tags-field">
-          <span class="file-data-label">Tags</span>
+          <span class="file-data-label">${t("Tags")}</span>
           <div class="file-data-tag-input"></div>
         </div>
         <div class="file-data-fields"></div>
         <div class="file-data-actions">
-          <button type="submit" class="file-data-save">Salvar dados</button>
+          <button type="submit" class="file-data-save">${t("Salvar dados")}</button>
         </div>
       </form>`;
     ui.querySelector(".toastui-editor-toolbar").after(box);
@@ -836,7 +850,9 @@ export class EditorComponent extends Component {
     const readonly = this.isReadOnly();
     this.dataBox.querySelector(".file-data-count").textContent =
       fields.length > 0
-        ? `${fields.length} ${fields.length === 1 ? "campo" : "campos"}`
+        ? fields.length === 1
+          ? t("{count} campo", { count: fields.length })
+          : t("{count} campos", { count: fields.length })
         : "";
     // Tags na frente do título (separadas por "|"); clicar nelas abre a caixa como o resto do cabeçalho
     this.dataBox.querySelector(".file-data-tags").innerHTML = tags.length
@@ -866,7 +882,8 @@ export class EditorComponent extends Component {
     if (rel !== this.getCurrentRel()) return; // trocou de arquivo enquanto lia
     const files = new Set(list.map((c) => c.rel)).size;
     if (!files) return;
-    el.textContent = `citado em ${files} ${files === 1 ? "arquivo" : "arquivos"}`;
+    el.textContent =
+      files === 1 ? t("citado em {count} arquivo", { count: files }) : t("citado em {count} arquivos", { count: files });
     el.hidden = false;
   }
 
@@ -901,11 +918,15 @@ export class EditorComponent extends Component {
       });
     };
     document.addEventListener("click", onClick, true);
+    const citationsLabel =
+      list.length === 1
+        ? t("{count} citação. Clique para ir ao ponto do texto.", { count: list.length })
+        : t("{count} citações. Clique para ir ao ponto do texto.", { count: list.length });
     this.uiBus.emit("modal:open", {
       id: "citations-modal",
-      title: `Citações de “${title}”`,
-      content: `<div class="cit-list"><p class="cit-hint">${list.length} ${list.length === 1 ? "citação" : "citações"}. Clique para ir ao ponto do texto.</p>${items}</div>`,
-      buttons: [{ text: "Fechar", class: "btn-secondary" }],
+      title: t("Citações de “{title}”", { title }),
+      content: `<div class="cit-list"><p class="cit-hint">${citationsLabel}</p>${items}</div>`,
+      buttons: [{ text: t("Fechar"), class: "btn-secondary" }],
       onClose: () => document.removeEventListener("click", onClick, true),
     });
   }
@@ -960,8 +981,8 @@ export class EditorComponent extends Component {
         },
         normalize: normalizeEventName,
         parse: parseEventNames,
-        placeholder: host.dataset.placeholder || "Nome do evento (vírgula ou Enter)",
-        label: host.dataset.placeholder || "Eventos",
+        placeholder: host.dataset.placeholder || t("Nome do evento (vírgula ou Enter)"),
+        label: host.dataset.placeholder || t("Eventos"),
         stripHash: false,
         colored: false,
         stopEnter: true,
@@ -1122,7 +1143,7 @@ export class EditorComponent extends Component {
 
     this.uiBus.emit("editor-overlay:open", {
       key: "no-file",
-      message: "Nenhum arquivo selecionado",
+      message: t("Nenhum arquivo selecionado"),
       showSpinner: false,
     });
     this.uiBus.emit("editor:reseted");

@@ -6,6 +6,7 @@ import { uiBus } from "../../events/uiBus.js";
 import { escapeHtml } from "../../utils/helpers.js";
 import * as fileHandler from "./fileHandler.js";
 import { onTreeChanged } from "./creationHandler.js";
+import { t } from "../../../shared/i18n.js";
 
 /**
  * Atualiza a árvore do explorer e a lista de rascunhos após uma alteração de pastas/arquivos.
@@ -39,7 +40,7 @@ function askName({ title, label, value = "", confirmLabel, onConfirm }) {
     content: `<label class="modal-field"><span>${escapeHtml(label)}</span>
       <input type="text" class="modal-input" value="${escapeHtml(value)}" maxlength="60" autocomplete="off" /></label>`,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
         text: confirmLabel,
         class: "btn-primary",
@@ -79,22 +80,22 @@ export function onFolderCreate(payload, state, folders, services) {
   const parent = payload?.data?.parent || "notes";
   if (!folders.canCreateIn(parent)) {
     uiBus.emit("toast:show", {
-      message: "Não é permitido criar pastas neste local.",
+      message: t("Não é permitido criar pastas neste local."),
       type: "error",
     });
     return;
   }
 
   askName({
-    title: "Nova pasta",
-    label: "Nome da pasta",
-    confirmLabel: "Criar pasta",
+    title: t("Nova pasta"),
+    label: t("Nome da pasta"),
+    confirmLabel: t("Criar pasta"),
     onConfirm: async (name) => {
       try {
         await folders.createFolder(parent, name);
         await refresh(state, services);
         uiBus.emit("toast:show", {
-          message: `Pasta "${name}" criada.`,
+          message: t("Pasta \"{name}\" criada.", { name }),
           type: "success",
         });
       } catch (error) {
@@ -115,10 +116,10 @@ export function onFolderCreate(payload, state, folders, services) {
 export function onFolderRename(payload, state, folders, services) {
   const { folder, title } = payload.data || {};
   askName({
-    title: "Renomear pasta",
-    label: "Novo nome",
+    title: t("Renomear pasta"),
+    label: t("Novo nome"),
     value: title || "",
-    confirmLabel: "Renomear",
+    confirmLabel: t("Renomear"),
     onConfirm: async (name) => {
       try {
         await folders.renameFolder(folder, name);
@@ -141,7 +142,7 @@ export function onFolderRename(payload, state, folders, services) {
 export async function onFolderDelete(payload, state, folders, services) {
   if (state.currentBookMetadata?.ai_lock || state.aiLockState) {
     uiBus.emit("toast:show", {
-      message: "A IA está trabalhando neste livro. Aguarde para excluir.",
+      message: t("A IA está trabalhando neste livro. Aguarde para excluir."),
       type: "info",
     });
     return;
@@ -155,16 +156,20 @@ export async function onFolderDelete(payload, state, folders, services) {
     return;
   }
 
+  const filesText = summary.files === 1 ? t("{count} arquivo", { count: summary.files }) : t("{count} arquivos", { count: summary.files });
+  const draftsText = summary.drafts ? t(", {count} rascunho(s) não sincronizado(s)", { count: summary.drafts }) : "";
+  const details = `${filesText}${draftsText}`;
+
   uiBus.emit("modal:open", {
     id: "confirm-delete-folder-modal",
-    title: "Excluir pasta?",
-    content: `<p>A pasta <strong>${escapeHtml(summary.title)}</strong> será excluída.</p>
-      <p><strong>Todos os arquivos e subpastas dentro dela também serão excluídos</strong> (${summary.files} ${summary.files === 1 ? "arquivo" : "arquivos"}${summary.drafts ? `, ${summary.drafts} rascunho(s) não sincronizado(s)` : ""}).</p>
-      <p>A exclusão fica registrada no changelog do livro.</p>`,
+    title: t("Excluir pasta?"),
+    content: `${t("<p>A pasta <strong>{title}</strong> será excluída.</p>", { title: escapeHtml(summary.title) })}
+      ${t("<p><strong>Todos os arquivos e subpastas dentro dela também serão excluídos</strong> ({details}).</p>", { details })}
+      ${t("<p>A exclusão fica registrada no changelog do livro.</p>")}`,
     buttons: [
-      { text: "Cancelar", class: "btn-secondary" },
+      { text: t("Cancelar"), class: "btn-secondary" },
       {
-        text: "Excluir pasta",
+        text: t("Excluir pasta"),
         class: "btn-danger",
         onClick: async (modal) => {
           modal.close();
@@ -173,7 +178,7 @@ export async function onFolderDelete(payload, state, folders, services) {
             await closeIfInside(state, rel);
             await refresh(state, services);
             uiBus.emit("toast:show", {
-              message: `Pasta "${summary.title}" excluída.`,
+              message: t("Pasta \"{title}\" excluída.", { title: summary.title }),
               type: "success",
             });
           } catch (error) {
@@ -215,7 +220,7 @@ export async function onFileMove({ file, dest }, state, folders, services) {
   if (state.currentBookMetadata?.ai_lock || state.aiLockState) {
     uiBus.emit("toast:show", {
       message:
-        "A IA está trabalhando neste livro. Aguarde para mover arquivos.",
+        t("A IA está trabalhando neste livro. Aguarde para mover arquivos."),
       type: "info",
     });
     return;
@@ -237,7 +242,7 @@ export async function onFileMove({ file, dest }, state, folders, services) {
     const { to } = await folders.moveFile(file, dest);
     await refresh(state, services);
     if (wasOpen) uiBus.emit("editor:open-file", { path: to });
-    uiBus.emit("toast:show", { message: "Arquivo movido.", type: "success" });
+    uiBus.emit("toast:show", { message: t("Arquivo movido."), type: "success" });
   } catch (error) {
     await refresh(state, services);
     uiBus.emit("toast:show", { message: error.message, type: "error" });
@@ -255,7 +260,7 @@ export async function onFileMove({ file, dest }, state, folders, services) {
 export async function onFolderMove({ folder, dest }, state, folders, services) {
   if (state.currentBookMetadata?.ai_lock || state.aiLockState) {
     uiBus.emit("toast:show", {
-      message: "A IA está trabalhando neste livro. Aguarde para mover pastas.",
+      message: t("A IA está trabalhando neste livro. Aguarde para mover pastas."),
       type: "info",
     });
     return;
@@ -269,7 +274,7 @@ export async function onFolderMove({ folder, dest }, state, folders, services) {
     await folders.moveFolder(folder, dest);
     await closeIfInside(state, folder);
     await refresh(state, services);
-    uiBus.emit("toast:show", { message: "Pasta movida.", type: "success" });
+    uiBus.emit("toast:show", { message: t("Pasta movida."), type: "success" });
   } catch (error) {
     await refresh(state, services);
     uiBus.emit("toast:show", { message: error.message, type: "error" });
@@ -291,8 +296,8 @@ export async function onToggleNotesAiWrite(state, services) {
     await refresh(state, services);
     uiBus.emit("toast:show", {
       message: allowed
-        ? "A IA não pode mais alterar as anotações."
-        : "A IA agora pode alterar as anotações.",
+        ? t("A IA não pode mais alterar as anotações.")
+        : t("A IA agora pode alterar as anotações."),
       type: "success",
     });
   } catch (error) {

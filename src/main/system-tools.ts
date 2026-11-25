@@ -11,6 +11,7 @@ import { app, autoUpdater, dialog, net } from "electron";
 import { booksDir } from "./paths.js";
 import { sumDir } from "./book-scan.js";
 import { addDirToZip } from "./export.js";
+import { t } from "../shared/i18n.js";
 const JSZip = require("jszip");
 
 /** Repositório das versões (público). */
@@ -45,7 +46,7 @@ export async function checkForUpdate() {
     const res = await net.fetch(RELEASES_API, { headers: { Accept: "application/vnd.github+json", "User-Agent": "astra-writer" } });
     // Sem nenhuma release publicada ainda
     if (res.status === 404) return { status: "none", current, url: RELEASES_PAGE };
-    if (!res.ok) return { status: "error", current, error: `O GitHub respondeu ${res.status}.` };
+    if (!res.ok) return { status: "error", current, error: t("O GitHub respondeu {status}.", { status: res.status }) };
     const release = await res.json();
     const latest = String(release.tag_name || "").replace(/^v/i, "");
     if (!latest) return { status: "none", current, url: RELEASES_PAGE };
@@ -58,7 +59,7 @@ export async function checkForUpdate() {
       publishedAt: release.published_at,
     };
   } catch (error) {
-    return { status: "error", current, error: "Não foi possível consultar as atualizações (sem conexão?)." };
+    return { status: "error", current, error: t("Não foi possível consultar as atualizações (sem conexão?).") };
   }
 }
 
@@ -201,7 +202,7 @@ function stamp() {
  */
 export async function backupBooks(dest, keep = 0) {
   try {
-    if (!dest) return { success: false, error: "Escolha uma pasta de destino." };
+    if (!dest) return { success: false, error: t("Escolha uma pasta de destino.") };
     fs.mkdirSync(dest, { recursive: true });
     const root = booksDir();
     const files = [];
@@ -238,7 +239,7 @@ export async function backupBooks(dest, keep = 0) {
  */
 export async function exportAllBooks(parent) {
   const { canceled, filePaths } = await dialog.showOpenDialog(parent, {
-    title: "Escolha a pasta para guardar os livros",
+    title: t("Escolha a pasta para guardar os livros"),
     properties: ["openDirectory", "createDirectory"],
   });
   if (canceled || !filePaths?.[0]) return { success: false, canceled: true };
@@ -254,7 +255,7 @@ export async function exportAllBooks(parent) {
  */
 export function uninstallApp() {
   if (!app.isPackaged || process.platform !== "win32") {
-    return { success: false, error: "A desinstalação só está disponível no app instalado (Windows)." };
+    return { success: false, error: t("A desinstalação só está disponível no app instalado (Windows).") };
   }
   const updateExe = path.resolve(path.dirname(process.execPath), "..", "Update.exe");
   const dir = path.dirname(process.execPath);
@@ -267,7 +268,7 @@ export function uninstallApp() {
   } else if (nsisUninstaller) {
     command = path.join(dir, nsisUninstaller);
   }
-  if (!command) return { success: false, error: "O desinstalador não foi encontrado (o app foi instalado por outro meio?)." };
+  if (!command) return { success: false, error: t("O desinstalador não foi encontrado (o app foi instalado por outro meio?).") };
   try {
     spawn(command, args, { detached: true, stdio: "ignore" }).unref();
     setTimeout(() => app.quit(), 300);

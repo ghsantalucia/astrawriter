@@ -4,6 +4,8 @@
  * apenas traduz `{ name, description, parameters }` para o seu formato nativo.
  */
 
+import { t } from "../../../shared/i18n.js";
+
 /**
  * @typedef {Object} ToolDefinition
  * @property {string} name
@@ -52,7 +54,7 @@ export class ToolRegistry {
   async execute(name, args, ctx) {
     const tool = this.tools.get(name);
     if (!tool) {
-      return { output: `Ferramenta desconhecida: ${name}`, isError: true };
+      return { output: t("Ferramenta desconhecida: {name}", { name }), isError: true };
     }
 
     try {

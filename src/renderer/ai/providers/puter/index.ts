@@ -6,6 +6,7 @@
  * O Puter cobra pelo uso: contas sem assinatura recebem o erro 402 ("subscription_required") em modelos pagos.
  */
 
+import { t } from "../../../../shared/i18n.js";
 import { AiApiError } from "../../apiError.js";
 import { createCompatProvider } from "../openaiCompat.js";
 
@@ -23,11 +24,11 @@ export const PUTER_URL = "puter.js";
  */
 function puterError(error, model = "") {
   const status = error?.status;
-  const detail = error?.message || "erro desconhecido";
-  let reason = `erro${status ? ` ${status}` : ""}. ${detail}`;
-  if (status === 401 || status === 403) reason = `token inválido ou sem permissão (${status}). Crie outro em puter.com/dashboard.`;
-  else if (status === 402) reason = `este modelo exige uma assinatura do Puter (402). Escolha outro modelo ou assine em puter.com. (${detail})`;
-  else if (status === 429) reason = `limite de uso do Puter atingido (429). ${detail}`;
+  const detail = error?.message || t("erro desconhecido");
+  let reason = status ? t("erro {status}. {detail}", { status, detail }) : t("erro. {detail}", { detail });
+  if (status === 401 || status === 403) reason = t("token inválido ou sem permissão ({status}). Crie outro em puter.com/dashboard.", { status });
+  else if (status === 402) reason = t("este modelo exige uma assinatura do Puter (402). Escolha outro modelo ou assine em puter.com. ({detail})", { detail });
+  else if (status === 429) reason = t("limite de uso do Puter atingido (429). {detail}", { detail });
   return new AiApiError(`Puter: ${reason}`, { provider: "puter", model, status, details: error });
 }
 
@@ -48,7 +49,7 @@ async function request({ body, apiKey, model }: { body?: any; apiKey?: any; mode
 async function models(config) {
   const result = await window.electronAPI.puterModels({ token: config.apiKey });
   if (!result?.ok) throw puterError(result?.error);
-  return [{ id: AUTO_MODEL, label: "Automático (o Puter escolhe o modelo)" }, ...result.models];
+  return [{ id: AUTO_MODEL, label: t("Automático (o Puter escolhe o modelo)") }, ...result.models];
 }
 
 export const { sendRequest, listModels } = createCompatProvider({ id: "puter", label: "Puter", baseUrl: PUTER_URL, request, models });

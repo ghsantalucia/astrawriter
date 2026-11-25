@@ -7,6 +7,8 @@
  * gastar IA) ou a `ai`.
  */
 
+import { t } from "../../shared/i18n.js";
+
 /** @typedef {"error"|"warning"} Severity */
 
 /**
@@ -16,38 +18,38 @@
 export const CATEGORIES = [
   {
     id: "links",
-    label: "Links",
+    label: t("Links"),
     icon: "fa-link",
     description:
-      "Referências a arquivos que não existem mais (links internos quebrados).",
+      t("Referências a arquivos que não existem mais (links internos quebrados)."),
   },
   {
     id: "spelling",
-    label: "Ortografia e gramática",
+    label: t("Ortografia e gramática"),
     icon: "fa-spell-check",
     description:
-      "Erros de digitação, palavras repetidas, problemas gramaticais e sugestões de sinônimos.",
+      t("Erros de digitação, palavras repetidas, problemas gramaticais e sugestões de sinônimos."),
   },
   {
     id: "timeline",
-    label: "Linha do tempo",
+    label: t("Linha do tempo"),
     icon: "fa-clock-rotate-left",
     description:
-      "Eventos fora de ordem, ciclos na ordem dos fatos e contradições temporais.",
+      t("Eventos fora de ordem, ciclos na ordem dos fatos e contradições temporais."),
   },
   {
     id: "contradictions",
-    label: "Contradições",
+    label: t("Contradições"),
     icon: "fa-code-compare",
     description:
-      "Fatos sobre personagens, lugares e elementos que se contradizem entre arquivos.",
+      t("Fatos sobre personagens, lugares e elementos que se contradizem entre arquivos."),
   },
   {
     id: "tips",
-    label: "Dicas de melhoria",
+    label: t("Dicas de melhoria"),
     icon: "fa-lightbulb",
     description:
-      "Sugestões de estilo e clareza. Nunca são erros: aparecem sempre em amarelo.",
+      t("Sugestões de estilo e clareza. Nunca são erros: aparecem sempre em amarelo."),
   },
 ];
 
@@ -57,145 +59,145 @@ export const CATEGORIES = [
  */
 export const ISSUE_TYPES = {
   "broken-link": {
-    label: "Link quebrado",
+    label: t("Link quebrado"),
     category: "links",
     severity: "error",
     source: "system",
-    description: "O link aponta para um arquivo que não existe mais.",
+    description: t("O link aponta para um arquivo que não existe mais."),
   },
   typo: {
-    label: "Erro de digitação",
+    label: t("Erro de digitação"),
     category: "spelling",
     severity: "warning",
     source: "system",
-    description: "Palavra que o dicionário não reconhece.",
+    description: t("Palavra que o dicionário não reconhece."),
   },
   "repeated-word": {
-    label: "Palavra repetida",
+    label: t("Palavra repetida"),
     category: "spelling",
     severity: "error",
     source: "system",
-    description: "A mesma palavra duas vezes seguidas.",
+    description: t("A mesma palavra duas vezes seguidas."),
   },
   grammar: {
-    label: "Gramática",
+    label: t("Gramática"),
     category: "spelling",
     severity: "warning",
     source: "ai",
-    description: "Concordância, regência, pontuação e outros problemas gramaticais.",
+    description: t("Concordância, regência, pontuação e outros problemas gramaticais."),
   },
   synonym: {
-    label: "Sugestão de sinônimo",
+    label: t("Sugestão de sinônimo"),
     category: "spelling",
     severity: "warning",
     source: "ai",
-    description: "Palavra repetida em excesso ou imprecisa que poderia ser trocada.",
+    description: t("Palavra repetida em excesso ou imprecisa que poderia ser trocada."),
   },
   "timeline-cycle": {
-    label: "Ordem circular",
+    label: t("Ordem circular"),
     category: "timeline",
     severity: "error",
     source: "system",
     description:
-      "Eventos que dependem uns dos outros em círculo (A depois de B depois de A).",
+      t("Eventos que dependem uns dos outros em círculo (A depois de B depois de A)."),
   },
   "timeline-order": {
-    label: "Evento fora de ordem",
+    label: t("Evento fora de ordem"),
     category: "timeline",
     severity: "error",
     source: "system",
-    description: "O momento informado contradiz a ordem declarada entre eventos.",
+    description: t("O momento informado contradiz a ordem declarada entre eventos."),
   },
   "timeline-ref": {
-    label: "Evento citado não existe",
+    label: t("Evento citado não existe"),
     category: "timeline",
     severity: "warning",
     source: "system",
-    description: "Um evento cita outro (antes de / depois de) que não tem ficha.",
+    description: t("Um evento cita outro (antes de / depois de) que não tem ficha."),
   },
   "timeline-gap": {
-    label: "Evento sem posição",
+    label: t("Evento sem posição"),
     category: "timeline",
     severity: "warning",
     source: "system",
-    description: "Evento sem momento nem relação com outros: fica fora da linha do tempo.",
+    description: t("Evento sem momento nem relação com outros: fica fora da linha do tempo."),
   },
   "timeline-conflict": {
-    label: "Contradição temporal",
+    label: t("Contradição temporal"),
     category: "timeline",
     severity: "error",
     source: "ai",
-    description: "Um texto situa um fato antes ou depois do que deveria.",
+    description: t("Um texto situa um fato antes ou depois do que deveria."),
   },
   "fact-conflict": {
-    label: "Fato contraditório",
+    label: t("Fato contraditório"),
     category: "contradictions",
     severity: "error",
     source: "ai",
-    description: "Dois arquivos afirmam coisas incompatíveis sobre o mesmo fato.",
+    description: t("Dois arquivos afirmam coisas incompatíveis sobre o mesmo fato."),
   },
   "possible-conflict": {
-    label: "Possível contradição",
+    label: t("Possível contradição"),
     category: "contradictions",
     severity: "warning",
     source: "ai",
-    description: "Trechos que talvez se contradigam e merecem uma conferência.",
+    description: t("Trechos que talvez se contradigam e merecem uma conferência."),
   },
   "style-tip": {
-    label: "Dica de estilo",
+    label: t("Dica de estilo"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Sugestão para deixar o texto mais fluido.",
+    description: t("Sugestão para deixar o texto mais fluido."),
   },
   "style-shift": {
-    label: "Mudança de tom ou narrador",
+    label: t("Mudança de tom ou narrador"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Capítulo que foge do padrão do livro em narrador ou tempo verbal.",
+    description: t("Capítulo que foge do padrão do livro em narrador ou tempo verbal."),
   },
   "goal-drift": {
-    label: "Desvio do objetivo do livro",
+    label: t("Desvio do objetivo do livro"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Capítulo que parece fugir da sinopse (o objetivo do livro).",
+    description: t("Capítulo que parece fugir da sinopse (o objetivo do livro)."),
   },
   "clarity-tip": {
-    label: "Dica de clareza",
+    label: t("Dica de clareza"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Trecho confuso ou ambíguo.",
+    description: t("Trecho confuso ou ambíguo."),
   },
   "verbose-tip": {
-    label: "Trecho prolixo",
+    label: t("Trecho prolixo"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Trecho maior do que precisa ser, enrolado ou repetitivo.",
+    description: t("Trecho maior do que precisa ser, enrolado ou repetitivo."),
   },
   "pacing-tip": {
-    label: "Ritmo",
+    label: t("Ritmo"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Trecho lento demais, corrido demais ou descritivo em excesso.",
+    description: t("Trecho lento demais, corrido demais ou descritivo em excesso."),
   },
   "missing-entity-tip": {
-    label: "Ficha ausente",
+    label: t("Ficha ausente"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Personagem, ambiente, conceito ou evento citado que ainda não tem ficha.",
+    description: t("Personagem, ambiente, conceito ou evento citado que ainda não tem ficha."),
   },
   "grounding-tip": {
-    label: "Grounding",
+    label: t("Grounding"),
     category: "tips",
     severity: "warning",
     source: "ai",
-    description: "Fato, data ou objeto que pode não combinar com a época ou o mundo real (só o autor sabe se é proposital).",
+    description: t("Fato, data ou objeto que pode não combinar com a época ou o mundo real (só o autor sabe se é proposital)."),
   },
 };
 

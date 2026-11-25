@@ -19,6 +19,7 @@ import {
 } from "../utils/markdown.js";
 import { replaceFirstHeading } from "../utils/template.js";
 import { canDeleteFile, chapterNumber } from "../utils/deletePermission.js";
+import { t } from "../../shared/i18n.js";
 
 /**
  * Formata um número com zeros à esquerda.
@@ -27,6 +28,9 @@ import { canDeleteFile, chapterNumber } from "../utils/deletePermission.js";
  * @returns {string}
  */
 const pad = (n, width = 3) => String(n).padStart(width, "0");
+
+/** Prefixos do título padrão de capítulo ("Capítulo 03" / "Chapter 03"): o app reconhece os dois idiomas. */
+const CHAPTER_LABEL_PREFIXES = ["Capítulo", "Chapter"];
 
 /**
  * Serviço de exclusão de arquivos e capítulos.
@@ -55,7 +59,7 @@ export class DeletionService {
    */
   requireBook() {
     if (!this.state.currentBookPath)
-      throw new Error("Nenhum livro selecionado.");
+      throw new Error(t("Nenhum livro selecionado."));
     return normalizePath(this.state.currentBookPath).replace(/\/+$/, "");
   }
 
@@ -140,17 +144,17 @@ export class DeletionService {
     const draft =
       official === null ? await window.electronAPI.readFile(`${path}.temp`) : null;
     const before = official ?? draft;
-    if (before === null) throw new Error("O arquivo não existe mais.");
+    if (before === null) throw new Error(t("O arquivo não existe mais."));
 
     const { metadata } = parseMarkdown(before);
     if (!canDeleteFile(metadata, rel, who)) {
-      throw new Error("Este arquivo não pode ser excluído.");
+      throw new Error(t("Este arquivo não pode ser excluído."));
     }
 
     if (official !== null) {
       const result = await window.electronAPI.deleteFile(path);
       if (!result?.success)
-        throw new Error(result?.error || "Falha ao excluir.");
+        throw new Error(result?.error || t("Falha ao excluir."));
     }
     await window.electronAPI.deleteFile(`${path}.temp`).catch(() => null);
 
@@ -169,7 +173,7 @@ export class DeletionService {
       book,
       relPaths: [rel],
       changelog: this.changelog,
-      reason: "Arquivo excluído: link removido do índice",
+      reason: t("Arquivo excluído: link removido do índice"),
     });
 
     const title = metadata.title || path.split("/").pop();
@@ -189,13 +193,13 @@ export class DeletionService {
     const book = this.requireBook();
     const number = chapterNumber(folderName);
     if (number === null)
-      throw new Error("A pasta informada não é um capítulo.");
+      throw new Error(t("A pasta informada não é um capítulo."));
 
     const content = `${book}/content`;
     const folderPath = `${content}/${folderName}`;
     const chapters = await this.listChapters();
     if (!chapters.some((c) => c.name === folderName)) {
-      throw new Error("O capítulo não existe mais.");
+      throw new Error(t("O capítulo não existe mais."));
     }
 
     // Guarda o conteúdo de tudo o que será apagado (vai para o changelog depois da exclusão)
@@ -208,7 +212,7 @@ export class DeletionService {
 
     const removed = await window.electronAPI.deleteFolder(folderPath);
     if (!removed?.success)
-      throw new Error(removed?.error || "Falha ao excluir a pasta.");
+      throw new Error(removed?.error || t("Falha ao excluir a pasta."));
 
     const user = this.changelog.userActor();
     for (const { file, before } of snapshots) {
@@ -220,7 +224,7 @@ export class DeletionService {
         filePath: file,
         before,
         actor: user,
-        meta: { reason: `Capítulo excluído (${folderName})` },
+        meta: { reason: t("Capítulo excluído ({name})", { name: folderName }) },
       });
     }
 
@@ -254,7 +258,7 @@ export class DeletionService {
 
     const result = await window.electronAPI.renamePath(oldPath, newPath);
     if (!result?.success) {
-      throw new Error(`Falha ao renumerar ${chapter.name}: ${result?.error}`);
+      throw new Error(t("Falha ao renumerar {name}: {error}", { name: chapter.name, error: result?.error }));
     }
 
     // Cada arquivo que mudou de caminho entra no changelog (o histórico dele continua valendo)
@@ -269,7 +273,9 @@ export class DeletionService {
     // Título padrão ("Capítulo 03") acompanha o número novo; títulos escolhidos pelo autor não são tocados
     const oldLabel = `Capítulo ${pad(chapter.number, 2)}`;
     const newLabel = `Capítulo ${pad(chapter.number - 1, 2)}`;
-    await this.renameDefaultLabel(`${newPath}/folder.yml`, oldLabel, newLabel);
+    for (const prefix of CHAPTER_LABEL_PREFIXES) {
+      await this.renameDefaultLabel(`${newPath}/folder.yml`, `${prefix} ${pad(chapter.number, 2)}`, `${prefix} ${pad(chapter.number - 1, 2)}`);
+    }
     for (const file of await window.electronAPI.listDir(newPath)) {
       if (file.isDirectory || !/draft\.md$/i.test(file.name)) continue;
       await this.renameDraftTitle(
@@ -302,7 +308,7 @@ export class DeletionService {
     if (!changed) return;
     const after = stringifyYaml(meta);
     await window.electronAPI.saveFile(ymlPath, after);
-    await this.logSystemUpdate(ymlPath, before, after, "Capítulos renumerados");
+    await this.logSystemUpdate(ymlPath, before, after, t("Capítulos renumerados"));
   }
 
   /**
@@ -335,7 +341,7 @@ export class DeletionService {
       draftPath,
       before,
       after,
-      "Capítulos renumerados",
+      t("Capítulos renumerados"),
     );
   }
 
@@ -362,9 +368,8 @@ export class DeletionService {
           (match, text, digits) => {
             const n = Number(digits);
             if (n <= deletedNumber) return match;
-            const oldLabel = `Capítulo ${pad(n, 2)}`;
-            const label =
-              text === oldLabel ? `Capítulo ${pad(n - 1, 2)}` : text;
+            const prefix = CHAPTER_LABEL_PREFIXES.find((p) => text === `${p} ${pad(n, 2)}`);
+            const label = prefix ? `${prefix} ${pad(n - 1, 2)}` : text;
             return `[${label}](content/chapter_${pad(n - 1, digits.length)}/`;
           },
         ),
@@ -377,7 +382,7 @@ export class DeletionService {
       indexPath,
       before,
       after,
-      `Capítulo excluído (${deletedName}) e capítulos seguintes renumerados`,
+      t("Capítulo excluído ({name}) e capítulos seguintes renumerados", { name: deletedName }),
     );
   }
 

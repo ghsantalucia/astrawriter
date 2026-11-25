@@ -1,7 +1,6 @@
 <div class="sync-modal-container">
   <p class="sync-modal-desc">
-    Os seguintes arquivos possuem alterações temporárias não salvas no arquivo
-    original:
+    {{t "Os seguintes arquivos possuem alterações temporárias não salvas no arquivo original:"}}
   </p>
 
   <div class="sync-select-all-wrapper">
@@ -9,7 +8,7 @@
       <input type="checkbox" id="sync-select-all" checked />
       <span class="checkbox-mark"></span>
       <span class="checkbox-text">
-        <strong id="sync-count-label">Selecionar Todos ({{tempFiles.length}})</strong>
+        <strong id="sync-count-label">{{t "Selecionar Todos ({count})" count=tempFiles.length}}</strong>
       </span>
     </label>
   </div>
@@ -32,7 +31,7 @@
             href="#"
             class="sync-file-link"
             data-path="{{this.path}}"
-            title="Visualizar arquivo"
+            title="{{t 'Visualizar arquivo'}}"
           >
             {{this.name}}
           </a>
@@ -42,7 +41,7 @@
           class="btn-discard-temp"
           data-path="{{this.path}}"
           data-name="{{this.name}}"
-          title="Descartar alterações temporárias"
+          title="{{t 'Descartar alterações temporárias'}}"
         >
           <svg
             width="15"

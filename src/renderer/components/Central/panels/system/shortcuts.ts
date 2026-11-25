@@ -5,6 +5,7 @@
 
 import { FIXED_SHORTCUTS, SHORTCUT_ACTIONS } from "../../../../services/shortcutService.js";
 import { esc, mount } from "../panelKit.js";
+import { t } from "../../../../../shared/i18n.js";
 
 /**
  * Teclas de uma combinação como "chips" (`Ctrl` `Shift` `Y`).
@@ -12,7 +13,7 @@ import { esc, mount } from "../panelKit.js";
  * @returns {string}
  */
 function keysHtml(combo) {
-  if (!combo) return '<span class="cn-hint">sem atalho</span>';
+  if (!combo) return `<span class="cn-hint">${t("sem atalho")}</span>`;
   return combo
     .split("+")
     .map((k) => `<kbd class="cn-key">${esc(k)}</kbd>`)
@@ -41,9 +42,9 @@ export function renderShortcuts(ctx, el) {
               <td>${esc(a.label)}</td>
               <td class="cn-keys" id="keys-${esc(a.id)}">${keysHtml(shortcuts.binding(a.id))}</td>
               <td style="text-align:right;white-space:nowrap">
-                <button class="cn-btn small" data-act="record" data-id="${esc(a.id)}">Alterar</button>
-                <button class="cn-btn small ghost" data-act="reset" data-id="${esc(a.id)}" ${customized(a) ? "" : "disabled"} title="Voltar ao atalho padrão (${esc(a.default)})">Padrão</button>
-                <button class="cn-btn small ghost" data-act="clear" data-id="${esc(a.id)}" ${shortcuts.binding(a.id) ? "" : "disabled"} title="Remover o atalho"><i class="fa-solid fa-xmark"></i></button>
+                <button class="cn-btn small" data-act="record" data-id="${esc(a.id)}">${t("Alterar")}</button>
+                <button class="cn-btn small ghost" data-act="reset" data-id="${esc(a.id)}" ${customized(a) ? "" : "disabled"} title="${t("Voltar ao atalho padrão ({shortcut})", { shortcut: esc(a.default) })}">${t("Padrão")}</button>
+                <button class="cn-btn small ghost" data-act="clear" data-id="${esc(a.id)}" ${shortcuts.binding(a.id) ? "" : "disabled"} title="${t("Remover o atalho")}"><i class="fa-solid fa-xmark"></i></button>
               </td>
             </tr>`,
           )
@@ -59,7 +60,7 @@ export function renderShortcuts(ctx, el) {
       (g) => `<h5 class="cn-sub">${esc(g)}</h5>
         <table class="cn-table cn-shortcuts"><tbody>
         ${FIXED_SHORTCUTS.filter((f) => f.group === g)
-          .map((f) => `<tr><td class="cn-keys">${f.keys.split(" · ").map((part) => (part.includes("+") ? keysHtml(part) : part.split(" ").map((k) => `<kbd class="cn-key">${esc(k)}</kbd>`).join(""))).join('<span class="cn-hint">&nbsp;ou&nbsp;</span>')}</td><td>${esc(f.text)}</td></tr>`)
+          .map((f) => `<tr><td class="cn-keys">${f.keys.split(" · ").map((part) => (part.includes("+") ? keysHtml(part) : part.split(" ").map((k) => `<kbd class="cn-key">${esc(k)}</kbd>`).join(""))).join(`<span class="cn-hint">&nbsp;${t("ou")}&nbsp;</span>`)}</td><td>${esc(f.text)}</td></tr>`)
           .join("")}
         </tbody></table>`,
     )
@@ -68,13 +69,13 @@ export function renderShortcuts(ctx, el) {
   mount(
     el,
     `<section class="cn-section">
-       <p class="cn-hint">Clique em <strong>Alterar</strong> e aperte a nova combinação (Esc cancela). Use <kbd class="cn-key">Ctrl</kbd> ou <kbd class="cn-key">Alt</kbd> junto com a tecla. As setas, Esc, Tab, Enter, Espaço, Backspace e as teclas de edição do sistema (copiar, colar, desfazer...) são reservadas e não podem ser usadas.</p>
-       <div class="cn-row"><button class="cn-btn small" data-act="reset-all"><i class="fa-solid fa-rotate-left"></i> Restaurar todos os padrões</button></div>
+       <p class="cn-hint">${t("Clique em <strong>Alterar</strong> e aperte a nova combinação (Esc cancela). Use <kbd class=\"cn-key\">Ctrl</kbd> ou <kbd class=\"cn-key\">Alt</kbd> junto com a tecla. As setas, Esc, Tab, Enter, Espaço, Backspace e as teclas de edição do sistema (copiar, colar, desfazer...) são reservadas e não podem ser usadas.")}</p>
+       <div class="cn-row"><button class="cn-btn small" data-act="reset-all"><i class="fa-solid fa-rotate-left"></i> ${t("Restaurar todos os padrões")}</button></div>
      </section>
      ${editable}
      <section class="cn-section">
-       <h4>Atalhos fixos</h4>
-       <p class="cn-hint">Estes não podem ser personalizados. Vale destacar: o <strong>explorer</strong> inteiro se navega pelo teclado, sem o mouse.</p>
+       <h4>${t("Atalhos fixos")}</h4>
+       <p class="cn-hint">${t("Estes não podem ser personalizados. Vale destacar: o <strong>explorer</strong> inteiro se navega pelo teclado, sem o mouse.")}</p>
        ${fixed}
      </section>`,
     {
@@ -82,7 +83,7 @@ export function renderShortcuts(ctx, el) {
         const id = btn.dataset.id;
         const cell = el.querySelector(`#keys-${CSS.escape(id)}`);
         const old = cell.innerHTML;
-        cell.innerHTML = '<span class="cn-recording">Aperte a nova combinação… (Esc cancela)</span>';
+        cell.innerHTML = `<span class="cn-recording">${t("Aperte a nova combinação… (Esc cancela)")}</span>`;
         const combo = await shortcuts.capture();
         if (combo === null) {
           cell.innerHTML = old;
@@ -90,7 +91,7 @@ export function renderShortcuts(ctx, el) {
         }
         try {
           shortcuts.set(id, combo);
-          ctx.toast(`Atalho alterado para ${combo}.`, "success");
+          ctx.toast(t("Atalho alterado para {combo}.", { combo }), "success");
         } catch (error) {
           ctx.toast(error.message, "error");
         }

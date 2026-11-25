@@ -1,16 +1,14 @@
 <div class="history-modal">
   <p class="history-desc">
-    Versões registradas de <strong>{{fileTitle}}</strong>. Ao restaurar uma versão, o conteúdo guardado das versões
-    posteriores é apagado.
+    {{t "Versões registradas de"}} <strong>{{fileTitle}}</strong>. {{t "Ao restaurar uma versão, o conteúdo guardado das versões posteriores é apagado."}}
   </p>
 
   {{#if restoredFrom}}
     <p class="history-restored">
       <i class="fa-solid fa-rotate-left"></i>
-      A versão atual foi restaurada da versão
-      {{#if restoredFrom.actorLabel}}de <strong>{{restoredFrom.time}}</strong>
-      (<span class="log-actor {{restoredFrom.actorClass}}">{{restoredFrom.actorLabel}}</span>){{else}}<strong>original</strong> do arquivo{{/if}}.
-      Abaixo estão as versões anteriores a ela.
+      {{#if restoredFrom.actorLabel}}{{t "A versão atual foi restaurada da versão de"}} <strong>{{restoredFrom.time}}</strong>
+      (<span class="log-actor {{restoredFrom.actorClass}}">{{restoredFrom.actorLabel}}</span>).{{else}}{{{t "A versão atual foi restaurada da versão <strong>original</strong> do arquivo."}}}{{/if}}
+      {{t "Abaixo estão as versões anteriores a ela."}}
     </p>
   {{/if}}
 
@@ -27,11 +25,11 @@
           <div class="history-row history-row-sub">
             <span class="log-summary">{{summary}}</span>
             {{#if isCurrent}}
-              <span class="history-current-label">versão atual</span>
+              <span class="history-current-label">{{t "versão atual"}}</span>
             {{else if canRestore}}
               <button type="button" class="btn-history-restore" data-entry-id="{{id}}">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                Restaurar esta versão
+                {{t "Restaurar esta versão"}}
               </button>
             {{/if}}
           </div>
@@ -41,9 +39,9 @@
   {{else}}
     <p class="history-empty">
       {{#if restoredFrom}}
-        Não há versões anteriores a esta.
+        {{t "Não há versões anteriores a esta."}}
       {{else}}
-        Nenhuma alteração registrada para este arquivo ainda. As próximas edições sincronizadas aparecerão aqui.
+        {{t "Nenhuma alteração registrada para este arquivo ainda. As próximas edições sincronizadas aparecerão aqui."}}
       {{/if}}
     </p>
   {{/if}}

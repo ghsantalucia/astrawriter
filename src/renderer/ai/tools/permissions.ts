@@ -6,6 +6,7 @@
  * o `folder.yml` descreve a pasta, não restringe os arquivos dentro dela.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { normalizePath } from "../../utils/helpers.js";
 
 /**
@@ -34,11 +35,11 @@ export function parseRelativePath(relPath, bookPath = "") {
     /^[a-z]:$/i.test(segments[0])
   ) {
     throw new Error(
-      `Caminho inválido: "${relPath}". Use caminhos relativos à raiz do livro (ex: content/plot.md).`,
+      t('Caminho inválido: "{relPath}". Use caminhos relativos à raiz do livro (ex: content/plot.md).', { relPath }),
     );
   }
   if (!/\.md$/i.test(last)) {
-    throw new Error("Apenas arquivos .md podem ser acessados.");
+    throw new Error(t("Apenas arquivos .md podem ser acessados."));
   }
   return segments;
 }
@@ -50,24 +51,24 @@ export function parseRelativePath(relPath, bookPath = "") {
  * @returns {Promise<{relPath: string, title: string, originalPath: string, isTemp: boolean, metadata: Object}>}
  */
 export async function locateFile(state, relPath) {
-  if (!state.currentBookPath) throw new Error("Nenhum livro selecionado.");
+  if (!state.currentBookPath) throw new Error(t("Nenhum livro selecionado."));
 
   const segments = parseRelativePath(relPath, state.currentBookPath);
   const tree = await window.electronAPI.getTree(
     normalizePath(state.currentBookPath),
   );
-  if (!tree) throw new Error("Não foi possível ler a estrutura do livro.");
+  if (!tree) throw new Error(t("Não foi possível ler a estrutura do livro."));
 
   let node = tree;
   for (const folderName of segments.slice(0, -1)) {
     node = node.folders?.[folderName];
-    if (!node) throw new Error(`Arquivo não encontrado: ${relPath}`);
+    if (!node) throw new Error(t("Arquivo não encontrado: {relPath}", { relPath }));
   }
 
   const fileKey = segments[segments.length - 1].replace(/\.md$/i, "");
   const file = node.files?.[fileKey];
   if (!file || !/\.md(\.temp)?$/i.test(file.originalPath || "")) {
-    throw new Error(`Arquivo não encontrado: ${relPath}`);
+    throw new Error(t("Arquivo não encontrado: {relPath}", { relPath }));
   }
 
   return {
@@ -97,9 +98,11 @@ export function hasPermission(located, flag) {
  */
 export function assertPermission(located, flag) {
   if (!hasPermission(located, flag)) {
-    const action = flag === "aiRead" ? "leitura" : "escrita";
+    const params = { title: located.title, flag };
     throw new Error(
-      `Acesso negado: o autor não permitiu ${action} da IA no arquivo "${located.title}" (${flag} está desativado).`,
+      flag === "aiRead"
+        ? t('Acesso negado: o autor não permitiu leitura da IA no arquivo "{title}" ({flag} está desativado).', params)
+        : t('Acesso negado: o autor não permitiu escrita da IA no arquivo "{title}" ({flag} está desativado).', params),
     );
   }
 }
@@ -130,7 +133,7 @@ export function parseFolderPath(relPath, bookPath = "") {
     /\.[a-z0-9]+$/i.test(segments[segments.length - 1])
   ) {
     throw new Error(
-      `Caminho de pasta inválido: "${relPath}". Use caminhos relativos à raiz do livro (ex.: notes/ideias).`,
+      t('Caminho de pasta inválido: "{relPath}". Use caminhos relativos à raiz do livro (ex.: notes/ideias).', { relPath }),
     );
   }
   return segments;
@@ -144,16 +147,16 @@ export function parseFolderPath(relPath, bookPath = "") {
  * @throws {Error} Se a pasta não existe.
  */
 export async function locateFolder(state, segments) {
-  if (!state.currentBookPath) throw new Error("Nenhum livro selecionado.");
+  if (!state.currentBookPath) throw new Error(t("Nenhum livro selecionado."));
   const tree = await window.electronAPI.getTree(
     normalizePath(state.currentBookPath),
   );
-  if (!tree) throw new Error("Não foi possível ler a estrutura do livro.");
+  if (!tree) throw new Error(t("Não foi possível ler a estrutura do livro."));
 
   let node = tree;
   for (const name of segments) {
     node = node.folders?.[name];
-    if (!node) throw new Error(`Pasta não encontrada: ${segments.join("/")}`);
+    if (!node) throw new Error(t("Pasta não encontrada: {path}", { path: segments.join("/") }));
   }
   return { node, metadata: node.metadata || {}, tree };
 }
@@ -191,10 +194,14 @@ export function collectFolderFiles(node, prefix) {
 export function assertFolderPermission(metadata, flag, folderLabel) {
   const value = metadata?.[flag];
   if (value === true || value === "true") return;
-  const action =
-    { aiRead: "leitura", aiWrite: "escrita", aiDelete: "exclusão" }[flag] ||
-    flag;
+  const params = { folder: folderLabel, flag };
+  const messages = {
+    aiRead: t('Acesso negado: o autor não permitiu leitura da IA na pasta "{folder}" ({flag} não está ativo).', params),
+    aiWrite: t('Acesso negado: o autor não permitiu escrita da IA na pasta "{folder}" ({flag} não está ativo).', params),
+    aiDelete: t('Acesso negado: o autor não permitiu exclusão da IA na pasta "{folder}" ({flag} não está ativo).', params),
+  };
   throw new Error(
-    `Acesso negado: o autor não permitiu ${action} da IA na pasta "${folderLabel}" (${flag} não está ativo).`,
+    messages[flag] ||
+      t('Acesso negado: o autor não permitiu {action} da IA na pasta "{folder}" ({flag} não está ativo).', { ...params, action: flag }),
   );
 }

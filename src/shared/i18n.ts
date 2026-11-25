@@ -64,3 +64,13 @@ export function t(source: string, params?: Record<string, unknown>): string {
 export function messageKeys(language: string): string[] {
   return Object.keys(dictionaries[language] || {});
 }
+
+/** Locale para `Intl`, `toLocaleString` e `localeCompare` (números, datas e ordenação seguem o idioma do app). */
+export function intlLocale(): string {
+  return current === "en" ? "en-US" : "pt-BR";
+}
+
+/** Idioma padrão do corretor ortográfico quando o usuário ainda não escolheu um (segue o idioma do app). */
+export function defaultSpellLanguage(): string {
+  return intlLocale();
+}

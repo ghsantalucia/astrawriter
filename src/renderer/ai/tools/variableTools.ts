@@ -4,6 +4,7 @@
  * (`.md.temp`) e passa pela revisão do autor, como qualquer outra edição da IA.
  */
 
+import { t } from "../../../shared/i18n.js";
 import { uiBus } from "../../events/uiBus.js";
 import { domainBus } from "../../events/domainBus.js";
 import { normalizePath } from "../../utils/helpers.js";
@@ -23,8 +24,10 @@ import { assertPermission, hasPermission, locateFile } from "./permissions.js";
 
 const PATH_PARAM = {
   type: "string",
-  description:
-    "Caminho do arquivo relativo à raiz do livro, ex.: assets/characters/character_001.md",
+  // getter: a constante é criada na importação do módulo, antes de o idioma ser definido
+  get description() {
+    return t("Caminho do arquivo relativo à raiz do livro, ex.: assets/characters/character_001.md");
+  },
 };
 
 /**
@@ -35,7 +38,7 @@ export function registerVariableTools(registry) {
   registry.register({
     name: "get_file_variables",
     description:
-      "Lista os dados (variáveis) de um arquivo/ficha: id, nome do campo e valor atual. Os ids são usados em set_file_variables. Requer permissão de leitura da IA.",
+      t("Lista os dados (variáveis) de um arquivo/ficha: id, nome do campo e valor atual. Os ids são usados em set_file_variables. Requer permissão de leitura da IA."),
     parameters: {
       type: "object",
       properties: { path: PATH_PARAM },
@@ -71,7 +74,7 @@ export function registerVariableTools(registry) {
   registry.register({
     name: "set_file_variables",
     description:
-      "Altera os dados (variáveis) de um arquivo/ficha, como o autor faz pela caneta do explorer. Alterar o nome (`title`) também atualiza o título do arquivo e o título H1 do corpo. Salva como rascunho para o autor revisar. Requer permissão de escrita da IA. Use get_file_variables antes para conhecer os ids.",
+      t("Altera os dados (variáveis) de um arquivo/ficha, como o autor faz pela caneta do explorer. Alterar o nome (`title`) também atualiza o título do arquivo e o título H1 do corpo. Salva como rascunho para o autor revisar. Requer permissão de escrita da IA. Use get_file_variables antes para conhecer os ids."),
     parameters: {
       type: "object",
       properties: {
@@ -80,19 +83,19 @@ export function registerVariableTools(registry) {
           type: "array",
           items: { type: "string" },
           description:
-            "Lista COMPLETA de tags do arquivo (substitui as atuais; use [] para remover todas). Letras minúsculas, números e - _ / . apenas.",
+            t("Lista COMPLETA de tags do arquivo (substitui as atuais; use [] para remover todas). Letras minúsculas, números e - _ / . apenas."),
         },
         values: {
           type: "array",
-          description: "Variáveis a alterar.",
+          description: t("Variáveis a alterar."),
           items: {
             type: "object",
             properties: {
               id: {
                 type: "string",
-                description: "Id da variável (ver get_file_variables).",
+                description: t("Id da variável (ver get_file_variables)."),
               },
-              value: { type: "string", description: "Novo valor." },
+              value: { type: "string", description: t("Novo valor.") },
             },
             required: ["id", "value"],
           },
@@ -103,7 +106,7 @@ export function registerVariableTools(registry) {
     async execute({ path, values, tags }, ctx) {
       const hasValues = Array.isArray(values) && values.length > 0;
       if (!hasValues && !Array.isArray(tags)) {
-        throw new Error("Informe 'values' (variáveis) e/ou 'tags'.");
+        throw new Error(t("Informe 'values' (variáveis) e/ou 'tags'."));
       }
       values = hasValues ? values : [];
       const located = await locateFile(ctx.state, path);
@@ -111,7 +114,7 @@ export function registerVariableTools(registry) {
       await beginEdit(ctx);
 
       const { content } = await ctx.fileService.readFile(located.originalPath);
-      if (content === null) throw new Error("Não foi possível ler o arquivo.");
+      if (content === null) throw new Error(t("Não foi possível ler o arquivo."));
       const { metadata, body } = parseMarkdown(content);
       metadata.data ??= {};
 
@@ -126,7 +129,7 @@ export function registerVariableTools(registry) {
       const unknown = [...wanted.keys()].filter((id) => !known.has(id));
       if (unknown.length > 0) {
         throw new Error(
-          `Variáveis desconhecidas: ${unknown.join(", ")}. Use get_file_variables para ver os ids.`,
+          t("Variáveis desconhecidas: {ids}. Use get_file_variables para ver os ids.", { ids: unknown.join(", ") }),
         );
       }
 
@@ -168,7 +171,7 @@ export function registerVariableTools(registry) {
       }
 
       if (changes.length === 0)
-        return "Nada foi alterado (os valores já eram esses).";
+        return t("Nada foi alterado (os valores já eram esses).");
 
       // Mudou o nome: atualiza o título do arquivo e o H1 do corpo
       const renamed = changes.find((c) => c.id === "title");
@@ -192,14 +195,14 @@ export function registerVariableTools(registry) {
       };
       uiBus.emit("file:variables-changed", payload);
       domainBus.emit("file:variables-changed", payload);
-      return `${changes.length} variável(is) alterada(s) no rascunho de "${located.title}".`;
+      return t('{count} variável(is) alterada(s) no rascunho de "{title}".', { count: changes.length, title: located.title });
     },
   });
 
   registry.register({
     name: "auto_link_file",
     description:
-      "Ativa o link automático em UM arquivo: transforma em links internos as ocorrências de nomes e apelidos das fichas do livro (personagens, locais, sistemas) que a IA pode ler. Não mexe em código nem em textos que já são links (títulos são linkados normalmente). Salva como rascunho para o autor revisar. Requer permissão de escrita da IA no arquivo.",
+      t("Ativa o link automático em UM arquivo: transforma em links internos as ocorrências de nomes e apelidos das fichas do livro (personagens, locais, sistemas) que a IA pode ler. Não mexe em código nem em textos que já são links (títulos são linkados normalmente). Salva como rascunho para o autor revisar. Requer permissão de escrita da IA no arquivo."),
     parameters: {
       type: "object",
       properties: { path: PATH_PARAM },
@@ -220,17 +223,17 @@ export function registerVariableTools(registry) {
       );
       const terms = buildAutoLinkTerms(files, located.relPath);
       if (terms.length === 0) {
-        return "O livro não tem fichas legíveis pela IA para linkar.";
+        return t("O livro não tem fichas legíveis pela IA para linkar.");
       }
 
       const { frontmatter, body } = await readCurrent(located, ctx);
       const result = applyAutoLinksToMarkdown(body, terms);
       if (result.count === 0) {
-        return `Nenhum termo novo para linkar em "${located.title}".`;
+        return t('Nenhum termo novo para linkar em "{title}".', { title: located.title });
       }
 
       await saveDraft(located, frontmatter, result.body, ctx);
-      return `${result.count} link(s) automático(s) criado(s) no rascunho de "${located.title}".`;
+      return t('{count} link(s) automático(s) criado(s) no rascunho de "{title}".', { count: result.count, title: located.title });
     },
   });
 }

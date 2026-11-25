@@ -12,6 +12,7 @@
 import { foldText } from "../utils/helpers.js";
 import { shortHash } from "./issueCheckers.js";
 import { typeInfo } from "./issueTypes.js";
+import { t, intlLocale } from "../../shared/i18n.js";
 
 /** Arquivos de `assets/events/` que não são eventos. */
 const NOT_EVENT = /(^|\/)(index|template|timeline)\.md$/i;
@@ -118,7 +119,7 @@ export function analyzeTimeline(events) {
     for (const name of e.after) {
       const other = byName.get(foldText(name));
       if (!other) {
-        issues.push(timelineIssue("timeline-ref", e.rel, `"${e.title}" cita o evento "${name}" (depois de), mas não existe uma ficha de evento com esse nome.`));
+        issues.push(timelineIssue("timeline-ref", e.rel, t('"{title}" cita o evento "{name}" (depois de), mas não existe uma ficha de evento com esse nome.', { title: e.title, name })));
         continue;
       }
       addEdge(other, e);
@@ -126,7 +127,7 @@ export function analyzeTimeline(events) {
     for (const name of e.before) {
       const other = byName.get(foldText(name));
       if (!other) {
-        issues.push(timelineIssue("timeline-ref", e.rel, `"${e.title}" cita o evento "${name}" (antes de), mas não existe uma ficha de evento com esse nome.`));
+        issues.push(timelineIssue("timeline-ref", e.rel, t('"{title}" cita o evento "{name}" (antes de), mas não existe uma ficha de evento com esse nome.', { title: e.title, name })));
         continue;
       }
       addEdge(e, other);
@@ -142,7 +143,7 @@ export function analyzeTimeline(events) {
       const a = byRel.get(from);
       const b = byRel.get(to);
       if (year(a) !== null && year(b) !== null && year(a) > year(b)) {
-        issues.push(timelineIssue("timeline-order", b.rel, `"${a.title}" (${a.when}) deveria vir antes de "${b.title}" (${b.when}), mas o momento informado é posterior.`));
+        issues.push(timelineIssue("timeline-order", b.rel, t('"{a}" ({whenA}) deveria vir antes de "{b}" ({whenB}), mas o momento informado é posterior.', { a: a.title, whenA: a.when, b: b.title, whenB: b.when })));
       }
     }
   }
@@ -183,7 +184,7 @@ export function analyzeTimeline(events) {
           timelineIssue(
             "timeline-cycle",
             component.map((rel) => rel).sort()[0],
-            `Ordem circular entre os eventos: ${titles.join(" → ")} → ${titles[0]}. Um deles precisa ser o primeiro.`,
+            t('Ordem circular entre os eventos: {chain} → {first}. Um deles precisa ser o primeiro.', { chain: titles.join(" → "), first: titles[0] }),
           ),
         );
       }
@@ -199,7 +200,7 @@ export function analyzeTimeline(events) {
   }
   for (const e of events) {
     if (!e.when && !linked.has(e.rel)) {
-      issues.push(timelineIssue("timeline-gap", e.rel, `"${e.title}" não tem momento nem relação de ordem com outros eventos: fica fica na seção "sem data conhecida" da linha do tempo.`));
+      issues.push(timelineIssue("timeline-gap", e.rel, t('"{title}" não tem momento nem relação de ordem com outros eventos: fica fica na seção "sem data conhecida" da linha do tempo.', { title: e.title })));
     }
   }
 
@@ -212,7 +213,7 @@ export function analyzeTimeline(events) {
     if (ya !== null && yb !== null && ya !== yb) return ya - yb;
     if (ya !== null && yb === null) return -1;
     if (ya === null && yb !== null) return 1;
-    return byRel.get(x).title.localeCompare(byRel.get(y).title, "pt-BR", { numeric: true });
+    return byRel.get(x).title.localeCompare(byRel.get(y).title, intlLocale(), { numeric: true });
   };
   const ready = events.filter((e) => indegree.get(e.rel) === 0).map((e) => e.rel).sort(compare);
   const ordered = [];
@@ -253,12 +254,12 @@ export function timelineMarkdown(ordered) {
   const line = (e, i) => `${i + 1}. [${e.title.replace(/[[\]]/g, "")}](/${e.rel})${e.when ? ` — ${e.when}` : ""}`;
   const dated = ordered.filter((e) => !e.undated);
   const undated = ordered.filter((e) => e.undated);
-  const parts = ["# LINHA DO TEMPO", "> Gerada a partir das fichas de eventos. Não é editável pelo autor: quem a preenche é o sistema ou a IA."];
+  const parts = [t("# LINHA DO TEMPO"), t("> Gerada a partir das fichas de eventos. Não é editável pelo autor: quem a preenche é o sistema ou a IA.")];
   if (dated.length) parts.push(dated.map(line).join("\n"));
   if (undated.length) {
     parts.push(
-      "## Sem data conhecida",
-      '> Eventos sem momento e sem relação de ordem com outros eventos. Informe o momento ou ligue-os a outros eventos ("antes" e "depois") para que entrem na ordem.',
+      t("## Sem data conhecida"),
+      t('> Eventos sem momento e sem relação de ordem com outros eventos. Informe o momento ou ligue-os a outros eventos ("antes" e "depois") para que entrem na ordem.'),
       undated.map(line).join("\n"),
     );
   }
