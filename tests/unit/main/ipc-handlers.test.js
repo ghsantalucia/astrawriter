@@ -33,7 +33,7 @@ describe("ipc-handlers.js - Testes de Comunicação IPC e Sistema de Arquivos", 
     ipcHandlersMap.clear();
     ipcHandlesMap.clear();
 
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "draftweaver-ipc-test-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "astrawriter-ipc-test-"));
 
     mockMainWindow = {
       setTitleBarOverlay: vi.fn(),

@@ -37,7 +37,7 @@ Arquivos gerados em `release/`:
 
 - O pacote leva só o resultado do build, as dependências de produção e a pasta `templates` (modelos de livro, perfis de template e o
   Manual de Uso). Nunca leva `books/`, `.system`, `debug.log` nem a sua pasta de configurações.
-- Suas chaves de API ficam em `%APPDATA%\draftweaver-v2` (desenvolvimento). O app instalado usa **outra** pasta, `%APPDATA%\Astra Writer`,
+- Suas chaves de API ficam em `%APPDATA%\Astra Writer Dev` (desenvolvimento). O app instalado usa **outra** pasta, `%APPDATA%\Astra Writer`,
   que nasce vazia em cada computador: ele nunca enxerga as suas chaves.
 - Os livros do app instalado ficam em `Documentos\Astra Writer\books`; os de desenvolvimento, na pasta `books/` do projeto.
 - `scripts/audit-package.js` confere isso a cada release.

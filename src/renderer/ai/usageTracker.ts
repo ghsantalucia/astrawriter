@@ -6,7 +6,7 @@
  * Os dados ficam no `localStorage` e são zerados a cada novo dia (data local).
  */
 
-const STORAGE_KEY = "draftweaver.aiDailyUsage";
+const STORAGE_KEY = "astra.aiDailyUsage";
 
 /**
  * Data local atual no formato AAAA-MM-DD.
@@ -55,7 +55,7 @@ export function addDailyUsage(provider, model, amount) {
   addToHistory(key, amount);
 }
 
-const HISTORY_KEY = "draftweaver.aiUsageHistory";
+const HISTORY_KEY = "astra.aiUsageHistory";
 /** Quantos dias o relatório de uso guarda. */
 const HISTORY_DAYS = 30;
 
@@ -124,7 +124,7 @@ export function getDailyUsage(provider, model) {
   );
 }
 
-const QUOTA_KEY = "draftweaver.aiLearnedQuotas";
+const QUOTA_KEY = "astra.aiLearnedQuotas";
 
 /**
  * Memoriza a cota diária de requisições de um modelo, descoberta quando a API a informa ao estourar o limite.

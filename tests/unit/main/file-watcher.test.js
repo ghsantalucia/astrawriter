@@ -13,7 +13,7 @@ describe("file-watcher.js - Testes de Integração com Disco Real", () => {
 
   beforeEach(() => {
     // Cria uma pasta temporária isolada no sistema operacional
-    tempBooksDir = fs.mkdtempSync(path.join(os.tmpdir(), "draftweaver-test-"));
+    tempBooksDir = fs.mkdtempSync(path.join(os.tmpdir(), "astrawriter-test-"));
 
     const booksFolderPath = path.join(tempBooksDir, "books");
     fs.mkdirSync(booksFolderPath, { recursive: true });

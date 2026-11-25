@@ -287,7 +287,7 @@ No app instalado, `books/` fica ao lado do executável e `templates/` e o ícone
 - **Esc no chat:** fecha a gaveta e devolve a navegação por setas ao explorer (`explorer:keyboard-restore` → `ExplorerKeyboard.restore`).
 - **Auto-link:** passa a linkar também em títulos (só blocos de código e texto já linkado ficam de fora).
 - **Intro:** primeira execução sem tema salvo usa o tema claro (igual ao themeManager); a estrela cadente cruza a tela na diagonal (de ~36% da largura, no alto, até embaixo à direita).
-- **Nome do produto:** "Astra Writer" (um "t"). O `productName` técnico do `package.json` continua `draftweaver-v2` (define a pasta de dados do usuário).
+- **Nome do produto:** "Astra Writer" (um "t"). Em desenvolvimento os dados ficam em `%APPDATA%\Astra Writer Dev`; o app instalado usa `%APPDATA%\Astra Writer`.
 
 ## Centrais, Central de Revisões, eventos, digests e contas de IA
 

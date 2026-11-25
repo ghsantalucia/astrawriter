@@ -11,13 +11,13 @@ import { setupIpcHandlers } from "./ipc-handlers.js";
 import { ensureBooksDir, iconPath } from "./paths.js";
 import { installManualBook } from "./first-run.js";
 
-// Em desenvolvimento, os dados do app continuam na pasta antiga (draftweaver-v2): o nome do produto agora é "Astra Writer", que
-// é a pasta de dados do app instalado (assim o instalado nunca enxerga as chaves e configurações de desenvolvimento).
+// Em desenvolvimento, os dados do app ficam na pasta "Astra Writer Dev". A pasta "Astra Writer" é a do app instalado
+// (assim o instalado nunca enxerga as chaves e configurações de desenvolvimento).
 if (process.env.ASTRA_DATA_DIR) {
   // Testes E2E: configurações e livros numa pasta isolada
   app.setPath("userData", path.join(process.env.ASTRA_DATA_DIR, "userData"));
 } else if (!app.isPackaged) {
-  app.setPath("userData", path.join(app.getPath("appData"), "draftweaver-v2"));
+  app.setPath("userData", path.join(app.getPath("appData"), "Astra Writer Dev"));
 }
 
 // Trata criação e remoção de atalhos no Windows durante instalação/desinstalação

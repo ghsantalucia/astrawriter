@@ -70,17 +70,17 @@ describe("helpers.js - Funções Auxiliares Genéricas", () => {
   describe("normalizePath()", () => {
     it("deve converter contra-barras (Windows '\\') em barras normais ('/')", () => {
       const windowsPath =
-        "C:\\Workspace\\draftweaver\\books\\book_01\\cap01.md";
+        "C:\\Workspace\\astrawriter\\books\\book_01\\cap01.md";
       const result = normalizePath(windowsPath);
 
-      expect(result).toBe("C:/Workspace/draftweaver/books/book_01/cap01.md");
+      expect(result).toBe("C:/Workspace/astrawriter/books/book_01/cap01.md");
     });
 
     it("deve manter inalterados caminhos que já utilizam barras normais ('/')", () => {
-      const unixPath = "usr/workspace/draftweaver/books/book_01/cap01.md";
+      const unixPath = "usr/workspace/astrawriter/books/book_01/cap01.md";
       const result = normalizePath(unixPath);
 
-      expect(result).toBe("usr/workspace/draftweaver/books/book_01/cap01.md");
+      expect(result).toBe("usr/workspace/astrawriter/books/book_01/cap01.md");
     });
 
     it("deve retornar uma string vazia caso o caminho seja null, undefined ou vazio", () => {
@@ -96,7 +96,7 @@ describe("helpers.js - Funções Auxiliares Genéricas", () => {
   describe("getRelativePath()", () => {
     it("deve extrair o caminho relativo a partir da pasta 'books' quando o formato for válido", () => {
       const fullPath =
-        "C:\\Workspace\\draftweaver\\books\\book_01\\capitulos\\01.md";
+        "C:\\Workspace\\astrawriter\\books\\book_01\\capitulos\\01.md";
       const result = getRelativePath(fullPath);
 
       expect(result).toBe("book_01/capitulos/01.md");
@@ -112,18 +112,18 @@ describe("helpers.js - Funções Auxiliares Genéricas", () => {
 
     it("deve retornar null se a pasta 'books' não existir no caminho", () => {
       const invalidPath =
-        "C:\\Workspace\\draftweaver\\documents\\book_01\\cap01.md";
+        "C:\\Workspace\\astrawriter\\documents\\book_01\\cap01.md";
       expect(getRelativePath(invalidPath)).toBeNull();
     });
 
     it("deve retornar null se a pasta 'books' for a última do caminho sem subpastas", () => {
-      const pathEndingInBooks = "C:\\Workspace\\draftweaver\\books";
+      const pathEndingInBooks = "C:\\Workspace\\astrawriter\\books";
       expect(getRelativePath(pathEndingInBooks)).toBeNull();
     });
 
     it("deve retornar null se a pasta do livro não começar com o prefixo obrigatorio 'book_'", () => {
       const invalidBookFolder =
-        "C:\\Workspace\\draftweaver\\books\\meu_livro_fantasia\\cap01.md";
+        "C:\\Workspace\\astrawriter\\books\\meu_livro_fantasia\\cap01.md";
       expect(getRelativePath(invalidBookFolder)).toBeNull();
     });
 
